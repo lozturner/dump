@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TLDR — Session Map</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #f7f6f3;
+    --ink: #1a1a1a;
+    --muted: #888;
+    --accent: #e84c1e;
+    --accent2: #2563eb;
+    --accent3: #16a34a;
+    --warn: #d97706;
+    --border: #ddd;
+    --card: #fff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--ink);
+    padding: 32px 20px 60px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 36px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 16px;
+  }
+
+  header .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  header .sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .thread {
+    margin-bottom: 28px;
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    position: relative;
+  }
+
+  .thread::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 4px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--border);
+  }
+
+  .thread.red { border-left-color: var(--accent); }
+  .thread.red::before { border-color: var(--accent); }
+
+  .thread.blue { border-left-color: var(--accent2); }
+  .thread.blue::before { border-color: var(--accent2); }
+
+  .thread.green { border-left-color: var(--accent3); }
+  .thread.green::before { border-color: var(--accent3); }
+
+  .thread.amber { border-left-color: var(--warn); }
+  .thread.amber::before { border-color: var(--warn); }
+
+  .thread-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .thread.red .thread-title { color: var(--accent); }
+  .thread.blue .thread-title { color: var(--accent2); }
+  .thread.green .thread-title { color: var(--accent3); }
+  .thread.amber .thread-title { color: var(--warn); }
+
+  .thread p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: #333;
+  }
+
+  .branches {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .branch {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #444;
+  }
+
+  .branch-icon {
+    font-size: 11px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .tag.open { background: #fef3c7; color: #92400e; }
+  .tag.lost { background: #fee2e2; color: #991b1b; }
+  .tag.done { background: #dcfce7; color: #166534; }
+  .tag.blocked { background: #f3f4f6; color: #6b7280; }
+
+  .status-bar {
+    margin-top: 40px;
+    padding: 16px 20px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .status-bar .status-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 8px;
+  }
+
+  .status-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .stat { text-align: center; }
+  .stat .n { font-size: 22px; font-weight: 600; }
+  .stat .l { font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: 0.1em; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">Session TLDR · 17 Apr 2026</div>
+  <h1>Broken Stack.<br>Can't Execute.</h1>
+  <div class="sub">4 active threads · 2 open · 1 lost · 1 blocked</div>
+</header>
+
+<div class="thread red">
+  <div class="thread-title">🔴 Core Problem</div>
+  <p>All the tools exist. Nothing is wired. The gap between "Claude reasons about it" and "a thing actually happens in your life" is the entire problem.</p>
+  <div class="branches">
+    <div class="branch"><span class="branch-icon">↳</span> You can talk to Claude. Output stays in the chat. It doesn't reach your computer, your files, your UC account, your applications.</div>
+    <div class="branch"><span class="branch-icon">↳</span> The full stack exists technically — LLM → code → agent → pipeline → computer control — but it's not assembled for you.</div>
+    <div class="branch"><span class="branch-icon">↳</span> Workarounds exist (browser automation, Zapier, Python scripts, human-in-loop steps) but none are live yet. <span class="tag open">Open</span></div>
+  </div>
+</div>
+
+<div class="thread blue">
+  <div class="thread-title">🔵 The Ecosystem Problem</div>
+  <p>You've mapped the full LLM stack — chat → IDE → agent → pipeline → whole-computer — but it's a ring fence. Bubble-esque. Doesn't connect back to real life.</p>
+  <div class="branches">
+    <div class="branch"><span class="branch-icon">↳</span> Claude (chat, Code, MCP, browser extension), Grok, Gemini, ChatGPT — all competing at the same layer.</div>
+    <div class="branch"><span class="branch-icon">↳</span> Cowork, Cursor, VS Code — one layer above.</div>
+    <div class="branch"><span class="branch-icon">↳</span> Perplexity, full agents, complete pipeline software — another layer above that.</div>
+    <div class="branch"><span class="branch-icon">↳</span> 3-year finding: tools supplement exec function but require exec function to set up. Recursive paradox. <span class="tag blocked">Blocked</span></div>
+  </div>
+</div>
+
+<div class="thread amber">
+  <div class="thread-title">🟠 Voice / HTML Build Problem</div>
+  <p>Every time you build a voice tool in HTML, it breaks. Latency. Licensing. Libraries fight each other.</p>
+  <div class="branches">
+    <div class="branch"><span class="branch-icon">↳</span> Tried: ElevenLabs, Picovoice, Pinecone-adjacent TTS, 4–5 others. All have latency or integration issues.</div>
+    <div class="branch"><span class="branch-icon">↳</span> Native voice in ChatGPT / Gemini / Claude app just works — but their tech is different from each other.</div>
+    <div class="branch"><span class="branch-icon">↳</span> Native Web Speech API (browser-built-in, zero latency) was proposed as the fix. <span class="tag open">Not yet built</span></div>
+  </div>
+</div>
+
+<div class="thread green">
+  <div class="thread-title">🟢 Lost Tool — Three Lane Overseer</div>
+  <p>You referenced a three-lane interaction/pipeline oversight tool that was discussed previously. I couldn't find it.</p>
+  <div class="branches">
+    <div class="branch"><span class="branch-icon">↳</span> Not in this conversation. Not found in search across past chats.</div>
+    <div class="branch"><span class="branch-icon">↳</span> Closest match: 3D road with left/centre/right lanes (March 14) — but that's chat history viz, not an oversight layer.</div>
+    <div class="branch"><span class="branch-icon">↳</span> May be in a chat not yet indexed, or a concept not yet fully externalised. <span class="tag lost">Lost</span></div>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-label">Where we are right now</div>
+  <div class="status-row">
+    <div class="stat"><div class="n">4</div><div class="l">Threads</div></div>
+    <div class="stat"><div class="n">2</div><div class="l">Open</div></div>
+    <div class="stat"><div class="n">1</div><div class="l">Lost</div></div>
+    <div class="stat"><div class="n">1</div><div class="l">Blocked</div></div>
+  </div>
+</div>
+
+</body>
+</html>
