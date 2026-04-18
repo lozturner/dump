@@ -1,6 +1,6 @@
 {
-  "generated": "2026-04-18T15:33:02",
-  "count": 24,
+  "generated": "2026-04-18T15:39:39",
+  "count": 25,
   "pages": [
     {
       "file": "ai.html",
@@ -128,6 +128,20 @@
       ]
     },
     {
+      "file": "epigraph.html",
+      "title": "Epigraph \u00b7 Laurence Turner, 2026",
+      "links": [
+        "gallery.html",
+        "hub.html",
+        "index.html",
+        "path.html",
+        "picture.html"
+      ],
+      "incoming": [
+        "index.html"
+      ]
+    },
+    {
       "file": "gallery.html",
       "title": "Gallery \u00b7 every page and how they link",
       "links": [
@@ -142,6 +156,7 @@
         "court.html",
         "custom.html",
         "devices.html",
+        "epigraph.html",
         "gov.html",
         "health.html",
         "ideas.html",
@@ -202,6 +217,7 @@
         "complaints.html",
         "court.html",
         "devices.html",
+        "epigraph.html",
         "gallery.html",
         "gov.html",
         "health.html",
@@ -262,6 +278,7 @@
         "complaints.html",
         "court.html",
         "devices.html",
+        "epigraph.html",
         "gallery.html",
         "gov.html",
         "health.html",
@@ -285,6 +302,7 @@
         "court.html",
         "custom.html",
         "devices.html",
+        "epigraph.html",
         "gallery.html",
         "gov.html",
         "health.html",
@@ -388,6 +406,7 @@
         "complaints.html",
         "court.html",
         "devices.html",
+        "epigraph.html",
         "gov.html",
         "health.html",
         "ideas.html",
@@ -434,6 +453,7 @@
         "complaints.html",
         "court.html",
         "devices.html",
+        "epigraph.html",
         "gov.html",
         "health.html",
         "ideas.html",
