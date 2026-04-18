@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hub — Always On</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0e0f12;
+    --panel: #16181d;
+    --panel2: #1c1f25;
+    --ink: #e8e6e0;
+    --muted: #7a7e88;
+    --dim: #4a4e58;
+    --line: #23262d;
+    --accent: #e84c1e;
+    --blue: #4b8df8;
+    --green: #3fb950;
+    --amber: #d89a2a;
+    --violet: #a371f7;
+    --pink: #e8568c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { background: var(--bg); color: var(--ink); }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .shell {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 28px 22px 80px;
+  }
+
+  /* ── TOP BAR: always-on indicator ───────────────── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 14px 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    margin-bottom: 20px;
+  }
+
+  .topbar .left { display: flex; align-items: center; gap: 12px; }
+
+  .heartbeat {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 0 rgba(63,185,80,0.7);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(63,185,80,0.6); }
+    70%  { box-shadow: 0 0 0 10px rgba(63,185,80,0); }
+    100% { box-shadow: 0 0 0 0 rgba(63,185,80,0); }
+  }
+
+  .topbar .label { letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .topbar .value { color: var(--ink); }
+  .topbar .right { display: flex; gap: 18px; color: var(--muted); }
+  .topbar .right b { color: var(--ink); font-weight: 500; }
+
+  /* ── HEADER ─────────────────────────────────────── */
+  header.hero {
+    padding: 6px 4px 22px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 24px;
+  }
+  header.hero .kicker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  header.hero h1 {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  header.hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  header.hero .tagline {
+    margin-top: 10px;
+    font-size: 13.5px;
+    color: var(--muted);
+    max-width: 640px;
+    line-height: 1.55;
+  }
+
+  /* ── LAYER DIAGRAM ──────────────────────────────── */
+  .layer-diagram {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: center;
+    gap: 0;
+    padding: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 28px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+  }
+  .layer-node {
+    padding: 10px 12px;
+    text-align: center;
+    border-radius: 6px;
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .layer-node.mid {
+    background: linear-gradient(90deg, rgba(232,76,30,0.12), rgba(75,141,248,0.12));
+    border-color: var(--accent);
+    color: var(--ink);
+  }
+  .layer-arrow {
+    color: var(--dim);
+    padding: 0 10px;
+    font-size: 14px;
+  }
+
+  /* ── SECTIONS GRID ──────────────────────────────── */
+  .sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 760px) {
+    .sections { grid-template-columns: 1fr; }
+    .layer-diagram { font-size: 9px; }
+  }
+
+  .section {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px 18px 16px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .section.full { grid-column: 1 / -1; }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .section .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .section[data-hue="accent"] .dot { background: var(--accent); }
+  .section[data-hue="blue"]   .dot { background: var(--blue); }
+  .section[data-hue="green"]  .dot { background: var(--green); }
+  .section[data-hue="amber"]  .dot { background: var(--amber); }
+  .section[data-hue="violet"] .dot { background: var(--violet); }
+  .section[data-hue="pink"]   .dot { background: var(--pink); }
+
+  .section[data-hue="accent"] .section-title { color: var(--accent); }
+  .section[data-hue="blue"]   .section-title { color: var(--blue); }
+  .section[data-hue="green"]  .section-title { color: var(--green); }
+  .section[data-hue="amber"]  .section-title { color: var(--amber); }
+  .section[data-hue="violet"] .section-title { color: var(--violet); }
+  .section[data-hue="pink"]   .section-title { color: var(--pink); }
+
+  .last-check {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .section p.lede {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #c8c6bf;
+  }
+
+  .rows { display: flex; flex-direction: column; gap: 8px; }
+
+  .row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #b8b6b0;
+    padding-left: 2px;
+  }
+  .row .bullet {
+    color: var(--dim);
+    margin-top: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .row .k {
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    min-width: 78px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+  .row .v { flex: 1; }
+
+  .tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+  .tag.new    { background: rgba(63,185,80,0.15); color: var(--green); }
+  .tag.wait   { background: rgba(216,154,42,0.15); color: var(--amber); }
+  .tag.live   { background: rgba(75,141,248,0.15); color: var(--blue); }
+  .tag.stale  { background: rgba(122,126,136,0.15); color: var(--muted); }
+  .tag.hot    { background: rgba(232,76,30,0.15); color: var(--accent); }
+
+  .linklike {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted var(--dim);
+  }
+  .linklike:hover { border-bottom-color: var(--ink); color: var(--ink); }
+
+  /* ── CHECK-IN FOOTER ────────────────────────────── */
+  .checkin {
+    margin-top: 28px;
+    padding: 16px 18px;
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .checkin b { color: var(--ink); font-weight: 500; }
+  .checkin .frame {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 6px;
+  }
+  .checkin .arrow { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Always-on indicator bar -->
+  <div class="topbar">
+    <div class="left">
+      <span class="heartbeat"></span>
+      <span class="label">Monitor layer</span>
+      <span class="value">running · uninterrupted since 11 Apr 2026</span>
+    </div>
+    <div class="right">
+      <span>Last you checked in: <b>3h 12m ago</b></span>
+      <span>Changes while away: <b>7</b></span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="hero">
+    <div class="kicker">Root UI · Hub · 18 Apr 2026</div>
+    <h1>You don't start me.<br>You <em>check on</em> me.</h1>
+    <div class="tagline">
+      A layer between the websites and documents you open and the data behind them.
+      When you open a browser or an app, I've already been watching. Everything below is what's
+      changed since you were last here — grouped by the lanes that matter.
+    </div>
+  </header>
+
+  <!-- Layer diagram: you ↔ hub ↔ data -->
+  <div class="layer-diagram">
+    <div class="layer-node">Websites · Apps · Docs</div>
+    <div class="layer-arrow">⇄</div>
+    <div class="layer-node mid">Hub · Always-on Monitor</div>
+    <div class="layer-arrow">⇄</div>
+    <div class="layer-node">Your Data · Your Tools</div>
+  </div>
+
+  <!-- Lane sections -->
+  <div class="sections">
+
+    <!-- 1. Family Court / Investigation -->
+    <section class="section" data-hue="accent">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Family Court · Evidence</div>
+        <div class="last-check">watched continuously</div>
+      </div>
+      <p class="lede">Investigation evidence for the family-court application concerning your children. Everything filed, cross-referenced, waiting for your eyes — not waiting for you to ask.</p>
+      <div class="rows">
+        <div class="row"><span class="k">Since last</span><span class="v">2 new documents auto-sorted into the children's timeline. <span class="tag new">New</span></span></div>
+        <div class="row"><span class="k">Flag</span><span class="v">One message thread appears to contradict the Feb 18 statement — flagged for your review. <span class="tag hot">Review</span></span></div>
+        <div class="row"><span class="k">Filing</span><span class="v">Next hearing window opens <b>in 9 days</b>. Application bundle is 73% assembled.</span></div>
+        <div class="row"><span class="k">You left</span><span class="v">You were reading <a class="linklike" href="#">exhibit-C — messages-q4-2025.pdf</a>. Resume where you stopped.</span></div>
+      </div>
+    </section>
+
+    <!-- 2. Markets / Options -->
+    <section class="section" data-hue="green">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Markets · Positions</div>
+        <div class="last-check">live · 3s tick</div>
+      </div>
+      <p class="lede">Today's markets against your sheets and the options you've chosen. I'm not fetching on click — I've been tracking since open.</p>
+      <div class="rows">
+        <div class="row"><span class="k">Sheet</span><span class="v"><a class="linklike" href="#">options-watchlist.xlsx</a> — 3 of your legs moved into the money. <span class="tag live">Live</span></span></div>
+        <div class="row"><span class="k">Alert</span><span class="v">IV crush on the position you flagged Tue — premium down 22%. <span class="tag hot">Act</span></span></div>
+        <div class="row"><span class="k">Today</span><span class="v">Indices mixed. Your hedge side is +1.4%, directional side −0.3%.</span></div>
+        <div class="row"><span class="k">Pending</span><span class="v">Limit order you placed on Tue still unfilled at your strike. <span class="tag wait">Waiting</span></span></div>
+      </div>
+    </section>
+
+    <!-- 3. Complaints / CC complaint -->
+    <section class="section" data-hue="blue">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Complaints · CC Complaint</div>
+        <div class="last-check">checked 14m ago</div>
+      </div>
+      <p class="lede">Support layer for your complaints work — including the CC complaint. I watch the inboxes and portals so you don't have to keep reopening them.</p>
+      <div class="rows">
+        <div class="row"><span class="k">CC</span><span class="v">Case <b>#CC-2026-0842</b> — status unchanged since 11 Apr. Next expected response: <b>25 Apr</b>. <span class="tag wait">Waiting</span></span></div>
+        <div class="row"><span class="k">Reply</span><span class="v">Ombudsman acknowledgement arrived 09:17 this morning. <span class="tag new">New</span></span></div>
+        <div class="row"><span class="k">Draft</span><span class="v">Your half-written escalation letter is still in <a class="linklike" href="#">complaints/escalation-draft.md</a>.</span></div>
+        <div class="row"><span class="k">Pattern</span><span class="v">I spotted 2 of your earlier complaints with the same reference officer — cross-linked.</span></div>
+      </div>
+    </section>
+
+    <!-- 4. Between links & your own tools -->
+    <section class="section" data-hue="violet">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Links ⇄ Your Tools</div>
+        <div class="last-check">bridging</div>
+      </div>
+      <p class="lede">The in-between layer. Where websites meet the tools you've built for yourself. I carry things across so you don't have to copy-paste.</p>
+      <div class="rows">
+        <div class="row"><span class="k">Bridged</span><span class="v">4 URLs from today's browsing pushed into <a class="linklike" href="#">research-vault</a>. <span class="tag new">New</span></span></div>
+        <div class="row"><span class="k">Capture</span><span class="v">Screenshot clipboard → indexed + OCR'd into your evidence folder.</span></div>
+        <div class="row"><span class="k">Duplicate</span><span class="v">You opened the same AAT page 3× this week — pinned to your tool shelf.</span></div>
+        <div class="row"><span class="k">Dormant</span><span class="v">2 of your own tools haven't been used in 11 days. Still running. <span class="tag stale">Idle</span></span></div>
+      </div>
+    </section>
+
+    <!-- 5. Inbox -->
+    <section class="section" data-hue="blue">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Inbox · Triaged for You</div>
+        <div class="last-check">sweeping · every 60s</div>
+      </div>
+      <p class="lede">Every inbox, triaged by what you already told me matters. The noise is held back. Only what reaches you reaches you on purpose.</p>
+      <div class="rows">
+        <div class="row"><span class="k">Held</span><span class="v"><b>42</b> low-priority emails parked — not shown. <span class="tag stale">Quiet</span></span></div>
+        <div class="row"><span class="k">Forward</span><span class="v">1 from your solicitor, subject mentions <i>affidavit</i>. <span class="tag hot">Open</span></span></div>
+        <div class="row"><span class="k">Reply-due</span><span class="v">3 messages where <b>you</b> owe the reply. Oldest: 6 days.</span></div>
+        <div class="row"><span class="k">Thread</span><span class="v">CC complaint thread branched — 2 recipients CC'd who weren't before.</span></div>
+      </div>
+    </section>
+
+    <!-- 6. Calendar / deadlines -->
+    <section class="section" data-hue="pink">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Calendar · Deadlines</div>
+        <div class="last-check">watching · all sources</div>
+      </div>
+      <p class="lede">Every deadline pulled from every portal, letter, and thread. You don't chase them — I chase them and surface what's nearest.</p>
+      <div class="rows">
+        <div class="row"><span class="k">T−9d</span><span class="v">Family court filing window opens. <span class="tag hot">Hard</span></span></div>
+        <div class="row"><span class="k">T−3d</span><span class="v">Centrelink review form — pre-filled, waiting your signature. <span class="tag wait">Draft ready</span></span></div>
+        <div class="row"><span class="k">T−1d</span><span class="v">Options expiry on 2 of your short legs.</span></div>
+        <div class="row"><span class="k">Today</span><span class="v">16:30 — call-back window opens with the ombudsman.</span></div>
+      </div>
+    </section>
+
+    <!-- 7. Gov portals -->
+    <section class="section" data-hue="green">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Gov Portals · Sessions Live</div>
+        <div class="last-check">sessions held · 4 open</div>
+      </div>
+      <p class="lede">Centrelink, ATO, Medicare, AAT, MyGov — I hold the sessions open, scraped and mirrored, so you don't re-login into the abyss every time.</p>
+      <div class="rows">
+        <div class="row"><span class="k">MyGov</span><span class="v">1 new message (unread in portal, already read here).</span></div>
+        <div class="row"><span class="k">ATO</span><span class="v">Assessment issued — refund due <b>$1,284</b>. <span class="tag new">New</span></span></div>
+        <div class="row"><span class="k">AAT</span><span class="v">Your matter moved status: <i>Pre-hearing</i> → <i>Directions issued</i>. <span class="tag hot">Change</span></span></div>
+        <div class="row"><span class="k">Medicare</span><span class="v">2 items still unreimbursed from March.</span></div>
+      </div>
+    </section>
+
+    <!-- 8. Research / reading -->
+    <section class="section" data-hue="violet">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Research · Reading Stack</div>
+        <div class="last-check">pages read · indexed</div>
+      </div>
+      <p class="lede">What you read, where you stopped, what I pulled from it while you were reading something else.</p>
+      <div class="rows">
+        <div class="row"><span class="k">Stopped</span><span class="v"><a class="linklike" href="#">Hansard · 2024-11-14</a> — page 47, ¶3. Bookmark held.</span></div>
+        <div class="row"><span class="k">Extracted</span><span class="v">11 quotes tagged for your submission. <span class="tag new">New</span></span></div>
+        <div class="row"><span class="k">Contradictions</span><span class="v">2 passages contradict each other — flagged side-by-side.</span></div>
+        <div class="row"><span class="k">Queue</span><span class="v">5 PDFs waiting — sorted by relevance to the CC complaint.</span></div>
+      </div>
+    </section>
+
+    <!-- 9. Money / subscriptions -->
+    <section class="section" data-hue="amber">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Money · Accounts &amp; Subs</div>
+        <div class="last-check">watching · balance deltas</div>
+      </div>
+      <p class="lede">Balances, recurring charges, the subscriptions you forgot you had. I don't touch anything — I just show you what's leaving, before it leaves.</p>
+      <div class="rows">
+        <div class="row"><span class="k">Upcoming</span><span class="v">4 charges in next 7 days · total <b>$387.20</b>.</span></div>
+        <div class="row"><span class="k">Zombie</span><span class="v">2 subscriptions you've used 0× in 90 days. <span class="tag wait">Review</span></span></div>
+        <div class="row"><span class="k">Refund</span><span class="v">Disputed charge from 04 Apr — reversed overnight. <span class="tag new">Won</span></span></div>
+        <div class="row"><span class="k">Cashflow</span><span class="v">Net this week: <b>+$612</b>. Options P/L not yet realised.</span></div>
+      </div>
+    </section>
+
+    <!-- 10. People / contacts -->
+    <section class="section" data-hue="accent">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>People · Supports &amp; Contacts</div>
+        <div class="last-check">contact graph · quiet</div>
+      </div>
+      <p class="lede">The humans in the loop. Who's helping, who's owed a reply, who's gone quiet, who you should probably not contact today.</p>
+      <div class="rows">
+        <div class="row"><span class="k">Solicitor</span><span class="v">Last contact 3 days ago. Draft reply sitting in your outbox.</span></div>
+        <div class="row"><span class="k">Support</span><span class="v">Your sister texted — no urgency flag. <span class="tag stale">Low</span></span></div>
+        <div class="row"><span class="k">Quiet</span><span class="v">2 contacts who usually reply within 24h are at 4 days. Noted, not alarming.</span></div>
+        <div class="row"><span class="k">Avoid</span><span class="v">Per your rule: do-not-contact list respected. 0 accidental pings.</span></div>
+      </div>
+    </section>
+
+    <!-- 11. Devices -->
+    <section class="section" data-hue="blue">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Devices · Where You Are</div>
+        <div class="last-check">5 devices · 1 active</div>
+      </div>
+      <p class="lede">Which device you're on now, which ones are idle, what each one was last doing. Same hub, any device you open.</p>
+      <div class="rows">
+        <div class="row"><span class="k">This</span><span class="v">Desktop · Firefox · check-in 16:42. <span class="tag live">Active</span></span></div>
+        <div class="row"><span class="k">Phone</span><span class="v">Idle 2h · last app: Gmail · 1 draft unsaved — synced here.</span></div>
+        <div class="row"><span class="k">Tablet</span><span class="v">Last used 11 Apr reading <i>exhibit-C</i>. Position mirrored.</span></div>
+        <div class="row"><span class="k">Laptop</span><span class="v">Sleeping. 6 tabs held for you.</span></div>
+      </div>
+    </section>
+
+    <!-- 12. Captures / clipboard -->
+    <section class="section" data-hue="green">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Captures · Clipboard &amp; Voice</div>
+        <div class="last-check">rolling · 24h retained</div>
+      </div>
+      <p class="lede">Everything you copied, screenshotted, or spoke at a device — kept, transcribed, searchable. None of it lost to the void.</p>
+      <div class="rows">
+        <div class="row"><span class="k">Clipboard</span><span class="v">14 items in last 24h · 3 pinned by you.</span></div>
+        <div class="row"><span class="k">Screenshots</span><span class="v">6 taken today · all OCR'd into text.</span></div>
+        <div class="row"><span class="k">Voice</span><span class="v">Walking note (08:12) transcribed — 340 words. <span class="tag new">New</span></span></div>
+        <div class="row"><span class="k">Lost?</span><span class="v">Nothing. Recovery point: 11 Apr 09:00.</span></div>
+      </div>
+    </section>
+
+    <!-- 13. AI threads -->
+    <section class="section" data-hue="violet">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>AI Threads · Continuity</div>
+        <div class="last-check">threaded · no amnesia</div>
+      </div>
+      <p class="lede">Every AI chat you've opened, knitted together. No more retelling the same backstory to a fresh window.</p>
+      <div class="rows">
+        <div class="row"><span class="k">Claude</span><span class="v">Current thread · 2 linked prior sessions surfaced.</span></div>
+        <div class="row"><span class="k">ChatGPT</span><span class="v">1 open thread on options strategy · last reply 2d.</span></div>
+        <div class="row"><span class="k">Gemini</span><span class="v">1 thread on court-filing format · archived for you.</span></div>
+        <div class="row"><span class="k">Carry-over</span><span class="v">3 unresolved concepts tracked across models — <i>three lane overseer</i> still missing.</span></div>
+      </div>
+    </section>
+
+    <!-- 14. Children (non-court) -->
+    <section class="section" data-hue="pink">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Children · Day-to-Day</div>
+        <div class="last-check">quiet watch</div>
+      </div>
+      <p class="lede">Separate from the court file. The small daily things — school comms, calendar, the stuff you don't want to forget because the big thing is loud.</p>
+      <div class="rows">
+        <div class="row"><span class="k">School</span><span class="v">1 newsletter · 1 permission form due <b>Fri</b>. <span class="tag wait">Sign</span></span></div>
+        <div class="row"><span class="k">Dates</span><span class="v">Upcoming: parent-teacher window, 29 Apr.</span></div>
+        <div class="row"><span class="k">Photos</span><span class="v">7 new photos on shared album. Indexed by face + date.</span></div>
+        <div class="row"><span class="k">Quiet</span><span class="v">No school-side concerns logged this week.</span></div>
+      </div>
+    </section>
+
+    <!-- 15. Health / energy -->
+    <section class="section" data-hue="amber">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Health · Energy &amp; Load</div>
+        <div class="last-check">passive signals</div>
+      </div>
+      <p class="lede">How much you've had to carry today. When it's heavy, I hold more back. When it's light, I surface more. Your rules.</p>
+      <div class="rows">
+        <div class="row"><span class="k">Sleep</span><span class="v">5h 40m · below your 7h target. <span class="tag wait">Low</span></span></div>
+        <div class="row"><span class="k">Load</span><span class="v">Decision count today: 38. I'm filtering harder.</span></div>
+        <div class="row"><span class="k">Meds</span><span class="v">Morning dose confirmed 08:04.</span></div>
+        <div class="row"><span class="k">Suggest</span><span class="v">I'm holding 3 non-urgent items until tomorrow unless you ask.</span></div>
+      </div>
+    </section>
+
+    <!-- 16. Ideas / concepts -->
+    <section class="section" data-hue="accent">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Ideas · Unresolved Concepts</div>
+        <div class="last-check">archive · watching</div>
+      </div>
+      <p class="lede">Things you said once, half-said once, or drew on a napkin once. I don't let them fall off.</p>
+      <div class="rows">
+        <div class="row"><span class="k">Missing</span><span class="v"><b>Three-lane overseer</b> · original context still not found. <span class="tag hot">Hunt</span></span></div>
+        <div class="row"><span class="k">Tracked</span><span class="v"><b>Ambient layer / always-on hub</b> · this thing. You're in it.</span></div>
+        <div class="row"><span class="k">Seeded</span><span class="v"><b>Voice via Web Speech API</b> · not built yet. Still on the list.</span></div>
+        <div class="row"><span class="k">Fresh</span><span class="v"><b>Dopamine-hook UI framework</b> · template started, grows each check-in.</span></div>
+      </div>
+    </section>
+
+    <!-- 17. Progress / check-in log — full width -->
+    <section class="section full" data-hue="amber">
+      <div class="section-head">
+        <div class="section-title"><span class="dot"></span>Progress · Since You Were Last Here</div>
+        <div class="last-check">rolling log · 3h 12m window</div>
+      </div>
+      <p class="lede">The things you were in the middle of. The links you found. The information that got located. Picks up cold — so you don't have to remember what you were doing.</p>
+      <div class="rows">
+        <div class="row"><span class="bullet">01</span><span class="v"><b>Last action —</b> you highlighted a paragraph in <a class="linklike" href="#">exhibit-C</a> at 14:46. Selection saved.</span></div>
+        <div class="row"><span class="bullet">02</span><span class="v"><b>Links found —</b> 3 gov.au pages, 1 Hansard transcript, 1 news archive. All captured with source + date.</span></div>
+        <div class="row"><span class="bullet">03</span><span class="v"><b>Information located —</b> correspondence from <b>Dec 2024</b> matching your search "duty of care" — lives in <a class="linklike" href="#">vault / 2024-Q4</a>.</span></div>
+        <div class="row"><span class="bullet">04</span><span class="v"><b>Complaints —</b> 1 status change, 1 new reply, 0 deadlines missed.</span></div>
+        <div class="row"><span class="bullet">05</span><span class="v"><b>Markets —</b> 2 alerts fired while you were away (logged, not acted on — your rule).</span></div>
+        <div class="row"><span class="bullet">06</span><span class="v"><b>Open loops —</b> 3 tabs you closed without saving were cached. Restore set ready.</span></div>
+        <div class="row"><span class="bullet">07</span><span class="v"><b>Unresolved —</b> the "three lane overseer" concept is still missing from the archive. Watch continues.</span></div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Check-in footer: reframes the power arrangement -->
+  <div class="checkin">
+    <div class="frame">Framing · the arrangement</div>
+    I am not a thing you start. <span class="arrow">→</span> I am a layer that is already running<br>
+    between the websites and documents you open and the data underneath.<br>
+    The next move is <b>you checking on me</b>, not me booting up for you.
+  </div>
+
+</div>
+</body>
+</html>
