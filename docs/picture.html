@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e0f12">
+<title>The picture · Access to my children</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* page-specific styles, scoped here so it doesn't leak */
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:center}
+  .stat .n{font-size:26px;font-weight:600}
+  .stat .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+  .stat .sub{font-size:11px;color:var(--dim);margin-top:4px;font-family:ui-monospace,Menlo,monospace}
+
+  .gap-bars{display:flex;flex-direction:column;gap:14px;margin-top:8px}
+  .gap-bar{display:flex;flex-direction:column;gap:6px}
+  .gap-bar .top{display:flex;justify-content:space-between;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .gap-bar .track{width:100%;height:18px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;overflow:hidden;position:relative}
+  .gap-bar .fill{height:100%;border-radius:5px 0 0 5px;display:flex;align-items:center;padding:0 8px;font-size:10px;color:#fff;font-family:ui-monospace,Menlo,monospace;letter-spacing:.05em}
+  .gap-bar.sched .fill{background:var(--blue);width:100%}
+  .gap-bar.actual .fill{background:var(--accent)}
+  .gap-bar.missed .fill{background:var(--amber)}
+
+  .heatmap{overflow-x:auto;padding:4px 0;margin-top:8px}
+  .heatmap svg{min-width:540px;height:auto}
+  .heat-legend{display:flex;gap:14px;flex-wrap:wrap;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.05em;color:var(--muted);margin-top:10px}
+  .heat-legend .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle;border:1px solid var(--line)}
+  .sw.none{background:var(--panel2)}
+  .sw.sched{background:#2a4a7a}
+  .sw.seen{background:var(--green)}
+  .sw.missed{background:var(--amber)}
+  .heat-note{font-size:11px;color:var(--dim);margin-top:8px;line-height:1.5}
+
+  .diagram{padding:10px 4px 0}
+  .diagram svg{width:100%;height:auto;max-height:260px}
+
+  .barrier-list{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+  .barrier{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:13px;line-height:1.5}
+  .barrier .n{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--amber);letter-spacing:.08em;text-transform:uppercase;min-width:44px;flex-shrink:0;padding-top:2px}
+  .barrier .v{flex:1;color:#c8c6bf}
+
+  .entry-form{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .entry-form input,.entry-form textarea,.entry-form select{font:inherit;font-size:14px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:10px 12px;width:100%}
+  .entry-form button{font-size:12px;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);border:1px solid var(--accent);color:#fff;border-radius:7px;padding:10px 14px;font-weight:600;cursor:pointer;align-self:flex-start}
+
+  .entry{padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;margin-bottom:6px;position:relative}
+  .entry .when{font-size:10px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+  .entry .what{font-size:13.5px;line-height:1.5;color:#c8c6bf;white-space:pre-wrap}
+  .entry .del{position:absolute;top:8px;right:10px;color:var(--dim);font-size:14px;cursor:pointer;padding:2px 6px}
+
+  .step{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .step:last-child{border-bottom:none}
+  .step .box{width:16px;height:16px;border:1.5px solid var(--dim);border-radius:4px;flex-shrink:0;margin-top:2px;position:relative}
+  .step.done .box{background:var(--green);border-color:var(--green)}
+  .step.done .box::after{content:"✓";position:absolute;top:-3px;left:1px;color:#0e0f12;font-weight:700;font-size:12px}
+  .step .t{flex:1;font-size:13.5px;line-height:1.5}
+  .step.done .t{opacity:.5;text-decoration:line-through}
+</style>
+</head>
+<body data-hue="accent">
+
+<a class="back" href="index.html"><span class="arr">←</span> Home</a>
+
+<div class="page-head">
+  <div class="hey">
+    <span class="chev">‹</span>
+    <span class="name">The picture</span>
+    <span class="chev">›</span>
+  </div>
+  <div style="margin-top:8px;font-size:14.5px;color:var(--muted);line-height:1.55">Access to my children — what's supposed to happen, what's happening, and the gap between them. Tap cells, log entries. Stays on this device.</div>
+</div>
+
+<!-- ── THE GAP: stats ────────────────────────────────── -->
+<div class="stat-row">
+  <div class="stat"><div class="n" id="stat-sched">—</div><div class="l">Scheduled</div><div class="sub">days on paper</div></div>
+  <div class="stat"><div class="n" id="stat-seen">—</div><div class="l">Actually seen</div><div class="sub">days together</div></div>
+  <div class="stat" style="border-color:var(--accent)"><div class="n" id="stat-gap" style="color:var(--accent)">—</div><div class="l" style="color:var(--accent)">The gap</div><div class="sub">days missed</div></div>
+</div>
+
+<!-- ── THE GAP: visual bars ─────────────────────────── -->
+<div class="card">
+  <h2>Scheduled vs actual · last 12 months</h2>
+  <div class="gap-bars">
+    <div class="gap-bar sched">
+      <div class="top"><span>What's ordered</span><span id="bar-sched-label">—</span></div>
+      <div class="track"><div class="fill">Scheduled</div></div>
+    </div>
+    <div class="gap-bar actual">
+      <div class="top"><span>What happened</span><span id="bar-actual-label">—</span></div>
+      <div class="track"><div class="fill" id="bar-actual">Seen</div></div>
+    </div>
+    <div class="gap-bar missed">
+      <div class="top"><span>The gap</span><span id="bar-missed-label">—</span></div>
+      <div class="track"><div class="fill" id="bar-missed">Missed</div></div>
+    </div>
+  </div>
+  <p style="font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:14px">This bar is how much time was supposed to exist with your children on paper, versus how much actually happened. Not a judgement. A measurement.</p>
+</div>
+
+<!-- ── CALENDAR HEATMAP ─────────────────────────────── -->
+<div class="card">
+  <h2>Day by day · tap to mark</h2>
+  <div class="heatmap"><svg id="heatmap" viewBox="0 0 540 120" preserveAspectRatio="none"></svg></div>
+  <div class="heat-legend">
+    <span><span class="sw none"></span>nothing</span>
+    <span><span class="sw sched"></span>scheduled</span>
+    <span><span class="sw seen"></span>seen</span>
+    <span><span class="sw missed"></span>missed</span>
+  </div>
+  <div class="heat-note">Each square is one day of the last year. Tap a square to cycle through: nothing → scheduled → seen → missed. Your log, your record.</div>
+</div>
+
+<!-- ── WHAT'S BETWEEN YOU ───────────────────────────── -->
+<div class="card">
+  <h2>What's between you and them</h2>
+  <div class="diagram"><svg viewBox="0 0 500 220" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M0,0 L10,5 L0,10 Z" fill="#7a7e88"/>
+      </marker>
+    </defs>
+    <!-- You -->
+    <circle cx="60" cy="110" r="40" fill="#1c1f25" stroke="#e84c1e" stroke-width="2"/>
+    <text x="60" y="107" text-anchor="middle" fill="#e8e6e0" font-size="12" font-family="-apple-system,sans-serif" font-weight="600">You</text>
+    <text x="60" y="124" text-anchor="middle" fill="#7a7e88" font-size="9" font-family="ui-monospace,Menlo,monospace" letter-spacing="0.1em">FATHER</text>
+    <!-- Them -->
+    <circle cx="440" cy="110" r="40" fill="#1c1f25" stroke="#e8568c" stroke-width="2"/>
+    <text x="440" y="107" text-anchor="middle" fill="#e8e6e0" font-size="12" font-family="-apple-system,sans-serif" font-weight="600">Your kids</text>
+    <text x="440" y="124" text-anchor="middle" fill="#7a7e88" font-size="9" font-family="ui-monospace,Menlo,monospace" letter-spacing="0.1em">CHILDREN</text>
+    <!-- Barrier stack -->
+    <rect x="165" y="40"  width="170" height="28" rx="5" fill="#16181d" stroke="#d89a2a" stroke-width="1"/>
+    <text x="250" y="58" text-anchor="middle" fill="#d89a2a" font-size="11" font-family="ui-monospace,Menlo,monospace">Court orders · in motion</text>
+    <rect x="165" y="76"  width="170" height="28" rx="5" fill="#16181d" stroke="#d89a2a" stroke-width="1"/>
+    <text x="250" y="94" text-anchor="middle" fill="#d89a2a" font-size="11" font-family="ui-monospace,Menlo,monospace">Changeovers · unreliable</text>
+    <rect x="165" y="112" width="170" height="28" rx="5" fill="#16181d" stroke="#d89a2a" stroke-width="1"/>
+    <text x="250" y="130" text-anchor="middle" fill="#d89a2a" font-size="11" font-family="ui-monospace,Menlo,monospace">Communication · mediated</text>
+    <rect x="165" y="148" width="170" height="28" rx="5" fill="#16181d" stroke="#d89a2a" stroke-width="1"/>
+    <text x="250" y="166" text-anchor="middle" fill="#d89a2a" font-size="11" font-family="ui-monospace,Menlo,monospace">Distance · logistical</text>
+    <!-- Broken line from You to Them -->
+    <line x1="100" y1="110" x2="160" y2="110" stroke="#7a7e88" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arr)"/>
+    <line x1="340" y1="110" x2="400" y2="110" stroke="#7a7e88" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arr)"/>
+    <!-- crossed arrow behind barriers, faded, showing direct path obstructed -->
+    <line x1="100" y1="110" x2="400" y2="110" stroke="#4a4e58" stroke-width="1" stroke-dasharray="2 6" opacity="0.5"/>
+  </svg></div>
+  <p style="font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:4px">You aren't the obstacle. These are. Each one is real, each one is workable, none of them are you.</p>
+  <div class="barrier-list">
+    <div class="barrier"><span class="n">01</span><span class="v"><b>Court orders in motion.</b> Schedule exists on paper but is being revised. Each revision adds delay.</span></div>
+    <div class="barrier"><span class="n">02</span><span class="v"><b>Changeovers unreliable.</b> Scheduled time is not always honoured. Each miss is a day you didn't get.</span></div>
+    <div class="barrier"><span class="n">03</span><span class="v"><b>Communication mediated.</b> You can't speak to them directly when you need to. Messages pass through others.</span></div>
+    <div class="barrier"><span class="n">04</span><span class="v"><b>Distance / logistics.</b> The physical getting-there adds friction on top of everything else.</span></div>
+  </div>
+  <p style="font-size:11.5px;color:var(--dim);line-height:1.55;margin-top:14px;font-style:italic">Edit this list: I don't know your exact picture. Tell me and I'll rewrite it with what's actually between you and them.</p>
+</div>
+
+<!-- ── EVIDENCE / LOG ───────────────────────────────── -->
+<div class="card">
+  <h2>What I've logged · evidence I'm keeping</h2>
+  <div id="entries"></div>
+  <div class="entry-form">
+    <select id="e-kind">
+      <option value="missed">Missed day — they didn't come</option>
+      <option value="cancelled">Cancelled — at short notice</option>
+      <option value="refused">Refused — other parent blocked</option>
+      <option value="good">Good day — time went well</option>
+      <option value="msg">Message — with or about them</option>
+      <option value="court">Court / legal — filing, order, reply</option>
+      <option value="note">Note — something I want remembered</option>
+    </select>
+    <textarea id="e-what" rows="3" placeholder="What happened. Date it yourself if you want. Be as short or as long as helps."></textarea>
+    <button id="e-add">Add to the record</button>
+  </div>
+  <p style="font-size:11.5px;color:var(--dim);line-height:1.55;margin-top:10px">This log stays on this device only. Nothing is uploaded. If you want to export it later for your solicitor or court, say so and I'll add an Export button.</p>
+</div>
+
+<!-- ── WHAT I'M DOING ───────────────────────────────── -->
+<div class="card">
+  <h2>What I'm doing about it</h2>
+  <div id="steps">
+    <div class="step" data-id="s1"><div class="box"></div><div class="t">Keeping a log every time a scheduled day is missed.</div></div>
+    <div class="step" data-id="s2"><div class="box"></div><div class="t">Filing the next application on time — bundle 73% ready.</div></div>
+    <div class="step" data-id="s3"><div class="box"></div><div class="t">Writing to them in ways that reach them, however mediated.</div></div>
+    <div class="step" data-id="s4"><div class="box"></div><div class="t">Not letting the gap become the story. The story is what I do about the gap.</div></div>
+    <div class="step" data-id="s5"><div class="box"></div><div class="t">Sleeping enough to keep showing up.</div></div>
+  </div>
+</div>
+
+<div class="nav-bar">
+  <a href="court.html">← Family Court</a>
+  <a href="kids.html">Kids · Day →</a>
+</div>
+
+<div class="footer">
+  <b>The picture doesn't change unless you change it.</b> This page is a mirror and a workbench. Use it either way.
+</div>
+
+<script>
+(function(){
+  const KEY = "hub.picture.v1";
+  const state = load() || {
+    heat: {},        // index -> 0 none, 1 sched, 2 seen, 3 missed
+    entries: [],
+    steps: {}        // id -> done
+  };
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+  // ── HEATMAP ──
+  const WEEKS = 52, DAYS = 7;
+  const svg = document.getElementById('heatmap');
+  const CELL = 9, GAP = 1.5;
+  const W = WEEKS * (CELL + GAP);
+  const H = DAYS * (CELL + GAP);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const colors = ['#1c1f25', '#2a4a7a', '#3fb950', '#d89a2a'];
+
+  function drawHeatmap(){
+    let out = '';
+    for (let w=0; w<WEEKS; w++){
+      for (let d=0; d<DAYS; d++){
+        const idx = w*DAYS + d;
+        const x = w*(CELL+GAP);
+        const y = d*(CELL+GAP);
+        const v = state.heat[idx] || 0;
+        out += `<rect class="cell" data-idx="${idx}" x="${x}" y="${y}" width="${CELL}" height="${CELL}" rx="1.5" fill="${colors[v]}" stroke="#23262d" stroke-width="0.4"/>`;
+      }
+    }
+    svg.innerHTML = out;
+    svg.querySelectorAll('.cell').forEach(c => {
+      c.style.cursor = 'pointer';
+      c.addEventListener('click', () => {
+        const i = parseInt(c.dataset.idx, 10);
+        state.heat[i] = ((state.heat[i] || 0) + 1) % 4;
+        c.setAttribute('fill', colors[state.heat[i]]);
+        save();
+        recalcStats();
+      });
+    });
+  }
+
+  // ── STATS + BARS ──
+  function recalcStats(){
+    let sched=0, seen=0, missed=0;
+    Object.values(state.heat).forEach(v => {
+      if (v===1) sched++;
+      else if (v===2) { seen++; sched++; } // seen implies scheduled
+      else if (v===3) { missed++; sched++; }
+    });
+    document.getElementById('stat-sched').textContent = sched;
+    document.getElementById('stat-seen').textContent = seen;
+    document.getElementById('stat-gap').textContent = (sched - seen);
+
+    const base = Math.max(sched, 1);
+    const actualPct = Math.round((seen/base)*100);
+    const missedPct = Math.round(((sched-seen)/base)*100);
+    document.getElementById('bar-sched-label').textContent = sched + ' days';
+    document.getElementById('bar-actual-label').textContent = seen + ' days · ' + actualPct + '%';
+    document.getElementById('bar-missed-label').textContent = (sched-seen) + ' days · ' + missedPct + '%';
+    document.getElementById('bar-actual').style.width = actualPct + '%';
+    document.getElementById('bar-missed').style.width = missedPct + '%';
+  }
+
+  // ── ENTRIES ──
+  function renderEntries(){
+    const wrap = document.getElementById('entries');
+    if (!state.entries.length){
+      wrap.innerHTML = '<div style="font-size:12.5px;color:var(--dim);padding:12px 0;font-style:italic">No entries yet. Add the first one below when something happens.</div>';
+      return;
+    }
+    wrap.innerHTML = state.entries.map((e,i) => `
+      <div class="entry">
+        <span class="del" data-i="${i}">✕</span>
+        <div class="when">${fmt(e.when)} · ${label(e.kind)}</div>
+        <div class="what">${esc(e.what)}</div>
+      </div>`).join('');
+    wrap.querySelectorAll('.del').forEach(d => d.addEventListener('click', ev => {
+      const i = parseInt(d.dataset.i, 10);
+      state.entries.splice(i,1); save(); renderEntries();
+    }));
+  }
+  function label(k){
+    return ({missed:'Missed day', cancelled:'Cancelled', refused:'Refused', good:'Good day', msg:'Message', court:'Court / legal', note:'Note'})[k] || k;
+  }
+  function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+  function fmt(ts){ return new Date(ts).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+
+  document.getElementById('e-add').addEventListener('click', () => {
+    const what = document.getElementById('e-what').value.trim();
+    if (!what) return;
+    const kind = document.getElementById('e-kind').value;
+    state.entries.unshift({ when: Date.now(), kind, what });
+    document.getElementById('e-what').value = '';
+    save(); renderEntries();
+  });
+
+  // ── STEPS ──
+  document.querySelectorAll('.step').forEach(s => {
+    if (state.steps[s.dataset.id]) s.classList.add('done');
+    s.addEventListener('click', () => {
+      s.classList.toggle('done');
+      state.steps[s.dataset.id] = s.classList.contains('done');
+      save();
+    });
+  });
+
+  drawHeatmap();
+  recalcStats();
+  renderEntries();
+})();
+</script>
+</body>
+</html>
