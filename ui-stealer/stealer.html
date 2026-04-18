@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e0f12">
 <title>UI Stealer · Laurence</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../style.css">
 <style>
   body{max-width:1100px}
   .tool-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
@@ -74,9 +74,9 @@
 <body data-hue="violet">
 
 <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
-  <a class="back" href="index.html"><span class="arr">←</span> Home</a>
-  <a class="back" href="gallery.html"><span class="arr">⌘</span> Map</a>
-  <a class="back" href="lego.html"><span class="arr">▦</span> Lego Gallery</a>
+  <a class="back" href="../index.html"><span class="arr">←</span> Home</a>
+  <a class="back" href="../gallery.html"><span class="arr">⌘</span> Map</a>
+  <a class="back" href="../lego.html"><span class="arr">▦</span> Lego Gallery</a>
 </div>
 
 <div class="tool-head">
@@ -132,7 +132,7 @@
 
 <div class="footer-row">
   <span>Bricks live in <b>localStorage</b> on this device. Never uploaded.</span>
-  <a href="lego.html">Open Lego Gallery →</a>
+  <a href="../lego.html">Open Lego Gallery →</a>
 </div>
 
 <div class="flash" id="flash"></div>
@@ -147,7 +147,7 @@
   let picked = null;   // {outerHTML, css, scripts, brick, selector, tag, id, classes}
 
   // ── Populate dropdown from sitemap.json
-  fetch('sitemap.json?t=' + Date.now(), {cache:'no-store'}).then(r=>r.json()).then(data=>{
+  fetch('../sitemap.json?t=' + Date.now(), {cache:'no-store'}).then(r=>r.json()).then(data=>{
     const sel = $('#pick-src');
     data.pages.forEach(p => {
       if (p.file === 'stealer.html' || p.file === 'lego.html') return;
@@ -169,7 +169,7 @@
     const file = $('#pick-src').value;
     if (!file) { flash('Pick a page or paste HTML.'); return; }
     try{
-      const res = await fetch(file + '?t=' + Date.now(), {cache:'no-store'});
+      const res = await fetch('../' + file + '?t=' + Date.now(), {cache:'no-store'});
       if(!res.ok) throw new Error('HTTP ' + res.status);
       currentSource = await res.text();
       currentSourceFile = file;

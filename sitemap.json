@@ -1,6 +1,6 @@
 {
-  "generated": "2026-04-18T15:49:39",
-  "count": 29,
+  "generated": "2026-04-18T16:04:29",
+  "count": 27,
   "pages": [
     {
       "file": "ai.html",
@@ -169,9 +169,7 @@
         "markets.html",
         "money.html",
         "people.html",
-        "research.html",
-        "stealer-v1.html",
-        "stealer.html"
+        "research.html"
       ]
     },
     {
@@ -298,7 +296,7 @@
         "people.html",
         "picture.html",
         "research.html",
-        "stealer.html"
+        "ui-stealer/stealer.html"
       ],
       "incoming": [
         "ai.html",
@@ -323,9 +321,7 @@
         "path.html",
         "people.html",
         "picture.html",
-        "research.html",
-        "stealer-v1.html",
-        "stealer.html"
+        "research.html"
       ]
     },
     {
@@ -353,7 +349,7 @@
       "links": [
         "gallery.html",
         "index.html",
-        "stealer.html"
+        "ui-stealer/stealer.html"
       ],
       "incoming": []
     },
@@ -363,12 +359,10 @@
       "links": [
         "gallery.html",
         "index.html",
-        "stealer.html"
+        "ui-stealer/stealer.html"
       ],
       "incoming": [
-        "index.html",
-        "stealer-v1.html",
-        "stealer.html"
+        "index.html"
       ]
     },
     {
@@ -518,30 +512,6 @@
         "gov.html",
         "index.html",
         "money.html"
-      ]
-    },
-    {
-      "file": "stealer-v1.html",
-      "title": "UI Stealer \u00b7 Laurence",
-      "links": [
-        "gallery.html",
-        "index.html",
-        "lego.html"
-      ],
-      "incoming": []
-    },
-    {
-      "file": "stealer.html",
-      "title": "UI Stealer \u00b7 Laurence",
-      "links": [
-        "gallery.html",
-        "index.html",
-        "lego.html"
-      ],
-      "incoming": [
-        "index.html",
-        "lego-v1.html",
-        "lego.html"
       ]
     },
     {
