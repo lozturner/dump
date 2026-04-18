@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e0f12">
+<title>The path · from A to B</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .legend{display:flex;gap:10px;flex-wrap:wrap;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.05em;color:var(--muted);margin:6px 0 14px}
+  .legend .sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .sw.todo{background:#2a2d35}
+  .sw.doing{background:var(--amber)}
+  .sw.done{background:var(--green)}
+  .sw.current{background:var(--accent)}
+  .sw.target{background:var(--pink)}
+
+  .board-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:16px;overflow:hidden;position:relative}
+  .board-wrap::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:12px;box-shadow:inset 0 0 24px rgba(0,0,0,.3)}
+  .board{width:100%;display:block;touch-action:manipulation}
+
+  .node-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:16px;margin-bottom:14px;display:none;
+  }
+  .node-card.open{display:block}
+  .node-card .nhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+  .node-card .ntitle{font-size:18px;font-weight:600;line-height:1.25;display:flex;align-items:center;gap:8px}
+  .node-card .ntitle .nst{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .node-card .nsub{font-size:14px;color:#c8c6bf;line-height:1.55;margin-bottom:10px}
+  .node-card .nmeta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+  .node-card .chip{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:4px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+  .node-card .chip.money{color:var(--amber)}
+  .node-card .chip.time{color:var(--blue)}
+  .node-card .chip.type{color:var(--violet)}
+
+  .node-card h3{font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:8px 0 8px}
+  .node-card .actions{display:flex;flex-direction:column;gap:4px}
+  .node-card .act{
+    display:flex;gap:10px;align-items:flex-start;padding:10px 12px;
+    background:var(--panel2);border:1px solid var(--line);border-radius:7px;
+    cursor:pointer;-webkit-tap-highlight-color:transparent;
+    font-size:13.5px;line-height:1.5;color:#b8b6b0;
+  }
+  .node-card .act .box{width:15px;height:15px;border:1.5px solid var(--dim);border-radius:4px;flex-shrink:0;margin-top:2px;position:relative}
+  .node-card .act.done .box{background:var(--green);border-color:var(--green)}
+  .node-card .act.done .box::after{content:"✓";position:absolute;top:-3px;left:1px;color:#0e0f12;font-weight:700;font-size:11px}
+  .node-card .act.done{opacity:.55;text-decoration:line-through}
+
+  .node-status-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .node-status-row .btn{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-family:ui-monospace,Menlo,monospace;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .node-status-row .btn.active{color:var(--ink);border-color:var(--muted);background:var(--panel2)}
+  .node-status-row .btn[data-s=doing].active{color:var(--amber);border-color:var(--amber)}
+  .node-status-row .btn[data-s=done].active{color:var(--green);border-color:var(--green)}
+  .node-status-row .btn[data-s=current].active{color:var(--accent);border-color:var(--accent)}
+
+  .pin-hint{font-size:11.5px;color:var(--dim);line-height:1.55;margin:-4px 0 14px;font-style:italic}
+
+  .overall{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .overall .s{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+  .overall .s .n{font-size:22px;font-weight:600}
+  .overall .s .l{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+
+  .node-rect{cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .node-rect:hover{filter:brightness(1.15)}
+</style>
+</head>
+<body data-hue="accent">
+
+<a class="back" href="index.html"><span class="arr">←</span> Home</a>
+
+<div class="page-head">
+  <div class="hey">
+    <span class="chev">‹</span>
+    <span class="name">The path</span>
+    <span class="chev">›</span>
+  </div>
+  <div style="margin-top:8px;font-size:14.5px;color:var(--muted);line-height:1.55">
+    State A: I'm not seeing my son. I can't call him. <br>
+    State B: I am — calls, visits, relationship.<br>
+    Every node below is a thing between those two states. Tap a node to open it.
+  </div>
+</div>
+
+<div class="legend">
+  <span><span class="sw todo"></span>to do</span>
+  <span><span class="sw doing"></span>in motion</span>
+  <span><span class="sw done"></span>done</span>
+  <span><span class="sw current"></span>where you are</span>
+  <span><span class="sw target"></span>where you're going</span>
+</div>
+
+<div class="overall">
+  <div class="s"><div class="n" id="o-total">—</div><div class="l">Total nodes</div></div>
+  <div class="s"><div class="n" id="o-doing" style="color:var(--amber)">—</div><div class="l">In motion</div></div>
+  <div class="s"><div class="n" id="o-done" style="color:var(--green)">—</div><div class="l">Done</div></div>
+</div>
+
+<div class="board-wrap">
+  <svg class="board" id="board" viewBox="0 0 360 720" preserveAspectRatio="xMidYMid meet"></svg>
+</div>
+
+<div id="detail" class="node-card"></div>
+
+<div class="pin-hint">Tap any node to open it. Tick actions as you go. Change the node's state using the buttons at the bottom of its card. Everything saves on this device.</div>
+
+<div class="nav-bar">
+  <a href="picture.html">← The picture</a>
+  <a href="court.html">Family Court →</a>
+</div>
+
+<div class="footer">
+  <b>The path isn't a straight line.</b> Most real ones aren't. But every node is something you can actually do next.
+</div>
+
+<script>
+(function(){
+  const KEY="hub.path.v1";
+
+  const NODES = [
+    { id:"start", x:180, y:40,  label:"Cut off",
+      sub:"State A. No contact. Can't call. Can't see him.",
+      kind:"current", chips:[], actions:[] },
+
+    // Prep row
+    { id:"rest",     x:60,  y:140, label:"Rest + health",
+      sub:"You can't do any of the rest on no sleep.",
+      chips:["free","nightly","health"],
+      actions:["Sleep ≥ 6 hours","Meals at regular times","One grounding thing a day"] },
+    { id:"supports", x:180, y:140, label:"People beside you",
+      sub:"At least one person who knows the facts and can stand next to you.",
+      chips:["free","hours","people"],
+      actions:["Name that person","Brief them with the facts","Keep them updated weekly"] },
+    { id:"base",     x:300, y:140, label:"Stable base",
+      sub:"A reliable address, phone, email — so every official has one place to reach you.",
+      chips:["£","days","setup"],
+      actions:["Same address on every file","Reliable phone plan","One email for court + legal"] },
+
+    // Evidence row
+    { id:"evidence", x:60,  y:250, label:"Evidence log",
+      sub:"A dated record of every scheduled contact, every miss, every message. This is fuel for every node below.",
+      chips:["free","ongoing","log"],
+      actions:["Log each missed day","Screenshots with timestamps","Back up weekly to your files"] },
+    { id:"letter",   x:180, y:250, label:"Letter to him",
+      sub:"However mediated. Calm, short, written. It reaches him — and becomes a record.",
+      chips:["£","hours","talk"],
+      actions:["Write it calm, not to the other parent","Tracked post / solicitor","Keep a copy in your file"] },
+    { id:"card",     x:300, y:250, label:"Card / gift",
+      sub:"Something physical with your handwriting on it. Low cost, high signal.",
+      chips:["£","hours","out"],
+      actions:["Pick a card","Write one honest line","Send tracked"] },
+
+    // Approach row
+    { id:"mediation", x:60,  y:360, label:"Mediation (MIAM)",
+      sub:"In most jurisdictions you have to attempt this before filing. It might also unlock an agreement.",
+      chips:["££","weeks","legal"],
+      actions:["Find an accredited mediator","Book the MIAM","Go prepared with the log"] },
+    { id:"centre",    x:180, y:360, label:"Contact centre",
+      sub:"Supported or supervised contact where direct isn't possible yet. A real place, real hours.",
+      chips:["££","weeks","out"],
+      actions:["Find the nearest centre","Book an assessment","Attend first supported visit"] },
+    { id:"solicitor", x:300, y:360, label:"Solicitor brief",
+      sub:"Even a one-hour consult with the file in front of them changes what's possible.",
+      chips:["££","hours","legal"],
+      actions:["Shortlist 2 family solicitors","Book 1-hour consult","Bring the log + correspondence"] },
+
+    // Court row
+    { id:"file",      x:120, y:470, label:"Court application",
+      sub:"Formal filing for a Child Arrangements Order (UK) or equivalent. Paper-heavy, time-heavy, but definitive.",
+      chips:["£££","months","paper"],
+      actions:["Complete C100 / equivalent","Attach evidence bundle","Serve the other party"] },
+    { id:"hearing",   x:240, y:470, label:"First hearing",
+      sub:"Directions stage. Sets the shape of everything after.",
+      chips:["time","months","paper"],
+      actions:["Attend on time","Bring the bundle","Stay in your lane — facts, not feelings"] },
+
+    // Win row
+    { id:"first",     x:90,  y:580, label:"First real contact",
+      sub:"Hearing his voice. Seeing him. Even brief. The first time is the biggest.",
+      chips:["varies","earned","win"],
+      actions:["Show up early","Phone off","Log it when you get home"] },
+    { id:"rhythm",    x:270, y:580, label:"A rhythm he can count on",
+      sub:"Every honoured date is a brick. Enough bricks and it's a relationship again.",
+      chips:["ongoing","months","win"],
+      actions:["Honour every date","Never cancel on him","Keep logging — even good days"] },
+
+    // End
+    { id:"end", x:180, y:680, label:"Seeing + talking",
+      sub:"State B. Calls. Visits. A relationship he can feel. This is the target.",
+      kind:"target", chips:[], actions:[] },
+  ];
+
+  const EDGES = [
+    ["start","rest"],["start","supports"],["start","base"],
+    ["rest","evidence"],["supports","evidence"],["supports","letter"],["base","evidence"],["base","letter"],["base","card"],
+    ["evidence","mediation"],["evidence","solicitor"],
+    ["letter","mediation"],["letter","centre"],
+    ["card","centre"],
+    ["mediation","file"],["mediation","first"],
+    ["centre","first"],
+    ["solicitor","file"],["solicitor","hearing"],
+    ["file","hearing"],
+    ["hearing","rhythm"],
+    ["first","rhythm"],
+    ["rhythm","end"],
+    ["mediation","rhythm"],
+  ];
+
+  // ── state
+  let state = load() || { nodes:{}, acts:{} };
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+  // fill defaults
+  NODES.forEach(n=>{
+    if (!state.nodes[n.id]) state.nodes[n.id] = n.kind || "todo";
+  });
+
+  function colorFor(status){
+    if (status==="current") return "#e84c1e";
+    if (status==="target")  return "#e8568c";
+    if (status==="doing")   return "#d89a2a";
+    if (status==="done")    return "#3fb950";
+    return "#2a2d35";
+  }
+
+  // ── render board
+  const board = document.getElementById('board');
+  function renderBoard(){
+    const nodeById = Object.fromEntries(NODES.map(n=>[n.id,n]));
+    const edges = EDGES.map(([a,b])=>{
+      const A=nodeById[a],B=nodeById[b];
+      const mx=(A.x+B.x)/2, my=(A.y+B.y)/2;
+      const cpy = A.y + (B.y-A.y)*0.55;
+      return `<path d="M ${A.x} ${A.y+14} C ${A.x} ${cpy}, ${B.x} ${cpy-10}, ${B.x} ${B.y-14}" fill="none" stroke="#2a2d35" stroke-width="1.2" stroke-dasharray="3 4"/>`;
+    }).join('');
+
+    const nodes = NODES.map(n=>{
+      const status = state.nodes[n.id];
+      const fill = colorFor(status);
+      const w = Math.max(78, n.label.length*6.6);
+      const h = 28;
+      const rx = 6;
+      const textFill = (status==="todo")?"#b8b6b0":"#0e0f12";
+      const isEndpoint = status==="current" || status==="target";
+      return `
+        <g class="node-rect" data-id="${n.id}">
+          <rect x="${n.x - w/2}" y="${n.y - h/2}" width="${w}" height="${h}" rx="${rx}" fill="${fill}"
+                stroke="${isEndpoint?fill:"#3a3d45"}" stroke-width="${isEndpoint?2:1}"/>
+          <text x="${n.x}" y="${n.y+4}" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" font-weight="600" fill="${textFill}">${escapeHtml(n.label)}</text>
+        </g>`;
+    }).join('');
+
+    board.innerHTML = `<g>${edges}</g><g>${nodes}</g>`;
+
+    board.querySelectorAll('.node-rect').forEach(g=>{
+      g.addEventListener('click',()=>openDetail(g.dataset.id));
+    });
+
+    // overall stats
+    const counts = {todo:0, doing:0, done:0, current:0, target:0};
+    Object.values(state.nodes).forEach(s=>counts[s]=(counts[s]||0)+1);
+    document.getElementById('o-total').textContent = NODES.length;
+    document.getElementById('o-doing').textContent = counts.doing||0;
+    document.getElementById('o-done').textContent = counts.done||0;
+  }
+
+  // ── detail card
+  function openDetail(id){
+    const n = NODES.find(x=>x.id===id);
+    if (!n) return;
+    const card = document.getElementById('detail');
+    const status = state.nodes[id];
+    const chips = (n.chips||[]).map(c=>{
+      let cls='';
+      if (["free","£","££","£££","varies","ongoing"].includes(c)) cls='money';
+      else if (["hours","days","weeks","months","nightly","earned","time"].includes(c)) cls='time';
+      else cls='type';
+      return `<span class="chip ${cls}">${escapeHtml(c)}</span>`;
+    }).join('');
+
+    const actionsHtml = (n.actions||[]).map((a,i)=>{
+      const key = id+"::"+i;
+      const done = !!state.acts[key];
+      return `<div class="act ${done?'done':''}" data-k="${key}"><span class="box"></span><span>${escapeHtml(a)}</span></div>`;
+    }).join('') || '<div style="font-size:13px;color:var(--dim);font-style:italic">No actions to tick — this is a state marker, not a step.</div>';
+
+    const isEnd = n.kind==="current"||n.kind==="target";
+    const statusBtns = isEnd?'' : `
+      <div class="node-status-row">
+        <button class="btn ${status==='todo'?'active':''}" data-s="todo">To do</button>
+        <button class="btn ${status==='doing'?'active':''}" data-s="doing">In motion</button>
+        <button class="btn ${status==='done'?'active':''}" data-s="done">Done</button>
+        <button class="btn ${status==='current'?'active':''}" data-s="current">I'm here now</button>
+      </div>`;
+
+    card.innerHTML = `
+      <div class="nhead">
+        <div class="ntitle"><span class="nst" style="background:${colorFor(status)}"></span>${escapeHtml(n.label)}</div>
+      </div>
+      <div class="nsub">${escapeHtml(n.sub)}</div>
+      <div class="nmeta">${chips}</div>
+      <h3>Things you can do here</h3>
+      <div class="actions">${actionsHtml}</div>
+      ${statusBtns}
+    `;
+    card.classList.add('open');
+    card.scrollIntoView({behavior:'smooth', block:'start'});
+
+    // action ticks
+    card.querySelectorAll('.act').forEach(a=>{
+      a.addEventListener('click',()=>{
+        const k = a.dataset.k;
+        state.acts[k] = !state.acts[k];
+        a.classList.toggle('done', !!state.acts[k]);
+        save();
+      });
+    });
+    // status buttons
+    card.querySelectorAll('.node-status-row .btn').forEach(b=>{
+      b.addEventListener('click',()=>{
+        state.nodes[id] = b.dataset.s;
+        save();
+        renderBoard();
+        openDetail(id);
+      });
+    });
+  }
+
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+  renderBoard();
+})();
+</script>
+</body>
+</html>

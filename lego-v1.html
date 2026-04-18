@@ -177,7 +177,8 @@
 
   function renderBrick(b){
     const selected = store.bottle.includes(b.id);
-    const previewSrc = esc(b.brick || '<html><body></body></html>');
+    const previewSrc = esc(b.brick || '<html><body><script defer src="shit-switch.js"></script>
+</body></html>');
     const when = b.when ? new Date(b.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
     return `
       <div class="brick ${selected?'selected':''}" data-id="${b.id}">
@@ -348,6 +349,7 @@ ${html}
 <script>
 ${js}
 <\/script>
+<script defer src="shit-switch.js"></script>
 </body>
 </html>`;
     download('bottle-' + bs.length + '-bricks-v1', doc);
@@ -415,5 +417,6 @@ ${js}
   });
 })();
 </script>
+<script defer src="shit-switch.js"></script>
 </body>
 </html>

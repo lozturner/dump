@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hub">
+<meta name="theme-color" content="#0e0f12">
+<title>Hub · Laurence</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="greeting">
+  <div class="who">Laurence,</div>
+  <div class="line">I'm overseeing all these for you. Tap any tile and I'll tell you how it's going. If there's a new thing you want me to keep an eye on, hit <button type="button" id="inline-add" class="inline-add" aria-label="Open the Add a new lane dialog">+ Add something to oversee</button> — one word or a short phrase is enough. I'll do the rest.</div>
+  <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-top:10px">— Claude</div>
+</div>
+
+<style>
+  .inline-add{
+    font:inherit;font-size:inherit;
+    background:transparent;border:0;padding:0;
+    color:var(--accent);font-weight:600;
+    cursor:pointer;-webkit-tap-highlight-color:transparent;
+    border-bottom:1px dashed var(--accent);
+  }
+  .inline-add:hover,.inline-add:focus{outline:none;color:#ff7046;border-bottom-style:solid}
+  .inline-add:active{opacity:.7}
+</style>
+
+<a class="bigbtn" href="hub.html">
+  <span class="l">
+    <span class="k">Deeper view</span>
+    <span class="t">Open the monitoring layer →</span>
+  </span>
+  <span class="arrow">›</span>
+</a>
+
+<a class="bigbtn" href="picture.html" style="background:linear-gradient(90deg,rgba(232,76,30,.22),rgba(232,86,140,.14));border-color:var(--accent)">
+  <span class="l">
+    <span class="k">The heavy one</span>
+    <span class="t">The picture — my children →</span>
+  </span>
+  <span class="arrow">›</span>
+</a>
+
+<a class="bigbtn" href="path.html" style="background:linear-gradient(90deg,rgba(232,86,140,.14),rgba(163,113,247,.14));border-color:var(--violet)">
+  <span class="l">
+    <span class="k">From A to B</span>
+    <span class="t">The path — state A → state B →</span>
+  </span>
+  <span class="arrow" style="color:var(--violet)">›</span>
+</a>
+
+<a class="bigbtn" href="gallery.html" style="background:var(--panel2);border-color:var(--line)">
+  <span class="l">
+    <span class="k">Site map</span>
+    <span class="t">Gallery — every page and how they link →</span>
+  </span>
+  <span class="arrow" style="color:var(--muted)">›</span>
+</a>
+
+<a class="bigbtn" href="epigraph.html" style="background:var(--panel2);border-color:var(--line)">
+  <span class="l">
+    <span class="k">Epigraph</span>
+    <span class="t">"What does it mean to look in on something…" →</span>
+  </span>
+  <span class="arrow" style="color:var(--muted)">›</span>
+</a>
+
+<a class="bigbtn" href="stealer.html" style="background:linear-gradient(90deg,rgba(163,113,247,.16),rgba(75,141,248,.1));border-color:var(--violet)">
+  <span class="l">
+    <span class="k">Tool · v1</span>
+    <span class="t">✂ UI Stealer — rip a piece, keep the rest →</span>
+  </span>
+  <span class="arrow" style="color:var(--violet)">›</span>
+</a>
+
+<a class="bigbtn" href="lego.html" style="background:linear-gradient(90deg,rgba(75,141,248,.16),rgba(163,113,247,.1));border-color:var(--blue)">
+  <span class="l">
+    <span class="k">Tool · v1</span>
+    <span class="t">▦ Lego Bricks Gallery — your parts shelf →</span>
+  </span>
+  <span class="arrow" style="color:var(--blue)">›</span>
+</a>
+
+<div class="tiles" id="tiles-grid">
+  <div class="tile add-tile" id="add-tile" style="border:1.5px dashed var(--accent);background:transparent;align-items:center;justify-content:center;text-align:center;min-height:92px">
+    <div style="font-size:22px;color:var(--accent);line-height:1;margin-bottom:4px">+</div>
+    <div class="nm" style="padding:0;color:var(--accent)">Add something to oversee</div>
+    <div class="hint">One word or a phrase. I'll do the rest.</div>
+  </div>
+  <a class="tile" data-hue="accent" href="court.html"><span class="dot"></span><div class="nm">Family Court</div><div class="hint">Evidence · 2 new docs</div><div class="badge">T−9d hearing</div><span class="go">›</span></a>
+  <a class="tile" data-hue="green"  href="markets.html"><span class="dot"></span><div class="nm">Markets</div><div class="hint">3 legs ITM · 1 IV crush</div><div class="badge">Live</div><span class="go">›</span></a>
+  <a class="tile" data-hue="blue"   href="complaints.html"><span class="dot"></span><div class="nm">Complaints</div><div class="hint">CC case waiting · 1 reply</div><div class="badge">CC-2026-0842</div><span class="go">›</span></a>
+  <a class="tile" data-hue="violet" href="links.html"><span class="dot"></span><div class="nm">Links &amp; Tools</div><div class="hint">4 new URLs bridged</div><div class="badge">Bridged</div><span class="go">›</span></a>
+  <a class="tile" data-hue="blue"   href="inbox.html"><span class="dot"></span><div class="nm">Inbox</div><div class="hint">42 held · 1 solicitor</div><div class="badge">Triaged</div><span class="go">›</span></a>
+  <a class="tile" data-hue="pink"   href="calendar.html"><span class="dot"></span><div class="nm">Calendar</div><div class="hint">4 deadlines in 9 days</div><div class="badge">Tracking</div><span class="go">›</span></a>
+  <a class="tile" data-hue="green"  href="gov.html"><span class="dot"></span><div class="nm">Gov Portals</div><div class="hint">4 sessions held</div><div class="badge">Live</div><span class="go">›</span></a>
+  <a class="tile" data-hue="violet" href="research.html"><span class="dot"></span><div class="nm">Research</div><div class="hint">11 quotes extracted</div><div class="badge">Indexed</div><span class="go">›</span></a>
+  <a class="tile" data-hue="amber"  href="money.html"><span class="dot"></span><div class="nm">Money</div><div class="hint">4 charges · 2 zombies</div><div class="badge">Watching</div><span class="go">›</span></a>
+  <a class="tile" data-hue="accent" href="people.html"><span class="dot"></span><div class="nm">People</div><div class="hint">Solicitor · sister · quiet</div><div class="badge">Graph</div><span class="go">›</span></a>
+  <a class="tile" data-hue="blue"   href="devices.html"><span class="dot"></span><div class="nm">Devices</div><div class="hint">5 devices · 1 active</div><div class="badge">Synced</div><span class="go">›</span></a>
+  <a class="tile" data-hue="green"  href="captures.html"><span class="dot"></span><div class="nm">Captures</div><div class="hint">14 clips · 6 shots</div><div class="badge">24h</div><span class="go">›</span></a>
+  <a class="tile" data-hue="violet" href="ai.html"><span class="dot"></span><div class="nm">AI Threads</div><div class="hint">Claude · GPT · Gemini</div><div class="badge">Stitched</div><span class="go">›</span></a>
+  <a class="tile" data-hue="pink"   href="kids.html"><span class="dot"></span><div class="nm">Kids · Day</div><div class="hint">1 form · 7 photos</div><div class="badge">Quiet</div><span class="go">›</span></a>
+  <a class="tile" data-hue="amber"  href="health.html"><span class="dot"></span><div class="nm">Health</div><div class="hint">Sleep 5h40 · load heavy</div><div class="badge">Gentle</div><span class="go">›</span></a>
+  <a class="tile" data-hue="accent" href="ideas.html"><span class="dot"></span><div class="nm">Ideas</div><div class="hint">1 missing · 3 live</div><div class="badge">Archive</div><span class="go">›</span></a>
+</div>
+
+<div class="footer">
+  <b>You check on me.</b> I don't start when you ask — I'm already here. Each tile is its own page. Everything saves on this device.
+</div>
+
+<!-- Add-tile modal -->
+<div id="add-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:200;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--panel);border:1px solid var(--accent);border-radius:12px;padding:22px;max-width:420px;width:100%">
+    <div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-family:ui-monospace,Menlo,monospace;margin-bottom:6px">New lane</div>
+    <div style="font-size:17px;font-weight:600;margin-bottom:14px;line-height:1.35">What do you want me to oversee?</div>
+    <input id="add-input" type="text" placeholder="e.g. Housing · Court bundle · GP appointments"
+      style="width:100%;font:inherit;font-size:15.5px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:12px" autocomplete="off">
+    <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:14px">One word or a short phrase. A tile appears right away. When you tap it, you get a fresh lane page. Tell me about it in our chat and I'll flesh it out next time.</div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id="add-cancel" style="font:inherit;font-size:12px;letter-spacing:.1em;text-transform:uppercase;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:7px;padding:10px 14px;cursor:pointer">Cancel</button>
+      <button id="add-save" style="font:inherit;font-size:12px;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:7px;padding:10px 14px;font-weight:600;cursor:pointer">Add tile</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const KEY="hub.custom.v1";
+  const HUES=["accent","blue","green","amber","violet","pink"];
+  const state = load() || { items:[] };
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+  function slugify(s){ return s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40) || 'tile-'+Date.now(); }
+  function esc(s){ return (s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+  const grid = document.getElementById('tiles-grid');
+  const addTile = document.getElementById('add-tile');
+  const modal = document.getElementById('add-modal');
+  const input = document.getElementById('add-input');
+
+  function renderCustom(){
+    // remove existing custom tiles
+    grid.querySelectorAll('.tile.custom').forEach(n=>n.remove());
+    state.items.forEach((it,i)=>{
+      const a = document.createElement('a');
+      a.className = 'tile custom';
+      a.dataset.hue = it.hue;
+      a.href = 'custom.html?id=' + encodeURIComponent(it.id);
+      a.innerHTML = `
+        <span class="dot"></span>
+        <div class="nm">${esc(it.name)}</div>
+        <div class="hint">Awaiting first update</div>
+        <div class="badge">Custom · added by you</div>
+        <span class="remove" data-i="${i}" style="position:absolute;top:8px;left:10px;color:var(--dim);font-size:14px;padding:4px 6px;-webkit-tap-highlight-color:transparent;cursor:pointer">✕</span>
+        <span class="go">›</span>
+      `;
+      grid.appendChild(a);
+    });
+    grid.querySelectorAll('.remove').forEach(r=>{
+      r.addEventListener('click',e=>{
+        e.preventDefault(); e.stopPropagation();
+        if(!confirm('Remove this tile? Your notes on its page stay until you clear them.')) return;
+        const i=parseInt(r.dataset.i,10);
+        state.items.splice(i,1);
+        save(); renderCustom();
+      });
+    });
+  }
+
+  function openModal(){ modal.style.display='flex'; setTimeout(()=>input.focus(),50); }
+  function closeModal(){ modal.style.display='none'; input.value=''; }
+
+  addTile.addEventListener('click', openModal);
+  // accessibility: keyboard + inline link trigger
+  addTile.setAttribute('role','button');
+  addTile.setAttribute('tabindex','0');
+  addTile.setAttribute('aria-label','Add a new lane to oversee');
+  addTile.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openModal(); } });
+  const inline = document.getElementById('inline-add');
+  if(inline) inline.addEventListener('click', openModal);
+  document.addEventListener('keydown', e => { if(e.key==='Escape' && modal.style.display==='flex') closeModal(); });
+  document.getElementById('add-cancel').addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if(e.target===modal) closeModal(); });
+  document.getElementById('add-save').addEventListener('click', () => {
+    const v = (input.value||'').trim();
+    if (!v) { input.focus(); return; }
+    const id = slugify(v) + '-' + Date.now().toString(36).slice(-4);
+    const hue = HUES[state.items.length % HUES.length];
+    state.items.push({ id, name: v, hue, added: Date.now() });
+    save(); renderCustom(); closeModal();
+  });
+  input.addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('add-save').click(); });
+
+  renderCustom();
+})();
+</script>
+
+</body>
+</html>
