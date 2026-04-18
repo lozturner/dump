@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lawrence Site Map</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #f7f6f3;
+    --ink: #1a1a1a;
+    --muted: #888;
+    --accent: #e84c1e;
+    --accent2: #2563eb;
+    --accent3: #16a34a;
+    --warn: #d97706;
+    --border: #ddd;
+    --card: #fff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--ink);
+    padding: 32px 20px 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 28px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 16px;
+  }
+
+  header .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  header h1 {
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  header .sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .note {
+    background: #fef3c7;
+    border-left: 3px solid var(--warn);
+    padding: 12px 16px;
+    margin: 16px 0 24px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #78350f;
+  }
+
+  .note strong { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+
+  .map-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 28px;
+    overflow-x: auto;
+  }
+
+  svg.graph { display: block; width: 100%; height: auto; }
+
+  .node-rect { fill: #fff; stroke: var(--ink); stroke-width: 1.5; }
+  .node-rect.root { fill: #1a1a1a; }
+  .node-rect.folder { fill: #fef3c7; stroke: var(--warn); stroke-dasharray: 4 3; }
+  .node-rect.html { fill: #fff; stroke: var(--accent2); stroke-width: 2; }
+  .node-rect.git { fill: #dcfce7; stroke: var(--accent3); }
+  .node-rect.thread { fill: #fafafa; stroke: #bbb; }
+  .node-rect.ghost { fill: #f3f4f6; stroke: #bbb; stroke-dasharray: 3 3; }
+
+  .node-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; fill: var(--ink); }
+  .node-label.on-dark { fill: #fff; }
+  .node-sub { font-family: 'IBM Plex Sans', sans-serif; font-size: 10px; fill: var(--muted); }
+  .node-sub.on-dark { fill: #bbb; }
+
+  .edge { stroke: #999; stroke-width: 1.3; fill: none; }
+  .edge.solid { stroke: var(--ink); stroke-width: 1.6; }
+  .edge.dashed { stroke-dasharray: 5 4; }
+  .edge.virtual { stroke: var(--accent3); stroke-dasharray: 2 3; }
+  .edge.missing { stroke: #bbb; stroke-dasharray: 2 4; }
+  .edge-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; fill: #555; letter-spacing: 0.04em; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 22px;
+    font-size: 12px;
+    padding: 14px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 28px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 22px; height: 14px; border: 1.5px solid var(--ink); border-radius: 2px; }
+  .swatch.root { background: #1a1a1a; }
+  .swatch.folder { background: #fef3c7; border-color: var(--warn); border-style: dashed; }
+  .swatch.html { background: #fff; border-color: var(--accent2); }
+  .swatch.git { background: #dcfce7; border-color: var(--accent3); }
+  .swatch.thread { background: #fafafa; border-color: #bbb; }
+  .swatch.ghost { background: #f3f4f6; border-color: #bbb; border-style: dashed; }
+
+  h2 {
+    font-size: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 32px 0 12px;
+    color: var(--ink);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+  }
+
+  .inventory {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .inventory th, .inventory td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .inventory th {
+    background: #f0efea;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .inventory tr:last-child td { border-bottom: none; }
+  .inventory code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    background: #f0efea;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .tag.html { background: #dbeafe; color: #1e40af; }
+  .tag.folder { background: #fef3c7; color: #92400e; }
+  .tag.git { background: #dcfce7; color: #166534; }
+  .tag.missing { background: #f3f4f6; color: #6b7280; }
+
+  .edge-desc {
+    font-size: 13px;
+    line-height: 1.6;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-bottom: 28px;
+  }
+  .edge-desc ul { list-style: none; padding: 0; }
+  .edge-desc li { padding: 6px 0; border-bottom: 1px dashed var(--border); }
+  .edge-desc li:last-child { border: none; }
+  .edge-desc .arrow {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent);
+    margin: 0 6px;
+    font-weight: 600;
+  }
+
+  footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">Site Map · 18 Apr 2026</div>
+  <h1>Lawrence Site Map</h1>
+  <div class="sub">Everything in <code>/home/user/dump</code> · what it is · how it connects</div>
+</header>
+
+<div class="note">
+  <strong>Honest snapshot</strong>
+  Right now the project is small: one HTML file at the root, no sub-folders, two git branches running as "virtual spin-ups". The map below shows exactly that — and leaves ghost slots where sub-folders and spawned documents would attach later.
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="swatch root"></div> Root directory</div>
+  <div class="legend-item"><div class="swatch html"></div> HTML file</div>
+  <div class="legend-item"><div class="swatch folder"></div> Sub-folder (none yet)</div>
+  <div class="legend-item"><div class="swatch thread"></div> Internal section</div>
+  <div class="legend-item"><div class="swatch git"></div> Git branch (virtual spin-up)</div>
+  <div class="legend-item"><div class="swatch ghost"></div> Ghost / placeholder</div>
+</div>
+
+<div class="map-wrap">
+  <svg class="graph" viewBox="0 0 1060 720" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/>
+      </marker>
+      <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#16a34a"/>
+      </marker>
+      <marker id="arrow-grey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#bbb"/>
+      </marker>
+    </defs>
+
+    <!-- ROOT -->
+    <g>
+      <rect class="node-rect root" x="440" y="20" width="180" height="56" rx="6"/>
+      <text class="node-label on-dark" x="530" y="44" text-anchor="middle">/home/user/dump</text>
+      <text class="node-sub on-dark" x="530" y="60" text-anchor="middle">root · git repo</text>
+    </g>
+
+    <!-- Edges: root -> children -->
+    <path class="edge solid" d="M 530 76 C 530 120, 180 130, 180 170" marker-end="url(#arrow)"/>
+    <text class="edge-label" x="335" y="115">contains</text>
+
+    <path class="edge solid" d="M 530 76 C 530 120, 530 140, 530 170" marker-end="url(#arrow)"/>
+    <text class="edge-label" x="545" y="130">contains</text>
+
+    <path class="edge virtual" d="M 530 76 C 530 120, 880 130, 880 170" marker-end="url(#arrow-green)"/>
+    <text class="edge-label" x="700" y="115" fill="#16a34a">virtual spin-up (git)</text>
+
+    <!-- GHOST sub-folder (left) -->
+    <g>
+      <rect class="node-rect ghost" x="80" y="170" width="200" height="54" rx="6"/>
+      <text class="node-label" x="180" y="194" text-anchor="middle" fill="#6b7280">assets/  (not yet)</text>
+      <text class="node-sub" x="180" y="210" text-anchor="middle">reserved slot for sub-folders</text>
+    </g>
+
+    <!-- HTML file (centre) -->
+    <g>
+      <rect class="node-rect html" x="410" y="170" width="240" height="70" rx="6"/>
+      <text class="node-label" x="530" y="196" text-anchor="middle" fill="#2563eb">tldr-session-map.html</text>
+      <text class="node-sub" x="530" y="214" text-anchor="middle">self-contained · no external links</text>
+      <text class="node-sub" x="530" y="228" text-anchor="middle">8 KB · single page</text>
+    </g>
+
+    <!-- GIT branches block (right) -->
+    <g>
+      <rect class="node-rect git" x="780" y="170" width="200" height="54" rx="6"/>
+      <text class="node-label" x="880" y="194" text-anchor="middle" fill="#166534">.git/  (branches)</text>
+      <text class="node-sub" x="880" y="210" text-anchor="middle">2 local · 2 remote</text>
+    </g>
+
+    <!-- Edge: HTML -> its internal threads (anchors) -->
+    <path class="edge dashed" d="M 530 240 L 530 270" marker-end="url(#arrow)"/>
+    <text class="edge-label" x="540" y="258">renders 4 threads</text>
+
+    <!-- Thread nodes -->
+    <g>
+      <rect class="node-rect thread" x="60" y="280" width="210" height="56" rx="6" stroke="#e84c1e"/>
+      <text class="node-label" x="165" y="304" text-anchor="middle" fill="#e84c1e">🔴 Core Problem</text>
+      <text class="node-sub" x="165" y="320" text-anchor="middle">3 sub-branches · 1 Open</text>
+    </g>
+    <g>
+      <rect class="node-rect thread" x="300" y="280" width="210" height="56" rx="6" stroke="#2563eb"/>
+      <text class="node-label" x="405" y="304" text-anchor="middle" fill="#2563eb">🔵 Ecosystem Problem</text>
+      <text class="node-sub" x="405" y="320" text-anchor="middle">4 sub-branches · Blocked</text>
+    </g>
+    <g>
+      <rect class="node-rect thread" x="540" y="280" width="210" height="56" rx="6" stroke="#d97706"/>
+      <text class="node-label" x="645" y="304" text-anchor="middle" fill="#d97706">🟠 Voice / HTML Build</text>
+      <text class="node-sub" x="645" y="320" text-anchor="middle">3 sub-branches · Not built</text>
+    </g>
+    <g>
+      <rect class="node-rect thread" x="780" y="280" width="210" height="56" rx="6" stroke="#16a34a"/>
+      <text class="node-label" x="885" y="304" text-anchor="middle" fill="#16a34a">🟢 Three Lane Overseer</text>
+      <text class="node-sub" x="885" y="320" text-anchor="middle">3 sub-branches · Lost</text>
+    </g>
+
+    <!-- fan-out edges -->
+    <path class="edge dashed" d="M 460 240 C 420 260, 220 265, 165 280"/>
+    <path class="edge dashed" d="M 500 240 C 470 260, 420 270, 405 280"/>
+    <path class="edge dashed" d="M 560 240 C 590 260, 620 270, 645 280"/>
+    <path class="edge dashed" d="M 600 240 C 640 260, 840 265, 885 280"/>
+
+    <!-- Git branch spin-ups -->
+    <g>
+      <rect class="node-rect git" x="760" y="380" width="240" height="52" rx="6"/>
+      <text class="node-label" x="880" y="402" text-anchor="middle">claude/create-site-map-t4Un7</text>
+      <text class="node-sub" x="880" y="418" text-anchor="middle">current · this page lives here</text>
+    </g>
+    <g>
+      <rect class="node-rect git" x="760" y="448" width="240" height="52" rx="6"/>
+      <text class="node-label" x="880" y="470" text-anchor="middle">claude/fix-execution-stack-DWPYZ</text>
+      <text class="node-sub" x="880" y="486" text-anchor="middle">parallel spin-up · divergent work</text>
+    </g>
+
+    <path class="edge virtual" d="M 880 224 L 880 380" marker-end="url(#arrow-green)"/>
+    <path class="edge virtual" d="M 880 224 C 930 300, 930 390, 880 448" marker-end="url(#arrow-green)"/>
+    <text class="edge-label" x="895" y="310" fill="#16a34a">spawns</text>
+
+    <!-- Ghost future folders bottom row -->
+    <g>
+      <rect class="node-rect ghost" x="60" y="420" width="200" height="50" rx="6"/>
+      <text class="node-label" x="160" y="443" text-anchor="middle" fill="#6b7280">pages/  (future)</text>
+      <text class="node-sub" x="160" y="458" text-anchor="middle">multi-page expansion slot</text>
+    </g>
+    <g>
+      <rect class="node-rect ghost" x="280" y="420" width="200" height="50" rx="6"/>
+      <text class="node-label" x="380" y="443" text-anchor="middle" fill="#6b7280">assets/  (future)</text>
+      <text class="node-sub" x="380" y="458" text-anchor="middle">css · img · fonts</text>
+    </g>
+    <g>
+      <rect class="node-rect ghost" x="500" y="420" width="200" height="50" rx="6"/>
+      <text class="node-label" x="600" y="443" text-anchor="middle" fill="#6b7280">docs/  (future)</text>
+      <text class="node-sub" x="600" y="458" text-anchor="middle">notes · research</text>
+    </g>
+
+    <path class="edge missing" d="M 530 240 C 450 330, 200 400, 160 420" marker-end="url(#arrow-grey)"/>
+    <path class="edge missing" d="M 530 240 C 490 330, 400 400, 380 420" marker-end="url(#arrow-grey)"/>
+    <path class="edge missing" d="M 530 240 C 560 330, 595 400, 600 420" marker-end="url(#arrow-grey)"/>
+    <text class="edge-label" x="360" y="380" fill="#999">would-be links (no folders yet)</text>
+
+    <!-- Legend-ish caption inside graph -->
+    <g>
+      <rect x="60" y="540" width="940" height="150" rx="6" fill="#fafafa" stroke="#ddd"/>
+      <text class="node-label" x="80" y="565">READ THE MAP</text>
+      <text class="node-sub" x="80" y="586" style="font-size:11px;">• Solid black arrows = filesystem containment (dir → file).</text>
+      <text class="node-sub" x="80" y="604" style="font-size:11px;">• Dashed grey arrows = logical contents (file → its internal sections).</text>
+      <text class="node-sub" x="80" y="622" style="font-size:11px;">• Dotted green arrows = virtual spin-ups (git branches — a second you, working in parallel).</text>
+      <text class="node-sub" x="80" y="640" style="font-size:11px;">• Faint dotted grey arrows = ghost edges — where sub-folders would hook in if they existed.</text>
+      <text class="node-sub" x="80" y="658" style="font-size:11px;">• Blue-bordered boxes = HTML pages. Amber dashed = folders. Green = git. Grey = ghost / not-built-yet.</text>
+      <text class="node-sub" x="80" y="676" style="font-size:11px;">• This page (<tspan style="font-family:'IBM Plex Mono',monospace;">lawrence-site-map.html</tspan>) sits at the root next to <tspan style="font-family:'IBM Plex Mono',monospace;">tldr-session-map.html</tspan> — peer nodes, not a parent.</text>
+    </g>
+  </svg>
+</div>
+
+<h2>Inventory · what's on disk</h2>
+<table class="inventory">
+  <thead>
+    <tr>
+      <th>Path</th>
+      <th>Kind</th>
+      <th>What it is</th>
+      <th>Connects to</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>/home/user/dump</code></td>
+      <td><span class="tag folder">root</span></td>
+      <td>The project root. A git repository. Nothing above it.</td>
+      <td>Everything below.</td>
+    </tr>
+    <tr>
+      <td><code>tldr-session-map.html</code></td>
+      <td><span class="tag html">html</span></td>
+      <td>Single-page session TLDR — 4 coloured threads (Core Problem, Ecosystem, Voice/HTML, Three-Lane Overseer). Self-contained: only external reference is Google Fonts.</td>
+      <td>No outbound file links. Pulls IBM Plex from fonts.googleapis.com only.</td>
+    </tr>
+    <tr>
+      <td><code>lawrence-site-map.html</code></td>
+      <td><span class="tag html">html</span></td>
+      <td>This page. Lives at the root, describes everything around it. Self-contained.</td>
+      <td>References <code>tldr-session-map.html</code> by name (no hyperlink yet — peer on disk).</td>
+    </tr>
+    <tr>
+      <td><code>.git/</code></td>
+      <td><span class="tag git">git</span></td>
+      <td>Version control. Holds branches, history, objects.</td>
+      <td>Spawns the two virtual branches below.</td>
+    </tr>
+    <tr>
+      <td><code>claude/create-site-map-t4Un7</code></td>
+      <td><span class="tag git">branch</span></td>
+      <td>Current working branch. This site-map page is being built on it.</td>
+      <td>Will merge into <code>main</code> once reviewed.</td>
+    </tr>
+    <tr>
+      <td><code>claude/fix-execution-stack-DWPYZ</code></td>
+      <td><span class="tag git">branch</span></td>
+      <td>Parallel branch — another line of work. A "virtual spin-up" of the repo.</td>
+      <td>Diverged from root. Independent commits.</td>
+    </tr>
+    <tr>
+      <td><code>assets/</code>, <code>pages/</code>, <code>docs/</code></td>
+      <td><span class="tag missing">ghost</span></td>
+      <td>Do not exist yet. Shown on the map as dotted placeholders so the shape of future growth is visible.</td>
+      <td>Would hang off the root. No current edges.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Edges · how the pieces talk</h2>
+<div class="edge-desc">
+  <ul>
+    <li><code>/home/user/dump</code> <span class="arrow">──▶</span> <code>tldr-session-map.html</code> &nbsp;·&nbsp; filesystem containment. The folder holds the file.</li>
+    <li><code>/home/user/dump</code> <span class="arrow">──▶</span> <code>lawrence-site-map.html</code> &nbsp;·&nbsp; same — peer file in the same root.</li>
+    <li><code>tldr-session-map.html</code> <span class="arrow">┈┈▶</span> 4 internal threads &nbsp;·&nbsp; logical, not filesystem. The threads live inside the HTML, not on disk.</li>
+    <li><code>.git/</code> <span class="arrow" style="color:#16a34a;">┄┄▶</span> <code>claude/create-site-map-t4Un7</code> &nbsp;·&nbsp; virtual spin-up. A branch is a parallel copy of the whole tree.</li>
+    <li><code>.git/</code> <span class="arrow" style="color:#16a34a;">┄┄▶</span> <code>claude/fix-execution-stack-DWPYZ</code> &nbsp;·&nbsp; another virtual spin-up. Same root, different history.</li>
+    <li><code>/home/user/dump</code> <span class="arrow" style="color:#bbb;">┈┈▶</span> <code>assets/ · pages/ · docs/</code> &nbsp;·&nbsp; <em>ghost edges</em> — these folders aren't real yet, but the map reserves the slot.</li>
+  </ul>
+</div>
+
+<h2>If you add a sub-folder later</h2>
+<div class="edge-desc" style="font-size:13px; line-height:1.65;">
+  The ghost nodes on the map show where new branches in the file tree would attach. A typical growth shape would be:
+  <ul style="margin-top:8px;">
+    <li><code>assets/css/</code> and <code>assets/img/</code> <span class="arrow">──▶</span> referenced <em>by</em> HTML files via <code>&lt;link&gt;</code> / <code>&lt;img&gt;</code>.</li>
+    <li><code>pages/*.html</code> <span class="arrow">──▶</span> linked <em>from</em> this site map via <code>&lt;a href&gt;</code>, turning edges from "name mentions" into real hyperlinks.</li>
+    <li><code>docs/*.md</code> <span class="arrow">──▶</span> reference material, not served — connected by name only.</li>
+    <li>Each new git branch is another green dotted edge off <code>.git/</code> — no filesystem change, just another parallel view.</li>
+  </ul>
+</div>
+
+<footer>
+  lawrence-site-map.html · root-level index · updates when the tree changes
+</footer>
+
+</body>
+</html>
