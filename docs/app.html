@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hub">
+<meta name="theme-color" content="#0e0f12">
+<title>Hub</title>
+<style>
+  :root{
+    --bg:#0e0f12; --panel:#16181d; --panel2:#1c1f25; --ink:#e8e6e0;
+    --muted:#7a7e88; --dim:#4a4e58; --line:#23262d;
+    --accent:#e84c1e; --blue:#4b8df8; --green:#3fb950; --amber:#d89a2a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;min-height:100vh}
+  body{padding:18px 16px 100px;max-width:720px;margin:0 auto}
+
+  h1{font-size:22px;font-weight:600;margin-bottom:6px}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:18px}
+
+  .tabs{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:18px}
+  .tab{flex:1;text-align:center;padding:10px;border-radius:7px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+  .tab.active{background:var(--panel2);color:var(--ink)}
+
+  .view{display:none}
+  .view.active{display:block}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:center}
+  .stat .n{font-size:22px;font-weight:600;color:var(--ink)}
+  .stat .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+
+  ul.items{list-style:none;display:flex;flex-direction:column;gap:6px}
+  .item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .item .box{width:16px;height:16px;border:1.5px solid var(--dim);border-radius:4px;flex-shrink:0;position:relative}
+  .item.done .box{background:var(--green);border-color:var(--green)}
+  .item.done .box::after{content:"✓";position:absolute;top:-3px;left:1px;color:#0e0f12;font-weight:700;font-size:12px}
+  .item .txt{flex:1;font-size:13.5px;line-height:1.4}
+  .item.done .txt{opacity:.45;text-decoration:line-through}
+  .item .tag{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+
+  button{font:inherit;font-size:13px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:10px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  button:active{background:var(--panel)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+  input,textarea,select{font:inherit;font-size:14px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:10px 12px;width:100%}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--muted)}
+  .form-row{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+  label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+
+  svg{display:block;width:100%;height:auto}
+  .axis{fill:var(--muted);font-size:10px;font-family:ui-monospace,Menlo,monospace}
+  .grid{stroke:var(--line);stroke-width:1}
+
+  .log-entry{padding:12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;margin-bottom:8px}
+  .log-entry .when{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+  .log-entry .what{font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+  .log-entry .del{float:right;font-size:11px;color:var(--dim);cursor:pointer;padding:2px 6px}
+
+  .empty{color:var(--dim);font-size:13px;text-align:center;padding:24px 12px;font-style:italic}
+
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--panel2);border:1px solid var(--accent);padding:10px 16px;border-radius:8px;font-size:12px;opacity:0;transition:all .25s;pointer-events:none;z-index:100}
+  .toast.show{transform:translateX(-50%);opacity:1}
+</style>
+</head>
+<body>
+
+<h1>Hub</h1>
+<div class="sub" id="sub">Your layer. Running. Tap around.</div>
+
+<div class="tabs">
+  <div class="tab active" data-view="today">Today</div>
+  <div class="tab" data-view="charts">Charts</div>
+  <div class="tab" data-view="log">Log</div>
+</div>
+
+<!-- TODAY -->
+<div class="view active" id="v-today">
+  <div class="stat-row">
+    <div class="stat"><div class="n" id="stat-done">0</div><div class="l">Done</div></div>
+    <div class="stat"><div class="n" id="stat-open">0</div><div class="l">Open</div></div>
+    <div class="stat"><div class="n" id="stat-checkin">0</div><div class="l">Check-ins</div></div>
+  </div>
+
+  <div class="card">
+    <h2>Today's list</h2>
+    <ul class="items" id="items"></ul>
+    <div class="controls">
+      <input id="new-item" placeholder="Add something to watch / do…">
+      <button class="primary" id="add-item">Add</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Check-in</h2>
+    <div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px">Each time you check in I log it and show it on the chart. Nothing auto-starts. You're the switch.</div>
+    <div class="controls">
+      <button class="primary" id="checkin">Check in now</button>
+      <button id="reset-all">Reset everything</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHARTS -->
+<div class="view" id="v-charts">
+  <div class="card">
+    <h2>Check-ins over last 14 days</h2>
+    <svg id="chart-line" viewBox="0 0 320 140" preserveAspectRatio="none"></svg>
+  </div>
+  <div class="card">
+    <h2>Activity by lane</h2>
+    <svg id="chart-bar" viewBox="0 0 320 180" preserveAspectRatio="none"></svg>
+  </div>
+</div>
+
+<!-- LOG -->
+<div class="view" id="v-log">
+  <div class="card">
+    <h2>Add to log</h2>
+    <div class="form-row">
+      <label>Lane</label>
+      <select id="log-lane">
+        <option>Court</option><option>Markets</option><option>Complaints</option>
+        <option>Kids</option><option>Admin</option><option>Note</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>What happened</label>
+      <textarea id="log-what" rows="3" placeholder="A link you found. A reply you got. A thought."></textarea>
+    </div>
+    <button class="primary" id="log-add">Save entry</button>
+  </div>
+  <div id="log-list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const KEY="hub.v2";
+  const state = load() || seed();
+
+  function seed(){
+    return {
+      items:[
+        {t:"Read 1 exhibit page", done:false, lane:"Court"},
+        {t:"Check ombudsman portal", done:false, lane:"Complaints"},
+        {t:"Log options P/L for the day", done:false, lane:"Markets"},
+        {t:"Sign the permission form", done:false, lane:"Kids"}
+      ],
+      checkins:[],
+      log:[]
+    };
+  }
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+  // TABS
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(o=>o.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById('v-'+t.dataset.view).classList.add('active');
+      if(t.dataset.view==='charts') drawCharts();
+    });
+  });
+
+  // TODAY: items list
+  function renderItems(){
+    const ul = document.getElementById('items');
+    ul.innerHTML='';
+    state.items.forEach((it,i)=>{
+      const li=document.createElement('li');
+      li.className='item'+(it.done?' done':'');
+      li.innerHTML=`<span class="box"></span><span class="txt">${escapeHtml(it.t)}</span><span class="tag">${escapeHtml(it.lane||'')}</span>`;
+      li.addEventListener('click',()=>{ it.done=!it.done; save(); renderItems(); renderStats(); });
+      ul.appendChild(li);
+    });
+    if(state.items.length===0){
+      ul.innerHTML='<div class="empty">No items. Add one below.</div>';
+    }
+  }
+
+  document.getElementById('add-item').addEventListener('click',()=>{
+    const inp = document.getElementById('new-item');
+    const v = (inp.value||'').trim();
+    if(!v) return;
+    state.items.unshift({t:v, done:false, lane:'Note'});
+    inp.value='';
+    save(); renderItems(); renderStats();
+    toast('Added.');
+  });
+
+  // CHECK-IN
+  document.getElementById('checkin').addEventListener('click',()=>{
+    state.checkins.push(Date.now());
+    save(); renderStats();
+    toast('Checked in.');
+  });
+  document.getElementById('reset-all').addEventListener('click',()=>{
+    if(!confirm('Wipe everything on this device?')) return;
+    localStorage.removeItem(KEY);
+    location.reload();
+  });
+
+  // STATS
+  function renderStats(){
+    const done = state.items.filter(i=>i.done).length;
+    const open = state.items.length - done;
+    document.getElementById('stat-done').textContent = done;
+    document.getElementById('stat-open').textContent = open;
+    document.getElementById('stat-checkin').textContent = state.checkins.length;
+  }
+
+  // LOG
+  document.getElementById('log-add').addEventListener('click',()=>{
+    const lane = document.getElementById('log-lane').value;
+    const what = document.getElementById('log-what').value.trim();
+    if(!what) return;
+    state.log.unshift({ when: Date.now(), lane, what });
+    document.getElementById('log-what').value='';
+    save(); renderLog();
+    toast('Saved to log.');
+  });
+
+  function renderLog(){
+    const wrap = document.getElementById('log-list');
+    if(state.log.length===0){
+      wrap.innerHTML='<div class="empty">No entries yet. Add one above.</div>';
+      return;
+    }
+    wrap.innerHTML = state.log.map((e,idx)=>`
+      <div class="log-entry">
+        <span class="del" data-i="${idx}">✕</span>
+        <div class="when">${fmtTime(e.when)} · ${escapeHtml(e.lane)}</div>
+        <div class="what">${escapeHtml(e.what)}</div>
+      </div>
+    `).join('');
+    wrap.querySelectorAll('.del').forEach(d=>{
+      d.addEventListener('click',ev=>{
+        ev.stopPropagation();
+        const i = parseInt(d.dataset.i,10);
+        state.log.splice(i,1); save(); renderLog();
+      });
+    });
+  }
+
+  // CHARTS
+  function drawCharts(){
+    drawLineChart();
+    drawBarChart();
+  }
+  function drawLineChart(){
+    const svg = document.getElementById('chart-line');
+    const W=320, H=140, pad=24;
+    const days = 14;
+    const now = new Date(); now.setHours(0,0,0,0);
+    const buckets = new Array(days).fill(0);
+    state.checkins.forEach(ts=>{
+      const d = Math.floor((Date.now()-ts)/86400000);
+      if(d>=0 && d<days) buckets[days-1-d]++;
+    });
+    const max = Math.max(1, ...buckets);
+    const stepX = (W-pad*2)/(days-1);
+    const pts = buckets.map((v,i)=>{
+      const x = pad + i*stepX;
+      const y = H-pad - (v/max)*(H-pad*2);
+      return [x,y];
+    });
+    const path = pts.map((p,i)=> (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const gridLines = [0,1,2,3,4].map(i=>{
+      const y = pad + (H-pad*2)*i/4;
+      return `<line class="grid" x1="${pad}" x2="${W-pad}" y1="${y}" y2="${y}"/>`;
+    }).join('');
+    const dots = pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="var(--accent)"/>`).join('');
+    svg.innerHTML = `
+      ${gridLines}
+      <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      ${dots}
+      <text class="axis" x="${pad}" y="${H-4}">14d ago</text>
+      <text class="axis" x="${W-pad-24}" y="${H-4}">today</text>
+      <text class="axis" x="4" y="${pad+4}">${max}</text>
+      <text class="axis" x="4" y="${H-pad}">0</text>`;
+  }
+  function drawBarChart(){
+    const svg = document.getElementById('chart-bar');
+    const W=320, H=180, pad=28;
+    // count log entries by lane
+    const counts={};
+    state.log.forEach(e=>{ counts[e.lane]=(counts[e.lane]||0)+1; });
+    // also add item counts by lane
+    state.items.forEach(it=>{
+      const k = it.lane||'Note';
+      counts[k]=(counts[k]||0) + (it.done?1:1);
+    });
+    const lanes = Object.keys(counts);
+    if(lanes.length===0){
+      svg.innerHTML = `<text class="axis" x="${W/2-40}" y="${H/2}">no activity yet</text>`;
+      return;
+    }
+    const max = Math.max(1, ...Object.values(counts));
+    const barW = (W-pad*2)/lanes.length - 8;
+    const bars = lanes.map((k,i)=>{
+      const v = counts[k];
+      const x = pad + i*((W-pad*2)/lanes.length) + 4;
+      const h = (v/max)*(H-pad*2);
+      const y = H-pad - h;
+      return `
+        <rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="var(--blue)" rx="3"/>
+        <text class="axis" x="${x+barW/2}" y="${H-pad+14}" text-anchor="middle">${escapeHtml(k)}</text>
+        <text class="axis" x="${x+barW/2}" y="${y-4}" text-anchor="middle">${v}</text>`;
+    }).join('');
+    svg.innerHTML = bars;
+  }
+
+  // utilities
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+  function fmtTime(ts){
+    const d = new Date(ts);
+    return d.toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  }
+  let toastTimer=null;
+  function toast(m){
+    const el = document.getElementById('toast');
+    el.textContent = m;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>el.classList.remove('show'), 1600);
+  }
+
+  // init
+  renderItems(); renderStats(); renderLog();
+})();
+</script>
+</body>
+</html>
