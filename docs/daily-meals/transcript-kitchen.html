@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0e0f12">
-<title>Transcript kitchen · v1</title>
+<title>Transcript kitchen · v2</title>
 <link rel="stylesheet" href="../style.css">
 <style>
   body{max-width:920px}
@@ -84,12 +84,16 @@
     <button id="paste-mode">Paste instead</button>
   </div>
   <div class="info">
-    <b>Honest note:</b> This page runs entirely in your browser. I don't have a Flask server — I use a public CORS proxy
-    (<code>corsproxy.io</code>) to ask YouTube for the caption track. It works on a lot of videos; it fails on some (age-gated,
-    region-blocked, no captions). If it fails, a paste box opens below and you drop in the transcript yourself —
-    the rest of the kitchen is the same either way.
+    <b>Honest note:</b> Browser-only. I try five different public CORS proxies in sequence, then fall back to asking YouTube
+    directly (some videos allow it). If they all reject, Stage 2 shows you exactly who said no, and offers three
+    one-tap external helpers that can dump a transcript you paste back here.
   </div>
   <div class="video-embed" id="video-embed"><iframe id="video-frame" allow="encrypted-media" allowfullscreen></iframe></div>
+  <div id="helpers" style="display:none;margin-top:10px;padding:12px 14px;background:var(--panel2);border:1px solid var(--amber);border-radius:8px">
+    <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--amber);margin-bottom:8px">Plan B · open one of these</div>
+    <div style="font-size:13px;line-height:1.55;color:#c8c6bf;margin-bottom:10px">Each opens in a new tab with this video's ID already filled in. Copy the transcript, come back, paste into Stage 3.</div>
+    <div id="helper-links" style="display:flex;flex-direction:column;gap:6px"></div>
+  </div>
 </div>
 
 <!-- STAGE 2 — what I did -->
@@ -173,69 +177,115 @@
     } catch(e){ return null; }
   }
 
-  // ── fetch via CORS proxy
-  const PROXY = 'https://corsproxy.io/?';
+  // ── multi-proxy chain. Each entry is a function that wraps a URL.
+  // Some proxies return raw text; others wrap in JSON — normalised below.
+  const PROXIES = [
+    { name:'direct',          wrap: u => u,                                          extract: r => r.text() },
+    { name:'corsproxy.io',    wrap: u => 'https://corsproxy.io/?' + encodeURIComponent(u), extract: r => r.text() },
+    { name:'allorigins.win',  wrap: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u), extract: r => r.text() },
+    { name:'codetabs',        wrap: u => 'https://api.codetabs.com/v1/proxy/?quest=' + u, extract: r => r.text() },
+    { name:'thingproxy',      wrap: u => 'https://thingproxy.freeboard.io/fetch/' + u,    extract: r => r.text() },
+    { name:'proxy.cors.sh',   wrap: u => 'https://proxy.cors.sh/' + u,                    extract: r => r.text() },
+  ];
+
+  async function robustFetch(url, lbl){
+    for (const p of PROXIES){
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      try {
+        say('info', lbl + ' · trying ' + p.name + '…');
+        const target = p.wrap(url);
+        const res = await fetch(target, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const text = await p.extract(res);
+        if (!text || text.length < 100) throw new Error('response too short (' + (text||'').length + ' bytes)');
+        say('ok', lbl + ' · ' + p.name + ' returned ' + text.length + ' bytes.');
+        return { text, via: p.name };
+      } catch (e) {
+        clearTimeout(timeout);
+        say('warn', lbl + ' · ' + p.name + ' failed: ' + e.message);
+      }
+    }
+    say('err', lbl + ' · all proxies exhausted.');
+    return null;
+  }
+
+  function showHelpers(videoId){
+    const list = [
+      { label:'tactiq.io', url: 'https://tactiq.io/tools/youtube-transcript?yt=https://www.youtube.com/watch?v=' + videoId },
+      { label:'youtubetotranscript.com', url: 'https://youtubetotranscript.com/transcript?v=' + videoId },
+      { label:'downsub.com',  url: 'https://downsub.com/?url=https://www.youtube.com/watch?v=' + videoId },
+      { label:'open video in YouTube · use the Show Transcript button', url: 'https://www.youtube.com/watch?v=' + videoId },
+    ];
+    const wrap = $('#helpers');
+    const links = $('#helper-links');
+    links.innerHTML = list.map(l =>
+      '<a href="' + l.url + '" target="_blank" rel="noopener" style="display:flex;justify-content:space-between;align-items:center;padding:9px 11px;background:var(--panel);border:1px solid var(--line);border-radius:7px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--ink);text-decoration:none;-webkit-tap-highlight-color:transparent"><span>' + l.label + '</span><span style="color:var(--amber)">↗</span></a>'
+    ).join('');
+    wrap.style.display = 'block';
+  }
 
   async function fetchTranscript(videoId){
     say('info', 'Video ID: ' + videoId);
-    // embed the video
     $('#video-embed').classList.add('on');
     $('#video-frame').src = 'https://www.youtube.com/embed/' + videoId;
 
-    say('info', 'GET watch page via CORS proxy…');
+    // Variant 1: scrape the watch page for captionTracks
     const watchUrl = 'https://www.youtube.com/watch?v=' + encodeURIComponent(videoId);
-    let html;
-    try {
-      const res = await fetch(PROXY + encodeURIComponent(watchUrl));
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      html = await res.text();
-      say('ok', 'Got watch page, ' + html.length + ' bytes.');
-    } catch (e) {
-      say('err', 'Proxy fetch failed: ' + e.message + '. Fall back to paste mode.');
+    let pageRes = await robustFetch(watchUrl, 'watch page');
+
+    if (!pageRes){
+      // Variant 2: mobile page sometimes has different captions bundle
+      const mUrl = 'https://m.youtube.com/watch?v=' + encodeURIComponent(videoId);
+      pageRes = await robustFetch(mUrl, 'mobile watch page');
+    }
+
+    if (!pageRes){
+      showHelpers(videoId);
       return null;
     }
 
-    // Find captionTracks JSON in the page
-    const m = html.match(/"captionTracks":(\[.*?\])/);
+    const html = pageRes.text;
+    const m = html.match(/"captionTracks":(\[[^\]]*\])/);
     if (!m){
-      say('warn', 'No captionTracks found in page. YouTube probably didn\'t include them or the short has no captions.');
+      say('warn', 'No captionTracks block in the page HTML — likely no captions on this video.');
+      showHelpers(videoId);
       return null;
     }
     let tracks;
-    try { tracks = JSON.parse(m[1]); }
-    catch(e){ say('err', 'Failed to parse captionTracks JSON: ' + e.message); return null; }
-    say('ok', 'Found ' + tracks.length + ' caption track' + (tracks.length===1?'':'s') + '.');
+    try { tracks = JSON.parse(m[1].replace(/\\u0026/g,'&').replace(/\\\//g,'/')); }
+    catch(e){ say('err', 'captionTracks JSON parse failed: ' + e.message); showHelpers(videoId); return null; }
+    if (!tracks.length){ say('warn','captionTracks is empty.'); showHelpers(videoId); return null; }
+    say('ok', 'Found ' + tracks.length + ' caption track(s) via ' + pageRes.via + '.');
 
-    // Pick English if possible, else first
-    let track = tracks.find(t => (t.languageCode||'').startsWith('en')) || tracks[0];
-    say('info', 'Using track: ' + (track.name && track.name.simpleText || track.languageCode || 'unknown'));
+    // Prefer English
+    const track = tracks.find(t => (t.languageCode||'').startsWith('en')) || tracks[0];
+    say('info', 'Using track: ' + (track.name && (track.name.simpleText || track.name.runs && track.name.runs[0] && track.name.runs[0].text) || track.languageCode || 'unknown'));
 
-    // Fetch the XML
-    let xml;
-    try {
-      const res = await fetch(PROXY + encodeURIComponent(track.baseUrl));
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      xml = await res.text();
-      say('ok', 'Got timedtext XML, ' + xml.length + ' bytes.');
-    } catch (e) {
-      say('err', 'timedtext fetch failed: ' + e.message);
-      return null;
-    }
+    // Fetch the XML through the proxy chain
+    const ttRes = await robustFetch(track.baseUrl, 'timedtext');
+    if (!ttRes){ showHelpers(videoId); return null; }
 
-    // Parse XML
-    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    let doc;
+    try { doc = new DOMParser().parseFromString(ttRes.text, 'text/xml'); }
+    catch(e){ say('err','XML parse failed: ' + e.message); showHelpers(videoId); return null; }
     const texts = Array.from(doc.getElementsByTagName('text'));
-    if (!texts.length){
-      say('warn', 'timedtext XML had no <text> elements.');
-      return null;
-    }
+    if (!texts.length){ say('warn','timedtext XML had no <text> elements.'); showHelpers(videoId); return null; }
     say('ok', 'Parsed ' + texts.length + ' caption segments.');
 
     const lines = texts.map(t => {
       const start = parseFloat(t.getAttribute('start')) || 0;
       const mins = Math.floor(start/60);
       const secs = Math.floor(start%60).toString().padStart(2,'0');
-      const body = (t.textContent || '').replace(/&amp;#39;/g,"'").replace(/\n/g,' ').trim();
+      const body = (t.textContent || '')
+        .replace(/&amp;#39;/g,"'")
+        .replace(/&#39;/g,"'")
+        .replace(/&amp;quot;/g,'"')
+        .replace(/&quot;/g,'"')
+        .replace(/&amp;amp;/g,'&')
+        .replace(/&amp;/g,'&')
+        .replace(/\n/g,' ').trim();
       return '[' + mins + ':' + secs + '] ' + body;
     });
     return lines.join('\n');
