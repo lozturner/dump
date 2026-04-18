@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hub">
+<meta name="theme-color" content="#0e0f12">
+<link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIkh1YiIsCiAgInNob3J0X25hbWUiOiAiSHViIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwZTBmMTIiLAogICJ0aGVtZV9jb2xvciI6ICIjMGUwZjEyIgp9">
 <title>Hub — Always On</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
@@ -265,6 +270,138 @@
   }
   .linklike:hover { border-bottom-color: var(--ink); color: var(--ink); }
 
+  /* ── INTERACTIVE BITS ───────────────────────────── */
+  button, .btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:hover, .btn:hover { border-color: var(--muted); }
+  button:active, .btn:active { background: var(--panel2); }
+
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn.primary:hover { background: #ff5a2a; border-color: #ff5a2a; }
+
+  .section { cursor: pointer; user-select: none; }
+  .section .body { overflow: hidden; transition: max-height 0.25s ease, opacity 0.2s; }
+  .section.collapsed .body { max-height: 0; opacity: 0; margin-top: -12px; }
+  .section .chevron {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--dim);
+    transition: transform 0.2s;
+    margin-left: 6px;
+  }
+  .section.collapsed .chevron { transform: rotate(-90deg); }
+
+  .row {
+    cursor: pointer;
+    padding: 4px 6px;
+    margin-left: -6px;
+    margin-right: -6px;
+    border-radius: 4px;
+    transition: background 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .row:hover { background: rgba(255,255,255,0.02); }
+  .row.ack {
+    opacity: 0.45;
+    text-decoration: line-through;
+    text-decoration-color: var(--dim);
+  }
+  .row .check {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 1px solid var(--dim);
+    border-radius: 3px;
+    margin-right: 8px;
+    flex-shrink: 0;
+    margin-top: 3px;
+    position: relative;
+  }
+  .row.ack .check {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .row.ack .check::after {
+    content: '✓';
+    position: absolute;
+    color: #0e0f12;
+    font-size: 10px;
+    font-weight: 700;
+    top: -3px;
+    left: 1px;
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .filter-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+  }
+  .filter-pill.active {
+    color: var(--ink);
+    border-color: var(--muted);
+    background: var(--panel2);
+  }
+
+  .hidden-by-filter { display: none !important; }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .flash {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--panel2);
+    border: 1px solid var(--accent);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .flash.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
   /* ── CHECK-IN FOOTER ────────────────────────────── */
   .checkin {
     margin-top: 28px;
@@ -296,12 +433,21 @@
     <div class="left">
       <span class="heartbeat"></span>
       <span class="label">Monitor layer</span>
-      <span class="value">running · uninterrupted since 11 Apr 2026</span>
+      <span class="value" id="uptime">running · uninterrupted</span>
     </div>
     <div class="right">
-      <span>Last you checked in: <b>3h 12m ago</b></span>
-      <span>Changes while away: <b>7</b></span>
+      <span>Last check-in: <b id="last-check">—</b></span>
+      <span>Changes while away: <b id="changes-while-away">0</b></span>
     </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters" id="filters">
+    <div class="filter-pill active" data-filter="all">All</div>
+    <div class="filter-pill" data-filter="hot">Hot</div>
+    <div class="filter-pill" data-filter="new">New</div>
+    <div class="filter-pill" data-filter="wait">Waiting</div>
+    <div class="filter-pill" data-filter="unacked">Unread only</div>
   </div>
 
   <!-- Header -->
@@ -593,8 +739,202 @@
     I am not a thing you start. <span class="arrow">→</span> I am a layer that is already running<br>
     between the websites and documents you open and the data underneath.<br>
     The next move is <b>you checking on me</b>, not me booting up for you.
+
+    <div class="controls">
+      <button class="btn primary" id="btn-checkin">Check in now</button>
+      <button class="btn" id="btn-expand">Expand all</button>
+      <button class="btn" id="btn-collapse">Collapse all</button>
+      <button class="btn" id="btn-reset">Reset state</button>
+    </div>
   </div>
 
 </div>
+
+<div class="flash" id="flash"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  const STORE_KEY = 'hub.state.v1';
+  const state = loadState();
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {
+      firstOpened: Date.now(),
+      lastCheckin: Date.now(),
+      acked: {},
+      collapsed: {},
+      filter: 'all',
+    };
+  }
+  function saveState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  // Tag rows with stable ids + filter classes
+  const sections = document.querySelectorAll('.section');
+  sections.forEach((sec, si) => {
+    sec.dataset.sid = 's' + si;
+    const title = sec.querySelector('.section-title');
+    if (title && !title.querySelector('.chevron')) {
+      const chev = document.createElement('span');
+      chev.className = 'chevron';
+      chev.textContent = '▾';
+      title.appendChild(chev);
+    }
+    // wrap body for collapse animation
+    const head = sec.querySelector('.section-head');
+    const body = document.createElement('div');
+    body.className = 'body';
+    let n = head.nextSibling;
+    while (n) { const next = n.nextSibling; body.appendChild(n); n = next; }
+    sec.appendChild(body);
+
+    const rows = sec.querySelectorAll('.row');
+    rows.forEach((row, ri) => {
+      row.dataset.rid = 's' + si + 'r' + ri;
+      // prepend check box
+      const check = document.createElement('span');
+      check.className = 'check';
+      row.insertBefore(check, row.firstChild);
+      // derive filter class from tags within
+      const tags = row.querySelectorAll('.tag');
+      const tagKinds = [];
+      tags.forEach(t => tagKinds.push(...t.className.split(/\s+/).filter(c => c !== 'tag')));
+      row.dataset.tags = tagKinds.join(' ');
+    });
+  });
+
+  // Apply persisted state
+  Object.keys(state.acked).forEach(rid => {
+    const el = document.querySelector('[data-rid="' + rid + '"]');
+    if (el && state.acked[rid]) el.classList.add('ack');
+  });
+  Object.keys(state.collapsed).forEach(sid => {
+    const el = document.querySelector('[data-sid="' + sid + '"]');
+    if (el && state.collapsed[sid]) el.classList.add('collapsed');
+  });
+
+  // Section toggle (click on head only, not body)
+  sections.forEach(sec => {
+    const head = sec.querySelector('.section-head');
+    head.addEventListener('click', () => {
+      sec.classList.toggle('collapsed');
+      state.collapsed[sec.dataset.sid] = sec.classList.contains('collapsed');
+      saveState();
+    });
+    // prevent body clicks from bubbling to section toggle
+    const body = sec.querySelector('.body');
+    if (body) body.addEventListener('click', e => e.stopPropagation());
+  });
+
+  // Row ack toggle
+  document.querySelectorAll('.row').forEach(row => {
+    row.addEventListener('click', e => {
+      // don't ack when tapping a link inside
+      if (e.target.tagName === 'A') return;
+      row.classList.toggle('ack');
+      state.acked[row.dataset.rid] = row.classList.contains('ack');
+      saveState();
+      applyFilter();
+    });
+  });
+
+  // Filters
+  const filterPills = document.querySelectorAll('.filter-pill');
+  filterPills.forEach(p => {
+    p.addEventListener('click', () => {
+      filterPills.forEach(o => o.classList.remove('active'));
+      p.classList.add('active');
+      state.filter = p.dataset.filter;
+      saveState();
+      applyFilter();
+    });
+  });
+  function applyFilter() {
+    const f = state.filter || 'all';
+    const pill = document.querySelector('.filter-pill[data-filter="' + f + '"]');
+    if (pill) {
+      filterPills.forEach(o => o.classList.remove('active'));
+      pill.classList.add('active');
+    }
+    document.querySelectorAll('.row').forEach(r => {
+      let show = true;
+      if (f === 'unacked') show = !r.classList.contains('ack');
+      else if (f !== 'all') show = (r.dataset.tags || '').split(/\s+/).includes(f);
+      r.classList.toggle('hidden-by-filter', !show);
+    });
+  }
+  applyFilter();
+
+  // Check-in button
+  const btnCheckin = document.getElementById('btn-checkin');
+  btnCheckin.addEventListener('click', () => {
+    state.lastCheckin = Date.now();
+    saveState();
+    renderTimestamps();
+    flash('Checked in. Counter reset.');
+  });
+
+  document.getElementById('btn-expand').addEventListener('click', () => {
+    sections.forEach(s => { s.classList.remove('collapsed'); state.collapsed[s.dataset.sid] = false; });
+    saveState();
+  });
+  document.getElementById('btn-collapse').addEventListener('click', () => {
+    sections.forEach(s => { s.classList.add('collapsed'); state.collapsed[s.dataset.sid] = true; });
+    saveState();
+  });
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    if (!confirm('Reset everything on this device? (ack ticks, collapse states, check-in counter)')) return;
+    localStorage.removeItem(STORE_KEY);
+    location.reload();
+  });
+
+  // Timestamps / uptime
+  function fmtAgo(ms) {
+    if (ms < 60000) return Math.floor(ms/1000) + 's ago';
+    if (ms < 3600000) return Math.floor(ms/60000) + 'm ago';
+    if (ms < 86400000) {
+      const h = Math.floor(ms/3600000);
+      const m = Math.floor((ms%3600000)/60000);
+      return h + 'h ' + m + 'm ago';
+    }
+    return Math.floor(ms/86400000) + 'd ago';
+  }
+  function fmtDur(ms) {
+    if (ms < 60000) return Math.floor(ms/1000) + 's';
+    if (ms < 3600000) return Math.floor(ms/60000) + 'm';
+    if (ms < 86400000) return Math.floor(ms/3600000) + 'h';
+    return Math.floor(ms/86400000) + 'd';
+  }
+  function renderTimestamps() {
+    const now = Date.now();
+    document.getElementById('last-check').textContent = fmtAgo(now - state.lastCheckin);
+    document.getElementById('uptime').textContent = 'running · uninterrupted for ' + fmtDur(now - state.firstOpened);
+    // changes while away = unacked rows (placeholder model: the noise waiting for your eyes)
+    const unacked = document.querySelectorAll('.row:not(.ack)').length;
+    document.getElementById('changes-while-away').textContent = String(unacked);
+  }
+  renderTimestamps();
+  setInterval(renderTimestamps, 10000);
+
+  // Flash toast
+  const flashEl = document.getElementById('flash');
+  let flashTimer = null;
+  function flash(msg) {
+    flashEl.textContent = msg;
+    flashEl.classList.add('show');
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => flashEl.classList.remove('show'), 1800);
+  }
+
+  saveState();
+})();
+</script>
 </body>
 </html>
