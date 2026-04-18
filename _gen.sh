@@ -63,6 +63,7 @@ ${rows}
   <b>I've been watching this lane.</b> Nothing here auto-starts. When you check in, I show you what changed.
 </div>
 
+<script defer src="shit-switch.js"></script>
 </body>
 </html>
 HTML

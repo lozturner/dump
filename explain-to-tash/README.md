@@ -9,4 +9,5 @@ the intent of being shareable as-is.
 
 ## Entries
 
-- [What this is, where she can help, and why he needs it · v1](./what-this-is-and-where-she-can-help-and-why-he-needs-it-v1.md)
+- [What this is, where she can help, and why he needs it · **v2** (current — adds Part Two breaking the fourth wall)](./what-this-is-and-where-she-can-help-and-why-he-needs-it-v2.md)
+- [What this is, where she can help, and why he needs it · v1 (archived)](./what-this-is-and-where-she-can-help-and-why-he-needs-it-v1.md)
