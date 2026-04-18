@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e0f12">
+<title>Transcript kitchen · v1</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  body{max-width:920px}
+  .toprow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;position:relative}
+  .stage h3{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+  .stage h3 .num{background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-right:8px}
+  .stage p.lede{font-size:13.5px;color:#c8c6bf;line-height:1.6;margin-bottom:10px}
+
+  .input-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .input-row input[type=text],.input-row input[type=date]{font:inherit;font-size:14px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:10px 12px;flex:1;min-width:180px}
+  .input-row button{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:10px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .input-row button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+
+  textarea.big{font:12.5px ui-monospace,Menlo,monospace;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;width:100%;min-height:180px;line-height:1.6;resize:vertical}
+
+  .log{
+    background:#0e0f12;border:1px solid var(--line);border-radius:8px;
+    padding:12px 14px;font:11.5px ui-monospace,Menlo,monospace;color:#b8b6b0;
+    line-height:1.6;max-height:260px;overflow:auto;margin-bottom:10px;
+  }
+  .log .tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:1px 6px;border-radius:3px;margin-right:6px}
+  .log .tag.ok{background:rgba(63,185,80,.15);color:var(--green)}
+  .log .tag.warn{background:rgba(216,154,42,.15);color:var(--amber)}
+  .log .tag.err{background:rgba(232,76,30,.15);color:var(--accent)}
+  .log .tag.info{background:rgba(75,141,248,.15);color:var(--blue)}
+  .log .l{display:block;margin-bottom:2px}
+
+  pre.out{font:12.5px ui-monospace,Menlo,monospace;color:#c8c6bf;background:#0e0f12;border:1px solid var(--line);border-radius:8px;padding:12px;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow:auto;line-height:1.55;margin-bottom:10px}
+
+  .meal-preview{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+  .mp{display:flex;gap:10px;align-items:center;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px}
+  .mp input[type=time]{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:5px 7px;font:inherit;font-size:12px}
+  .mp select{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:5px 7px;font:inherit;font-size:12px}
+  .mp input[type=text]{flex:1;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:5px 9px;font:inherit;font-size:13px}
+  .mp .del{color:var(--dim);cursor:pointer;padding:0 6px;font-size:14px}
+
+  .info{font-size:12px;color:var(--muted);line-height:1.55;padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;margin-bottom:10px}
+  .info b{color:var(--ink)}
+
+  .steps-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .steps-row button{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:7px;padding:10px 14px;font-weight:600;cursor:pointer}
+  .steps-row button.secondary{background:var(--panel2);color:var(--ink);border-color:var(--line);font-weight:400}
+
+  .video-embed{aspect-ratio:16/9;background:#000;border-radius:8px;overflow:hidden;margin-bottom:10px;border:1px solid var(--line);display:none}
+  .video-embed.on{display:block}
+  .video-embed iframe{width:100%;height:100%;border:0}
+</style>
+</head>
+<body data-hue="violet">
+
+<div class="toprow">
+  <a class="back" href="daily-meals-v1.html"><span class="arr">←</span> Back to menu</a>
+  <a class="back" href="../index.html"><span class="arr">⌘</span> Home</a>
+</div>
+
+<div class="page-head">
+  <div class="hey">
+    <span class="chev">‹</span>
+    <span class="name">Transcript kitchen</span>
+    <span class="chev">›</span>
+  </div>
+  <div style="margin-top:8px;font-size:14px;color:var(--muted);line-height:1.55">
+    Paste a YouTube URL of a day-of-eating video. I'll try to pull the transcript (client-side, via a CORS proxy), show you the raw text, show you what I parsed out of it, let you tweak, then commit it to a day on the main menu.
+  </div>
+</div>
+
+<!-- STAGE 1 — input -->
+<div class="stage">
+  <h3><span><span class="num">1</span>URL IN</span></h3>
+  <p class="lede">Paste the YouTube URL (normal, shorts, or mobile). I'll extract the video ID, try to fetch the transcript, and fall back to a paste box if that fails.</p>
+  <div class="input-row">
+    <input id="yt-url" type="text" placeholder="https://youtube.com/shorts/… or https://www.youtube.com/watch?v=…">
+    <button class="primary" id="fetch-btn">Fetch transcript</button>
+    <button id="paste-mode">Paste instead</button>
+  </div>
+  <div class="info">
+    <b>Honest note:</b> This page runs entirely in your browser. I don't have a Flask server — I use a public CORS proxy
+    (<code>corsproxy.io</code>) to ask YouTube for the caption track. It works on a lot of videos; it fails on some (age-gated,
+    region-blocked, no captions). If it fails, a paste box opens below and you drop in the transcript yourself —
+    the rest of the kitchen is the same either way.
+  </div>
+  <div class="video-embed" id="video-embed"><iframe id="video-frame" allow="encrypted-media" allowfullscreen></iframe></div>
+</div>
+
+<!-- STAGE 2 — what I did -->
+<div class="stage">
+  <h3><span><span class="num">2</span>What I did</span></h3>
+  <p class="lede">Every step I took, timestamped, so you can see exactly what worked and what didn't. No hidden steps.</p>
+  <div class="log" id="log"><span class="l"><span class="tag info">waiting</span>Drop a URL or paste text above.</span></div>
+</div>
+
+<!-- STAGE 3 — raw transcript -->
+<div class="stage">
+  <h3><span><span class="num">3</span>Raw transcript</span></h3>
+  <p class="lede">Exactly what I got back, verbatim. Edit it in place if you want to fix or trim.</p>
+  <textarea class="big" id="raw" placeholder="Transcript text will appear here, or you can paste it in manually."></textarea>
+</div>
+
+<!-- STAGE 4 — parsed meals -->
+<div class="stage">
+  <h3><span><span class="num">4</span>What I parsed into meals</span></h3>
+  <p class="lede">Heuristic parse: looks for time cues, meal words (breakfast/lunch/dinner/snack), and food-style sentences. Edit, reorder, delete — then commit.</p>
+  <button id="parse-btn" class="primary" style="margin-bottom:10px;font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:7px;padding:9px 12px;font-weight:600;cursor:pointer">↻ Re-parse from raw text</button>
+  <div class="meal-preview" id="meals"></div>
+
+  <div class="input-row">
+    <label style="font:11px ui-monospace,Menlo,monospace;color:var(--muted);align-self:center">Commit to day:</label>
+    <input id="commit-day" type="date">
+  </div>
+  <div class="steps-row">
+    <button id="commit-btn">Commit to the daily menu →</button>
+    <button class="secondary" id="clear-btn">Clear everything</button>
+  </div>
+</div>
+
+<div class="nav-bar">
+  <a href="daily-meals-v1.html">← Back to menu</a>
+  <a href="../index.html">Home →</a>
+</div>
+
+<div class="footer">
+  <b>Client-side only.</b> Nothing stored here is uploaded. The proxy relays the fetch but doesn't log for you.
+</div>
+
+<script defer src="../shit-switch.js"></script>
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const logEl = $('#log');
+  const rawEl = $('#raw');
+  const mealsEl = $('#meals');
+
+  // defaults: today's date, and the video the user was on
+  $('#commit-day').value = new Date().toISOString().slice(0,10);
+  const hint = '8oTjGdV3kdI';
+  if (!$('#yt-url').value) $('#yt-url').value = 'https://youtube.com/shorts/' + hint;
+
+  let log = [];
+  function say(tag, msg){
+    const t = new Date().toLocaleTimeString();
+    log.push({t, tag, msg});
+    renderLog();
+  }
+  function renderLog(){
+    logEl.innerHTML = log.map(l =>
+      '<span class="l"><span class="tag ' + l.tag + '">' + l.tag + '</span>[' + l.t + '] ' + escapeHtml(l.msg) + '</span>'
+    ).join('') || '<span class="l"><span class="tag info">waiting</span>Drop a URL or paste text above.</span>';
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+  // ── extract video ID from any YouTube URL
+  function extractId(url){
+    try {
+      const u = new URL(url.trim());
+      if (u.hostname === 'youtu.be') return u.pathname.slice(1);
+      const v = u.searchParams.get('v');
+      if (v) return v;
+      const m = u.pathname.match(/\/(shorts|embed|live)\/([^/?]+)/);
+      if (m) return m[2];
+      return null;
+    } catch(e){ return null; }
+  }
+
+  // ── fetch via CORS proxy
+  const PROXY = 'https://corsproxy.io/?';
+
+  async function fetchTranscript(videoId){
+    say('info', 'Video ID: ' + videoId);
+    // embed the video
+    $('#video-embed').classList.add('on');
+    $('#video-frame').src = 'https://www.youtube.com/embed/' + videoId;
+
+    say('info', 'GET watch page via CORS proxy…');
+    const watchUrl = 'https://www.youtube.com/watch?v=' + encodeURIComponent(videoId);
+    let html;
+    try {
+      const res = await fetch(PROXY + encodeURIComponent(watchUrl));
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      html = await res.text();
+      say('ok', 'Got watch page, ' + html.length + ' bytes.');
+    } catch (e) {
+      say('err', 'Proxy fetch failed: ' + e.message + '. Fall back to paste mode.');
+      return null;
+    }
+
+    // Find captionTracks JSON in the page
+    const m = html.match(/"captionTracks":(\[.*?\])/);
+    if (!m){
+      say('warn', 'No captionTracks found in page. YouTube probably didn\'t include them or the short has no captions.');
+      return null;
+    }
+    let tracks;
+    try { tracks = JSON.parse(m[1]); }
+    catch(e){ say('err', 'Failed to parse captionTracks JSON: ' + e.message); return null; }
+    say('ok', 'Found ' + tracks.length + ' caption track' + (tracks.length===1?'':'s') + '.');
+
+    // Pick English if possible, else first
+    let track = tracks.find(t => (t.languageCode||'').startsWith('en')) || tracks[0];
+    say('info', 'Using track: ' + (track.name && track.name.simpleText || track.languageCode || 'unknown'));
+
+    // Fetch the XML
+    let xml;
+    try {
+      const res = await fetch(PROXY + encodeURIComponent(track.baseUrl));
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      xml = await res.text();
+      say('ok', 'Got timedtext XML, ' + xml.length + ' bytes.');
+    } catch (e) {
+      say('err', 'timedtext fetch failed: ' + e.message);
+      return null;
+    }
+
+    // Parse XML
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    const texts = Array.from(doc.getElementsByTagName('text'));
+    if (!texts.length){
+      say('warn', 'timedtext XML had no <text> elements.');
+      return null;
+    }
+    say('ok', 'Parsed ' + texts.length + ' caption segments.');
+
+    const lines = texts.map(t => {
+      const start = parseFloat(t.getAttribute('start')) || 0;
+      const mins = Math.floor(start/60);
+      const secs = Math.floor(start%60).toString().padStart(2,'0');
+      const body = (t.textContent || '').replace(/&amp;#39;/g,"'").replace(/\n/g,' ').trim();
+      return '[' + mins + ':' + secs + '] ' + body;
+    });
+    return lines.join('\n');
+  }
+
+  // ── heuristic meal parser
+  const MEAL_WORDS = {
+    breakfast: /\b(breakfast|morning|wake.?up|first thing|start.*day|oats|porridge|cereal|toast|eggs)\b/i,
+    lunch:     /\b(lunch|midday|afternoon meal|noon)\b/i,
+    dinner:    /\b(dinner|tea|evening meal|supper)\b/i,
+    snack:     /\b(snack|snacks|mid.?morning|afternoon|bite|in between)\b/i,
+  };
+  const FOOD_HINT = /\b(ate|eating|had|cooked|made|prep|chicken|rice|veg|veggies|salad|smoothie|protein|shake|fish|steak|pasta|potato|banana|berries|yoghurt|yogurt|bread|bagel|wrap|soup|curry|beans|tuna|salmon|chocolate|coffee|tea|water|juice|cup of|bowl of|plate of|slice of)\b/i;
+
+  function parseMeals(text){
+    if (!text || !text.trim()) return [];
+    const segments = text.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+    const meals = [];
+    let lastKind = 'snack';
+    let lastTimeMin = 8*60; // default start 8:00am
+    let acc = [];
+    let accTime = lastTimeMin;
+
+    function flush(){
+      if (!acc.length) return;
+      const joined = acc.join(' ').replace(/\s+/g,' ').trim();
+      if (!joined) { acc = []; return; }
+      if (FOOD_HINT.test(joined) || joined.length > 20){
+        const hh = String(Math.floor(accTime/60)).padStart(2,'0');
+        const mm = String(accTime%60).padStart(2,'0');
+        meals.push({
+          time: hh + ':' + mm,
+          kind: lastKind,
+          name: joined.split(/[.,;]/)[0].trim().slice(0,80),
+          desc: joined.length > 80 ? joined.slice(0, 240) : ''
+        });
+      }
+      acc = [];
+    }
+
+    segments.forEach(seg => {
+      // timestamp like [1:23]
+      const ts = seg.match(/^\[(\d+):(\d+)\]\s*(.*)$/);
+      let body = seg;
+      if (ts){
+        // we don't use video time as clock time, but we use it to chunk
+        body = ts[3];
+      }
+      // detect meal word
+      let matched = null;
+      for (const [k, re] of Object.entries(MEAL_WORDS)){
+        if (re.test(body)){ matched = k; break; }
+      }
+      if (matched){
+        flush();
+        lastKind = matched;
+        // bump clock by 3h per new meal marker as a reasonable spread
+        if (matched === 'breakfast') accTime = 8*60;
+        else if (matched === 'snack' && lastKind !== 'snack') accTime = Math.max(accTime + 120, 10*60);
+        else if (matched === 'lunch') accTime = 12*60 + 30;
+        else if (matched === 'dinner') accTime = 18*60 + 30;
+        acc.push(body);
+      } else {
+        acc.push(body);
+      }
+    });
+    flush();
+    return meals;
+  }
+
+  let currentMeals = [];
+  let currentSource = null;
+
+  function renderMeals(){
+    if (!currentMeals.length){
+      mealsEl.innerHTML = '<div style="font-size:12.5px;color:var(--dim);font-style:italic;padding:12px 6px">No meals parsed yet. Fetch or paste a transcript above, then hit "Re-parse".</div>';
+      return;
+    }
+    mealsEl.innerHTML = currentMeals.map((m,i) => `
+      <div class="mp" data-i="${i}">
+        <input type="time" value="${esc(m.time||'08:00')}" data-f="time">
+        <select data-f="kind">
+          <option ${m.kind==='breakfast'?'selected':''}>breakfast</option>
+          <option ${m.kind==='snack'?'selected':''}>snack</option>
+          <option ${m.kind==='lunch'?'selected':''}>lunch</option>
+          <option ${m.kind==='dinner'?'selected':''}>dinner</option>
+        </select>
+        <input type="text" value="${esc(m.name||'')}" data-f="name" placeholder="meal name">
+        <span class="del" data-i="${i}">✕</span>
+      </div>`).join('');
+    mealsEl.querySelectorAll('.mp').forEach(mp => {
+      const i = parseInt(mp.dataset.i,10);
+      mp.querySelectorAll('[data-f]').forEach(inp => {
+        inp.addEventListener('input', () => { currentMeals[i][inp.dataset.f] = inp.value; });
+      });
+      mp.querySelector('.del').addEventListener('click', () => {
+        currentMeals.splice(i,1); renderMeals();
+      });
+    });
+  }
+  function esc(s){ return (s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+  // ── buttons
+  $('#fetch-btn').addEventListener('click', async () => {
+    log = []; say('info', 'Fetch requested.');
+    const url = $('#yt-url').value.trim();
+    const id = extractId(url);
+    if (!id){ say('err', 'Could not extract a video ID. Check the URL.'); return; }
+    const txt = await fetchTranscript(id);
+    if (txt){
+      rawEl.value = txt;
+      currentSource = { kind:'youtube', id, url, label:'YouTube '+id };
+      say('ok', 'Transcript loaded into the raw box. Scroll down and parse.');
+      currentMeals = parseMeals(txt);
+      renderMeals();
+    } else {
+      say('warn', 'Fetch did not return a transcript. Paste it manually in Stage 3 and click Re-parse.');
+    }
+  });
+
+  $('#paste-mode').addEventListener('click', () => {
+    rawEl.focus();
+    say('info', 'Paste mode — drop transcript text into Stage 3 and click Re-parse.');
+  });
+
+  $('#parse-btn').addEventListener('click', () => {
+    say('info', 'Re-parsing raw text…');
+    currentMeals = parseMeals(rawEl.value);
+    say('ok', 'Parsed ' + currentMeals.length + ' candidate meal(s).');
+    renderMeals();
+  });
+
+  $('#commit-btn').addEventListener('click', () => {
+    if (!currentMeals.length){ alert('Nothing to commit. Parse something first.'); return; }
+    const day = $('#commit-day').value || new Date().toISOString().slice(0,10);
+    const payload = {
+      day,
+      meals: currentMeals.map(m => ({
+        time: m.time, kind: m.kind, name: m.name, desc: m.desc||'',
+        source: currentSource,
+        added: Date.now()
+      })),
+      source: currentSource
+    };
+    sessionStorage.setItem('hub.meals.incoming', JSON.stringify(payload));
+    location.href = 'daily-meals-v1.html';
+  });
+
+  $('#clear-btn').addEventListener('click', () => {
+    if (!confirm('Clear everything on this page?')) return;
+    log = []; renderLog(); rawEl.value = '';
+    currentMeals = []; currentSource = null; renderMeals();
+    $('#video-embed').classList.remove('on'); $('#video-frame').src = '';
+  });
+
+  renderMeals();
+  renderLog();
+})();
+</script>
+</body>
+</html>
