@@ -1,6 +1,6 @@
 {
-  "generated": "2026-04-18T15:28:05",
-  "count": 23,
+  "generated": "2026-04-18T15:33:02",
+  "count": 24,
   "pages": [
     {
       "file": "ai.html",
@@ -101,6 +101,15 @@
       ]
     },
     {
+      "file": "custom.html",
+      "title": "Custom lane \u00b7 Hub",
+      "links": [
+        "gallery.html",
+        "index.html"
+      ],
+      "incoming": []
+    },
+    {
       "file": "devices.html",
       "title": "Devices \u00b7 Hub",
       "links": [
@@ -131,6 +140,7 @@
         "captures.html",
         "complaints.html",
         "court.html",
+        "custom.html",
         "devices.html",
         "gov.html",
         "health.html",
@@ -273,6 +283,7 @@
         "captures.html",
         "complaints.html",
         "court.html",
+        "custom.html",
         "devices.html",
         "gallery.html",
         "gov.html",

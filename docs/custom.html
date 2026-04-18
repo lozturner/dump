@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e0f12">
+<title>Custom lane · Hub</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  textarea{font:inherit;font-size:14.5px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;width:100%;min-height:120px;line-height:1.55;resize:vertical}
+  textarea:focus{outline:none;border-color:var(--muted)}
+  .note{padding:10px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;margin-bottom:6px;position:relative}
+  .note .when{font-size:10px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+  .note .what{font-size:13.5px;line-height:1.55;color:#c8c6bf;white-space:pre-wrap}
+  .note .del{position:absolute;top:8px;right:10px;color:var(--dim);font-size:14px;cursor:pointer;padding:2px 6px}
+  .tell{background:linear-gradient(90deg,rgba(232,76,30,.14),rgba(163,113,247,.08));border:1px solid var(--accent);border-radius:10px;padding:14px 16px;margin:14px 0 18px;font-size:13.5px;line-height:1.6;color:#c8c6bf}
+  .tell b{color:var(--accent)}
+</style>
+</head>
+<body data-hue="accent">
+
+<a class="back" href="index.html"><span class="arr">←</span> Home</a>
+<a class="back" href="gallery.html" style="margin-left:6px"><span class="arr">⌘</span> Map</a>
+
+<div class="page-head">
+  <div class="hey">
+    <span class="chev">‹</span>
+    <span>Hey</span>
+    <span class="name" id="name">your new lane</span>
+    <span class="chev">›</span>
+    <span>how are you getting on?</span>
+  </div>
+  <span class="badge" id="badge">Custom · just added</span>
+</div>
+
+<div class="tell">
+  <b>This is a fresh lane you just added.</b> I haven't been watching it long — I've only just learned its name. Tell me about it in our chat and I'll build out the real page next time: what you want to track, what's "new" vs "waiting" in this lane, how often I should sweep it.
+</div>
+
+<div class="card">
+  <h2>What this lane is about · your notes</h2>
+  <textarea id="about" placeholder="A line or two. What does this lane cover? What do you want me to keep watch on?"></textarea>
+  <div class="controls" style="margin-top:10px"><button class="btn primary" id="save-about">Save</button></div>
+</div>
+
+<div class="card">
+  <h2>Updates I've logged · this lane</h2>
+  <div id="notes-list"></div>
+  <textarea id="new-note" placeholder="Add a note, a link, a date. Anything I should remember."></textarea>
+  <div class="controls" style="margin-top:10px"><button class="btn primary" id="add-note">Add to log</button></div>
+</div>
+
+<div class="nav-bar">
+  <a href="index.html">← Home</a>
+  <a href="gallery.html">Map →</a>
+</div>
+
+<div class="footer">
+  <b>Your tile. Your page.</b> Everything saves on this device. When you're ready for me to wire real data in, just say the word.
+</div>
+
+<script>
+(function(){
+  const KEY = "hub.custom.v1";
+  const NKEY = id => "hub.custom.notes." + id;
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {items:[]}; }catch(e){ return {items:[]}; } }
+  function saveList(s){ try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){} }
+
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id') || '';
+  const list = load();
+  const item = list.items.find(x => x.id === id);
+
+  const nameEl = document.getElementById('name');
+  const badgeEl = document.getElementById('badge');
+
+  if (item) {
+    nameEl.textContent = item.name;
+    document.title = item.name + ' · Hub';
+    document.body.dataset.hue = item.hue || 'accent';
+    badgeEl.textContent = 'Custom · added ' + new Date(item.added).toLocaleDateString();
+  } else {
+    nameEl.textContent = 'unknown lane';
+    badgeEl.textContent = 'No matching tile found';
+  }
+
+  // Per-lane notes
+  const notesKey = NKEY(id || 'unknown');
+  const laneState = (() => {
+    try { return JSON.parse(localStorage.getItem(notesKey)) || {about:'', notes:[]}; }
+    catch(e){ return {about:'', notes:[]}; }
+  })();
+  function saveLane(){ try{ localStorage.setItem(notesKey, JSON.stringify(laneState)); }catch(e){} }
+
+  document.getElementById('about').value = laneState.about || '';
+  document.getElementById('save-about').addEventListener('click', () => {
+    laneState.about = document.getElementById('about').value;
+    saveLane();
+    flash('Saved.');
+  });
+
+  function esc(s){ return (s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+  function fmt(ts){ return new Date(ts).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+
+  function renderNotes(){
+    const wrap = document.getElementById('notes-list');
+    if (!laneState.notes.length){
+      wrap.innerHTML = '<div style="font-size:12.5px;color:var(--dim);padding:12px 0;font-style:italic">No notes yet. Add one below.</div>';
+      return;
+    }
+    wrap.innerHTML = laneState.notes.map((n,i) => `
+      <div class="note">
+        <span class="del" data-i="${i}">✕</span>
+        <div class="when">${fmt(n.when)}</div>
+        <div class="what">${esc(n.what)}</div>
+      </div>`).join('');
+    wrap.querySelectorAll('.del').forEach(d => d.addEventListener('click', () => {
+      const i = parseInt(d.dataset.i,10);
+      laneState.notes.splice(i,1);
+      saveLane(); renderNotes();
+    }));
+  }
+  document.getElementById('add-note').addEventListener('click', () => {
+    const v = document.getElementById('new-note').value.trim();
+    if (!v) return;
+    laneState.notes.unshift({when: Date.now(), what: v});
+    document.getElementById('new-note').value = '';
+    saveLane(); renderNotes();
+    flash('Added.');
+  });
+
+  let flashTimer;
+  function flash(msg){
+    let el = document.getElementById('flash-toast');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'flash-toast';
+      el.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--panel2);border:1px solid var(--accent);color:var(--ink);font-family:ui-monospace,Menlo,monospace;font-size:11px;padding:9px 14px;border-radius:6px;opacity:0;transition:all .25s;pointer-events:none;z-index:200';
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    requestAnimationFrame(() => {
+      el.style.transform = 'translateX(-50%) translateY(0)';
+      el.style.opacity = '1';
+    });
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => {
+      el.style.transform = 'translateX(-50%) translateY(60px)';
+      el.style.opacity = '0';
+    }, 1500);
+  }
+
+  renderNotes();
+})();
+</script>
+</body>
+</html>
