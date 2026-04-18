@@ -14,9 +14,21 @@
 
 <div class="greeting">
   <div class="who">Laurence,</div>
-  <div class="line">I'm overseeing all these for you. Tap any tile and I'll tell you how it's going. If there's a new thing you want me to keep an eye on, hit <b style="color:var(--accent)">+ Add something to oversee</b> below — one word or a short phrase is enough. I'll do the rest.</div>
+  <div class="line">I'm overseeing all these for you. Tap any tile and I'll tell you how it's going. If there's a new thing you want me to keep an eye on, hit <button type="button" id="inline-add" class="inline-add" aria-label="Open the Add a new lane dialog">+ Add something to oversee</button> — one word or a short phrase is enough. I'll do the rest.</div>
   <div style="font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-top:10px">— Claude</div>
 </div>
+
+<style>
+  .inline-add{
+    font:inherit;font-size:inherit;
+    background:transparent;border:0;padding:0;
+    color:var(--accent);font-weight:600;
+    cursor:pointer;-webkit-tap-highlight-color:transparent;
+    border-bottom:1px dashed var(--accent);
+  }
+  .inline-add:hover,.inline-add:focus{outline:none;color:#ff7046;border-bottom-style:solid}
+  .inline-add:active{opacity:.7}
+</style>
 
 <a class="bigbtn" href="hub.html">
   <span class="l">
@@ -56,6 +68,22 @@
     <span class="t">"What does it mean to look in on something…" →</span>
   </span>
   <span class="arrow" style="color:var(--muted)">›</span>
+</a>
+
+<a class="bigbtn" href="stealer.html" style="background:linear-gradient(90deg,rgba(163,113,247,.16),rgba(75,141,248,.1));border-color:var(--violet)">
+  <span class="l">
+    <span class="k">Tool · v1</span>
+    <span class="t">✂ UI Stealer — rip a piece, keep the rest →</span>
+  </span>
+  <span class="arrow" style="color:var(--violet)">›</span>
+</a>
+
+<a class="bigbtn" href="lego.html" style="background:linear-gradient(90deg,rgba(75,141,248,.16),rgba(163,113,247,.1));border-color:var(--blue)">
+  <span class="l">
+    <span class="k">Tool · v1</span>
+    <span class="t">▦ Lego Bricks Gallery — your parts shelf →</span>
+  </span>
+  <span class="arrow" style="color:var(--blue)">›</span>
 </a>
 
 <div class="tiles" id="tiles-grid">
@@ -149,6 +177,14 @@
   function closeModal(){ modal.style.display='none'; input.value=''; }
 
   addTile.addEventListener('click', openModal);
+  // accessibility: keyboard + inline link trigger
+  addTile.setAttribute('role','button');
+  addTile.setAttribute('tabindex','0');
+  addTile.setAttribute('aria-label','Add a new lane to oversee');
+  addTile.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openModal(); } });
+  const inline = document.getElementById('inline-add');
+  if(inline) inline.addEventListener('click', openModal);
+  document.addEventListener('keydown', e => { if(e.key==='Escape' && modal.style.display==='flex') closeModal(); });
   document.getElementById('add-cancel').addEventListener('click', closeModal);
   modal.addEventListener('click', e => { if(e.target===modal) closeModal(); });
   document.getElementById('add-save').addEventListener('click', () => {

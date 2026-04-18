@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e0f12">
+<title>UI Stealer · Laurence</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body{max-width:1100px}
+  .tool-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .tool-head .t{font-size:22px;font-weight:600}
+  .tool-head .n{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+
+  .source-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:stretch}
+  .source-bar select,.source-bar input[type=text]{font:inherit;font-size:13px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:9px 11px;flex:1;min-width:0}
+  .source-bar button{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:9px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .source-bar button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .source-bar button:active{transform:scale(.97)}
+  textarea.src{font:12px ui-monospace,Menlo,monospace;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%;min-height:120px;line-height:1.5;resize:vertical;margin-bottom:10px}
+  textarea.src:focus{outline:none;border-color:var(--muted)}
+
+  .split{display:grid;grid-template-columns:1fr;gap:12px}
+  @media (min-width:780px){.split{grid-template-columns:1.1fr 1fr}}
+
+  .pane{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+  .pane h3{font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .pane h3 .q{color:var(--accent);font-family:ui-monospace,Menlo,monospace}
+
+  .frame-wrap{position:relative;background:#fff;min-height:360px;max-height:56vh;overflow:auto}
+  iframe.preview{width:100%;border:0;display:block;min-height:360px}
+
+  .picked{
+    padding:14px;font-size:13px;line-height:1.55;color:#c8c6bf;
+    border-top:1px solid var(--line);background:var(--panel2);
+  }
+  .picked .sel{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--accent);background:#0e0f12;padding:6px 10px;border-radius:6px;border:1px solid var(--line);display:inline-block;margin:6px 0;word-break:break-all}
+  .picked .none{color:var(--dim);font-style:italic}
+  .steal-controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .steal-controls button{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px 11px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .steal-controls button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .steal-controls button:disabled{opacity:.4;cursor:not-allowed}
+
+  .code-tabs{display:flex;gap:0;border-bottom:1px solid var(--line)}
+  .code-tab{flex:1;text-align:center;padding:10px 8px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;border-right:1px solid var(--line);user-select:none}
+  .code-tab:last-child{border-right:0}
+  .code-tab.active{color:var(--ink);background:var(--panel2);border-bottom:2px solid var(--accent)}
+  pre.code{font:12px ui-monospace,Menlo,monospace;color:#c8c6bf;background:var(--panel2);padding:14px;margin:0;white-space:pre-wrap;word-break:break-word;line-height:1.55;max-height:48vh;overflow:auto;flex:1}
+  .code-box{display:none}
+  .code-box.active{display:block}
+  /* syntax coloring — basic */
+  .kw{color:#e8568c}
+  .st{color:#3fb950}
+  .tg{color:#4b8df8}
+  .at{color:#d89a2a}
+  .cm{color:var(--dim);font-style:italic}
+
+  .footer-row{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:16px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--muted)}
+  .footer-row b{color:var(--ink);font-weight:500}
+  .footer-row a{color:var(--accent)}
+
+  .flash{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);
+    background:var(--panel2);border:1px solid var(--accent);color:var(--ink);
+    font-family:ui-monospace,Menlo,monospace;font-size:11px;padding:10px 14px;border-radius:6px;
+    opacity:0;transition:all .25s;pointer-events:none;z-index:300;
+  }
+  .flash.show{transform:translateX(-50%);opacity:1}
+
+  /* overlay highlight injected into iframe via srcdoc — styles below are applied inside the iframe */
+</style>
+</head>
+<body data-hue="violet">
+
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+  <a class="back" href="index.html"><span class="arr">←</span> Home</a>
+  <a class="back" href="gallery.html"><span class="arr">⌘</span> Map</a>
+  <a class="back" href="lego.html"><span class="arr">▦</span> Lego Gallery</a>
+</div>
+
+<div class="tool-head">
+  <div class="t">‹ UI Stealer ›</div>
+  <div class="n" id="brick-count">0 bricks saved</div>
+</div>
+
+<div style="font-size:13.5px;color:var(--muted);line-height:1.55;margin-bottom:14px">
+  Give me any of your HTMLs. I'll render it live in a frame. Tap anything you like in the preview — I'll highlight it, show you its code, and let you steal it as a self-contained <code style="color:var(--accent)">.htm</code> brick with the CSS and scripts it needs, bundled in.
+</div>
+
+<div class="source-bar">
+  <select id="pick-src">
+    <option value="">— pick a page —</option>
+  </select>
+  <button id="load-pick" class="primary">Load</button>
+  <button id="paste-btn">Paste instead</button>
+</div>
+<textarea class="src" id="paste-src" placeholder="…or paste HTML source here and hit Load" style="display:none"></textarea>
+
+<div class="split">
+
+  <div class="pane">
+    <h3><span>Live preview</span><span class="q" id="frame-label">nothing loaded</span></h3>
+    <div class="frame-wrap">
+      <iframe id="frame" class="preview" sandbox="allow-same-origin allow-scripts" srcdoc="<!doctype html><html><body style='background:#0e0f12;color:#7a7e88;font:14px -apple-system,sans-serif;padding:40px;text-align:center'>Load a page above to see it here.</body></html>"></iframe>
+    </div>
+    <div class="picked" id="picked">
+      <div class="none">Tap any element inside the preview above to pick it. Its tag, id, classes and bounding text will show here.</div>
+      <div class="steal-controls">
+        <button class="primary" id="steal-save" disabled>Save as .htm brick</button>
+        <button id="steal-lego" disabled>Add to Lego Gallery</button>
+        <button id="steal-copy" disabled>Copy to clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane">
+    <h3><span>Code view</span><span class="q" id="code-sel">—</span></h3>
+    <div class="code-tabs">
+      <div class="code-tab active" data-tab="html">HTML</div>
+      <div class="code-tab" data-tab="css">CSS used</div>
+      <div class="code-tab" data-tab="js">Scripts</div>
+      <div class="code-tab" data-tab="brick">.htm brick</div>
+    </div>
+    <pre class="code code-box active" id="code-html">Pick an element in the preview.</pre>
+    <pre class="code code-box" id="code-css"></pre>
+    <pre class="code code-box" id="code-js"></pre>
+    <pre class="code code-box" id="code-brick"></pre>
+  </div>
+
+</div>
+
+<div class="footer-row">
+  <span>Bricks live in <b>localStorage</b> on this device. Never uploaded.</span>
+  <a href="lego.html">Open Lego Gallery →</a>
+</div>
+
+<div class="flash" id="flash"></div>
+
+<script>
+(function(){
+  const LEGO_KEY = "hub.lego.v1";
+  const $ = s => document.querySelector(s);
+  const frame = $('#frame');
+  let currentSource = '';
+  let currentSourceFile = '';
+  let picked = null;   // {outerHTML, css, scripts, brick, selector, tag, id, classes}
+
+  // ── Populate dropdown from sitemap.json
+  fetch('sitemap.json?t=' + Date.now(), {cache:'no-store'}).then(r=>r.json()).then(data=>{
+    const sel = $('#pick-src');
+    data.pages.forEach(p => {
+      if (p.file === 'stealer.html' || p.file === 'lego.html') return;
+      const o = document.createElement('option');
+      o.value = p.file; o.textContent = p.file + '  —  ' + p.title;
+      sel.appendChild(o);
+    });
+  }).catch(e=>{});
+
+  // ── Load behaviour
+  $('#load-pick').addEventListener('click', async () => {
+    const paste = $('#paste-src');
+    if (paste.style.display !== 'none' && paste.value.trim()){
+      currentSource = paste.value;
+      currentSourceFile = 'pasted.html';
+      loadIntoFrame(currentSource);
+      return;
+    }
+    const file = $('#pick-src').value;
+    if (!file) { flash('Pick a page or paste HTML.'); return; }
+    try{
+      const res = await fetch(file + '?t=' + Date.now(), {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      currentSource = await res.text();
+      currentSourceFile = file;
+      loadIntoFrame(currentSource);
+    }catch(e){
+      flash('Could not load ' + file + ' — ' + e.message);
+    }
+  });
+
+  $('#paste-btn').addEventListener('click', () => {
+    const el = $('#paste-src');
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    if (el.style.display === 'block') el.focus();
+  });
+
+  function loadIntoFrame(src){
+    // inject a tiny hook so clicks inside bubble up to us
+    const hook = `
+<style>
+  ._ls-hi { outline: 2px solid #e84c1e !important; outline-offset: 2px !important; cursor: crosshair !important; }
+  ._ls-sel { outline: 2px solid #3fb950 !important; outline-offset: 2px !important; }
+</style>
+<script>
+(function(){
+  let last = null, selected = null;
+  document.addEventListener('mouseover', e => {
+    if (last) last.classList.remove('_ls-hi');
+    last = e.target;
+    last.classList.add('_ls-hi');
+  }, true);
+  document.addEventListener('mouseout', e => {
+    if (e.target) e.target.classList.remove('_ls-hi');
+  }, true);
+  document.addEventListener('click', e => {
+    e.preventDefault(); e.stopPropagation();
+    if (selected) selected.classList.remove('_ls-sel');
+    selected = e.target;
+    selected.classList.add('_ls-sel');
+    const ident = {
+      tag: selected.tagName.toLowerCase(),
+      id: selected.id || '',
+      classes: (selected.className && typeof selected.className === 'string') ? selected.className.split(/\\s+/).filter(c=>c && !c.startsWith('_ls-')) : [],
+      outerHTML: selected.outerHTML.replace(/ class="[^"]*_ls-sel[^"]*"/g, ''),
+      innerText: (selected.innerText||'').slice(0, 140),
+    };
+    parent.postMessage({ type:'ls-pick', ident }, '*');
+  }, true);
+})();
+<\/script>`;
+    // insert hook just before </body> or at end
+    const withHook = /<\/body>/i.test(src)
+      ? src.replace(/<\/body>/i, hook + '</body>')
+      : src + hook;
+    frame.srcdoc = withHook;
+    $('#frame-label').textContent = currentSourceFile;
+  }
+
+  window.addEventListener('message', e => {
+    if (!e.data || e.data.type !== 'ls-pick') return;
+    picked = e.data.ident;
+    onPick();
+  });
+
+  function onPick(){
+    const ident = picked;
+    const selector = buildSelector(ident);
+    $('#picked').innerHTML = `
+      <div>Picked: <span class="sel">${selector}</span></div>
+      <div style="margin-top:6px;color:var(--dim);font-size:12px">${ident.innerText ? 'Text: "' + escapeHtml(ident.innerText.slice(0,80)) + (ident.innerText.length>80?'…':'') + '"' : 'No text content.'}</div>
+      <div class="steal-controls">
+        <button class="primary" id="steal-save">Save as .htm brick</button>
+        <button id="steal-lego">Add to Lego Gallery</button>
+        <button id="steal-copy">Copy code</button>
+      </div>`;
+    $('#code-sel').textContent = selector;
+    // compute the assets
+    const doc = frame.contentDocument;
+    const targetEl = findEl(doc, ident);
+    const html = ident.outerHTML;
+    const css  = extractCss(doc, targetEl);
+    const js   = extractJs(doc, ident);
+    const brick = buildBrick(ident, html, css, js);
+    $('#code-html').innerHTML = hlHtml(html);
+    $('#code-css').innerHTML = hlCss(css || '/* no matching CSS rules found */');
+    $('#code-js').innerHTML = hlJs(js || '/* no obvious script uses — empty */');
+    $('#code-brick').innerHTML = hlHtml(brick);
+
+    $('#steal-save').addEventListener('click', () => downloadBrick(ident, brick));
+    $('#steal-lego').addEventListener('click', () => saveBrick(ident, brick, html, css, js));
+    $('#steal-copy').addEventListener('click', () => copyText(brick, 'Brick copied to clipboard.'));
+    picked.selector = selector;
+    picked.html = html; picked.css = css; picked.js = js; picked.brick = brick;
+  }
+
+  function buildSelector(ident){
+    let s = ident.tag;
+    if (ident.id) s += '#' + ident.id;
+    if (ident.classes && ident.classes.length) s += '.' + ident.classes.slice(0,3).join('.');
+    return s;
+  }
+  function findEl(doc, ident){
+    if (ident.id) return doc.getElementById(ident.id);
+    try { return doc.querySelector(buildSelector(ident)); } catch(e){ return null; }
+  }
+
+  function extractCss(doc, el){
+    if (!el) return '';
+    const out = [];
+    const sheets = doc.styleSheets;
+    for (let i=0; i<sheets.length; i++){
+      let rules;
+      try { rules = sheets[i].cssRules; } catch(e){ continue; }
+      if (!rules) continue;
+      for (let j=0; j<rules.length; j++){
+        const r = rules[j];
+        if (r.type === 1 /* STYLE_RULE */) {
+          const sel = r.selectorText || '';
+          const sels = sel.split(',').map(s=>s.trim()).filter(Boolean);
+          for (const one of sels){
+            try {
+              if (el.matches(one) || el.querySelector(one)){
+                out.push(one + ' { ' + r.style.cssText + ' }');
+                break;
+              }
+            } catch(e){}
+          }
+        } else if (r.type === 4 /* MEDIA_RULE */){
+          // naively include
+          out.push(r.cssText);
+        } else if (r.type === 7 /* KEYFRAMES_RULE */){
+          out.push(r.cssText);
+        } else if (r.cssText){
+          out.push(r.cssText);
+        }
+      }
+    }
+    // also :root variables
+    try {
+      const root = doc.documentElement;
+      const rootStyles = window.getComputedStyle(root);
+      const vars = [];
+      for (let i=0;i<rootStyles.length;i++){
+        const p = rootStyles[i];
+        if (p.startsWith('--')){
+          vars.push('  ' + p + ': ' + rootStyles.getPropertyValue(p).trim() + ';');
+        }
+      }
+      if (vars.length) out.unshift(':root {\n' + vars.join('\n') + '\n}');
+    } catch(e){}
+    return out.join('\n');
+  }
+
+  function extractJs(doc, ident){
+    const bits = [];
+    const scripts = doc.querySelectorAll('script');
+    const keys = [ident.id, ...ident.classes].filter(Boolean);
+    scripts.forEach(s => {
+      if (!s.textContent) return;
+      const text = s.textContent;
+      if (keys.some(k => text.includes(k))){
+        bits.push(text.trim());
+      }
+    });
+    return bits.join('\n\n/* ─── next script ─── */\n\n');
+  }
+
+  function buildBrick(ident, html, css, js){
+    const title = (ident.id || ident.tag) + (ident.classes.length ? '.' + ident.classes[0] : '');
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brick · ${escapeHtml(title)}</title>
+<style>
+${css || '/* (no CSS captured) */'}
+</style>
+</head>
+<body>
+
+${html}
+
+${js ? '<script>\n' + js + '\n<\/script>' : '<!-- no scripts captured -->'}
+</body>
+</html>`;
+  }
+
+  function downloadBrick(ident, content){
+    const base = (ident.id || ident.tag || 'brick') + '-' + Date.now().toString(36).slice(-5);
+    const blob = new Blob([content], { type:'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = base + '.htm';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+    flash('Saved ' + base + '.htm');
+  }
+  function saveBrick(ident, brick, html, css, js){
+    const store = loadStore();
+    const name = prompt('Name this brick:', (ident.id || ident.tag) + '-' + ident.classes.slice(0,1).join('-'));
+    if (name == null) return;
+    store.bricks.unshift({
+      id: 'b-' + Date.now().toString(36),
+      name: name.trim() || 'untitled',
+      source: currentSourceFile,
+      selector: buildSelector(ident),
+      html, css, js, brick,
+      when: Date.now(),
+      tags: []
+    });
+    saveStore(store);
+    refreshCount();
+    flash('Added to Lego Gallery.');
+  }
+
+  function copyText(t, msg){
+    navigator.clipboard.writeText(t).then(
+      () => flash(msg || 'Copied.'),
+      () => flash('Copy failed — select manually.')
+    );
+  }
+
+  function loadStore(){
+    try { return JSON.parse(localStorage.getItem(LEGO_KEY)) || { bricks:[], bottle:[] }; }
+    catch(e){ return { bricks:[], bottle:[] }; }
+  }
+  function saveStore(s){ try{ localStorage.setItem(LEGO_KEY, JSON.stringify(s)); }catch(e){} }
+  function refreshCount(){
+    const s = loadStore();
+    $('#brick-count').textContent = s.bricks.length + ' brick' + (s.bricks.length===1?'':'s') + ' saved';
+  }
+  refreshCount();
+
+  // tabs
+  document.querySelectorAll('.code-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.code-tab').forEach(o => o.classList.remove('active'));
+      document.querySelectorAll('.code-box').forEach(o => o.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById('code-' + t.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ── tiny syntax highlighters
+  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+  function hlHtml(s){
+    return escapeHtml(s)
+      .replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="cm">$1</span>')
+      .replace(/(&lt;\/?)([a-zA-Z][\w-]*)/g, '$1<span class="tg">$2</span>')
+      .replace(/([a-zA-Z-]+)=(&quot;[^&]*?&quot;)/g, '<span class="at">$1</span>=<span class="st">$2</span>');
+  }
+  function hlCss(s){
+    return escapeHtml(s)
+      .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="cm">$1</span>')
+      .replace(/([.#@:\w-]+)\s*\{/g, '<span class="tg">$1</span> {')
+      .replace(/([a-z-]+)(\s*):/g, '<span class="at">$1</span>:');
+  }
+  function hlJs(s){
+    return escapeHtml(s)
+      .replace(/(\/\/[^\n]*)/g, '<span class="cm">$1</span>')
+      .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="cm">$1</span>')
+      .replace(/\b(const|let|var|function|return|if|else|for|while|new|class|this|async|await|import|export|from)\b/g, '<span class="kw">$1</span>')
+      .replace(/('[^']*')|("[^"]*")|(`[^`]*`)/g, '<span class="st">$&</span>');
+  }
+
+  // flash toast
+  let flashT;
+  function flash(m){
+    const el = $('#flash');
+    el.textContent = m;
+    el.classList.add('show');
+    clearTimeout(flashT);
+    flashT = setTimeout(()=>el.classList.remove('show'), 1700);
+  }
+})();
+</script>
+</body>
+</html>
