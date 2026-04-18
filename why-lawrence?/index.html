@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Why, Lawrence?</title>
+  <style>
+    :root {
+      --ink: #16171a;
+      --paper: #f6f1e7;
+      --rule: #c9bfa8;
+      --accent: #8a1a1a;
+      --muted: #5a5445;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); }
+    body {
+      font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+      line-height: 1.55;
+      padding: 3rem 1.25rem 5rem;
+    }
+    main { max-width: 720px; margin: 0 auto; }
+    header {
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+    .kicker {
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      font-size: 0.78rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    h1 {
+      font-size: clamp(2.2rem, 6vw, 3.6rem);
+      margin: 0.4rem 0 0.2rem;
+      font-style: italic;
+      letter-spacing: -0.01em;
+    }
+    h1 .q { color: var(--accent); }
+    .dek {
+      font-size: 1.05rem;
+      color: var(--muted);
+      margin: 0.5rem 0 0;
+    }
+    section { margin: 2.4rem 0; }
+    h2 {
+      font-size: 1.35rem;
+      border-left: 4px solid var(--accent);
+      padding-left: 0.7rem;
+      margin: 0 0 0.9rem;
+    }
+    blockquote {
+      margin: 1rem 0;
+      padding: 0.6rem 1rem;
+      border-left: 3px solid var(--rule);
+      color: var(--muted);
+      font-style: italic;
+    }
+    ol.questions {
+      padding-left: 1.25rem;
+    }
+    ol.questions li {
+      margin-bottom: 0.65rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    @media (min-width: 640px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    .card {
+      border: 1px solid var(--rule);
+      background: #fffaf0;
+      padding: 1rem 1.1rem;
+      border-radius: 4px;
+    }
+    .card h3 {
+      margin: 0 0 0.4rem;
+      font-size: 1.05rem;
+      color: var(--accent);
+    }
+    .card p { margin: 0 0 0.4rem; font-size: 0.96rem; }
+    .card ul { margin: 0.3rem 0 0; padding-left: 1.1rem; font-size: 0.93rem; }
+    details {
+      margin: 0.6rem 0;
+      padding: 0.5rem 0.8rem;
+      background: #fffaf0;
+      border: 1px dashed var(--rule);
+      border-radius: 4px;
+    }
+    details[open] { background: #fff5dc; }
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      font-style: italic;
+    }
+    .sealion {
+      margin: 1.2rem 0;
+      padding: 1rem 1.1rem;
+      background: #fff;
+      border: 1px solid var(--rule);
+      font-size: 0.98rem;
+    }
+    .sealion::before {
+      content: "Genuinely curious — ";
+      color: var(--accent);
+      font-weight: 700;
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--rule);
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="kicker">A polite interrogation</div>
+      <h1>Why, Lawrence<span class="q">?</span></h1>
+      <p class="dek">Lawrence is convinced this will fix everything. The ADHD. The arguments with the kids. The week he can't see past Tuesday. The letters piling up. The appointments he keeps missing. The prescriptions that keep lapsing. All of it. Fixed. By this.</p>
+      <p class="dek">We are here, with the utmost respect, to ask him about it.</p>
+    </header>
+
+    <section>
+      <h2>The claim, in his own words (approximately)</h2>
+      <blockquote>
+        "Once I get this set up properly, I genuinely think it'll sort the lot. The admin, the parenting, the focus, the meds — it'll just click into place."
+      </blockquote>
+      <p>Will it, though, Lawrence? Will it really? We're not saying it won't. We just have some questions. So many questions. And we would love — <em>love</em> — to hear you work through them.</p>
+    </section>
+
+    <section>
+      <h2>The life problems, itemised</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>ADHD</h3>
+          <p>A neurodevelopmental condition shaped by executive function, dopamine regulation, and decades of coping scaffolds.</p>
+          <ul>
+            <li>Will the tool take your meds for you?</li>
+            <li>Will it notice when you've hyperfocused past dinner?</li>
+            <li>Will it still be there at 11pm when you're doomscrolling?</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Arguments with the kids</h3>
+          <p>Two humans, roughly half your size, with their own nervous systems and grievances.</p>
+          <ul>
+            <li>Whose side is the tool on?</li>
+            <li>Does it know why the eldest is actually upset?</li>
+            <li>Can it apologise <em>for</em> you, or only <em>about</em> you?</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Foreseeing the week</h3>
+          <p>The weekly vision quest. The Sunday-night reckoning. The mythical "planning session."</p>
+          <ul>
+            <li>Will you open it on Sunday?</li>
+            <li>Will you open it on Monday?</li>
+            <li>Will you open it at all?</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Responding to letters</h3>
+          <p>Paper. Envelopes. Stamps, even. The HMRC one. The one from the school. The one that's been on the side since February.</p>
+          <ul>
+            <li>Does the tool own a pen?</li>
+            <li>Does it know your National Insurance number?</li>
+            <li>Does it know which letter you're pretending isn't there?</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Getting back to appointments</h3>
+          <p>The GP. The dentist. The one with the consultant whose name you can never remember.</p>
+          <ul>
+            <li>Can it hold on the phone for forty minutes?</li>
+            <li>Can it drive you there?</li>
+            <li>Can it make you <em>actually go</em>?</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Fixing prescriptions</h3>
+          <p>The repeat that lapsed. The pharmacy that's out. The GP portal that logged you out again.</p>
+          <ul>
+            <li>Does it know your surgery's opening hours?</li>
+            <li>Will it wait on hold with Boots?</li>
+            <li>Will it collect them for you on a Thursday?</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Just a few clarifying questions</h2>
+      <p>Not trying to pile on. Just — for our understanding. If you could just walk us through it.</p>
+      <ol class="questions">
+        <li>When you say it'll fix "all of it" — do you mean <em>all</em> of it, or most of it, or the bits that were going to sort themselves anyway?</li>
+        <li>What specifically happens at the moment your phone is face-down and the tool is not open?</li>
+        <li>How is this iteration different from the Notion one? From the bullet journal? From the whiteboard? From the Filofax? From the app with the owl?</li>
+        <li>Which of your children is the tool going to be most useful to on a Tuesday at 7:42pm?</li>
+        <li>When the system and the reality diverge, which one do you update?</li>
+        <li>If this were going to work, what would the first week look like? The second? The sixth?</li>
+        <li>What's the smallest version of this that would count as success — and is that version available now, today, without any setup?</li>
+        <li>Who checks in with you about the tool, and what happens when you quietly stop using it?</li>
+        <li>Is there anything a human — a partner, a GP, a friend, an accountant — could do more cheaply?</li>
+        <li>Would you bet money on the outcome? How much? On what timeframe?</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Some things we'd genuinely love to understand</h2>
+
+      <div class="sealion">
+        You mentioned it's going to help with the ADHD. Could you explain, specifically, the mechanism by which a piece of software addresses a disorder of the prefrontal cortex? I'm not saying it can't — I just want to learn.
+      </div>
+
+      <div class="sealion">
+        You said the arguments with the kids would "settle down." Is that because the tool mediates the arguments, or because you'll be less stressed, or because the kids will be using it too? I'd love a reference.
+      </div>
+
+      <div class="sealion">
+        On the weekly planning piece — can you point me to the last three weeks where a system, any system, actually survived contact with Wednesday? I ask sincerely.
+      </div>
+
+      <div class="sealion">
+        When you say you'll "finally get on top of the letters," do you mean you will open them, read them, respond to them, <em>and</em> file them? Because those are four different verbs, Lawrence.
+      </div>
+
+      <div class="sealion">
+        The prescription bit is the one I really want to understand. Walk me through the exact steps, from "tool is open" to "tablets are in your hand." I'll wait.
+      </div>
+    </section>
+
+    <section>
+      <h2>Possible explanations, ranked</h2>
+      <details>
+        <summary>1. He's right and this genuinely is the one</summary>
+        <p>It happens. Tools do sometimes meet the person where they are. Stranger things. We will look forward to hearing about it in six months, unprompted.</p>
+      </details>
+      <details>
+        <summary>2. The setup is the reward</summary>
+        <p>The dopamine is in the configuring, the tagging, the colour-coding. The problems remain unsolved, but the dashboard is beautiful.</p>
+      </details>
+      <details>
+        <summary>3. It's displacement</summary>
+        <p>Fiddling with the tool is easier than phoning the surgery. Designing the system is easier than having the conversation with the fourteen-year-old.</p>
+      </details>
+      <details>
+        <summary>4. It's hope, and hope is load-bearing</summary>
+        <p>The belief that <em>something</em> could fix it is doing real psychological work. Taking that away might be worse than letting it ride.</p>
+      </details>
+      <details>
+        <summary>5. He's testing whether we'll push back</summary>
+        <p>In which case: hello, Lawrence. We are pushing back. Lovingly. Relentlessly. With footnotes.</p>
+      </details>
+    </section>
+
+    <section>
+      <h2>A standing offer</h2>
+      <p>Lawrence, if you're reading this: we are not trying to take the thing away. We are genuinely, sincerely, no-seriously curious. Answer any one of the questions above and we'll retract the entire page. Answer two and we'll build you a shrine.</p>
+      <p>In the meantime, the letters are still there. The prescription ran out on Tuesday. The eldest wants a word. The week hasn't been foreseen.</p>
+      <p><strong>But the tool is open. And that's something.</strong></p>
+    </section>
+
+    <footer>
+      Filed under: sea-lioning, affectionate interrogation, and the eternal hope that this time, this time, it'll be different. Pull requests welcome.
+    </footer>
+  </main>
+</body>
+</html>
