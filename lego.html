@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e0f12">
+<title>Laurence's Lego Bricks · v1</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body{max-width:1100px}
+  .tool-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .tool-head .t{font-size:22px;font-weight:600}
+  .tool-head .n{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+
+  .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch;margin-bottom:14px}
+  .bar input[type=text]{font:inherit;font-size:13px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:9px 11px;flex:1;min-width:160px}
+  .bar button,.bar .btn{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:9px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .bar button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+
+  .layout{display:grid;grid-template-columns:1fr;gap:14px}
+  @media (min-width:860px){.layout{grid-template-columns:1fr 320px}}
+
+  .bricks{display:grid;grid-template-columns:1fr;gap:10px}
+  @media (min-width:580px){.bricks{grid-template-columns:1fr 1fr}}
+
+  .brick{
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;
+    display:flex;flex-direction:column;
+  }
+  .brick.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  .brick-head{display:flex;justify-content:space-between;gap:8px;padding:10px 12px;align-items:center;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .brick-head .nm{font-size:13px;font-weight:600;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+  .brick-head .sel{width:16px;height:16px;border:1.5px solid var(--dim);border-radius:4px;flex-shrink:0;position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .brick.selected .brick-head .sel{background:var(--accent);border-color:var(--accent)}
+  .brick.selected .brick-head .sel::after{content:'✓';position:absolute;top:-3px;left:1px;color:#fff;font-weight:700;font-size:12px}
+
+  .brick-meta{padding:6px 12px;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--dim);letter-spacing:.05em;display:flex;justify-content:space-between}
+  .brick-meta .from{color:var(--muted)}
+
+  .brick-preview{background:#fff;border-bottom:1px solid var(--line);height:140px;overflow:hidden;position:relative;cursor:pointer}
+  .brick-preview iframe{width:100%;height:100%;border:0;display:block;pointer-events:none;transform-origin:0 0}
+  .brick-preview .over{position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,0.15));pointer-events:none}
+
+  .brick-tools{display:flex;gap:4px;padding:8px 10px;flex-wrap:wrap;border-top:1px solid var(--line);background:var(--panel2)}
+  .brick-tools button{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:5px 8px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .brick-tools button:hover{color:var(--ink);border-color:var(--muted)}
+  .brick-tools button.danger{color:var(--accent)}
+
+  .bottle{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;align-self:start;position:sticky;top:12px}
+  .bottle h3{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;justify-content:space-between}
+  .bottle h3 .c{color:var(--accent)}
+  .bottle .empty{font-size:12px;color:var(--dim);font-style:italic;padding:12px 0}
+  .bottle .stack{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:240px;overflow:auto}
+  .bottle .stack .item{display:flex;gap:8px;align-items:center;padding:8px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;font-family:ui-monospace,Menlo,monospace;font-size:11px}
+  .bottle .stack .item .nm{flex:1;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bottle .stack .item .x{color:var(--dim);cursor:pointer;font-size:14px;padding:0 4px}
+  .bottle .actions{display:flex;flex-direction:column;gap:6px}
+  .bottle .actions button{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:9px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;text-align:left}
+  .bottle .actions button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .bottle .actions button.danger{color:var(--accent);border-color:var(--accent)}
+
+  .expanded-code{background:#0e0f12;border:1px solid var(--line);border-radius:8px;margin:10px 12px 12px;overflow:hidden;display:none}
+  .brick.expanded .expanded-code{display:block}
+  .code-tabs{display:flex;border-bottom:1px solid var(--line)}
+  .code-tab{flex:1;text-align:center;padding:8px 6px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;border-right:1px solid var(--line);-webkit-tap-highlight-color:transparent;user-select:none}
+  .code-tab:last-child{border-right:0}
+  .code-tab.active{color:var(--accent);background:var(--panel2)}
+  pre.code{font:11px ui-monospace,Menlo,monospace;color:#c8c6bf;padding:12px;margin:0;white-space:pre-wrap;word-break:break-word;max-height:260px;overflow:auto;line-height:1.5}
+  .code-box{display:none} .code-box.active{display:block}
+
+  .empty-state{padding:48px 20px;text-align:center;color:var(--muted);font-size:13.5px;line-height:1.6;background:var(--panel);border:1px dashed var(--line);border-radius:10px}
+  .empty-state b{color:var(--ink)}
+  .empty-state a{color:var(--accent)}
+
+  .flash{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--panel2);border:1px solid var(--accent);color:var(--ink);font-family:ui-monospace,Menlo,monospace;font-size:11px;padding:10px 14px;border-radius:6px;opacity:0;transition:all .25s;pointer-events:none;z-index:300}
+  .flash.show{transform:translateX(-50%);opacity:1}
+
+  .version-stripe{font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-top:10px}
+</style>
+</head>
+<body data-hue="violet">
+
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+  <a class="back" href="index.html"><span class="arr">←</span> Home</a>
+  <a class="back" href="gallery.html"><span class="arr">⌘</span> Map</a>
+  <a class="back" href="stealer.html"><span class="arr">✂</span> Stealer</a>
+</div>
+
+<div class="tool-head">
+  <div class="t">▦ Laurence's Lego Bricks</div>
+  <div class="n" id="count">0 bricks · 0 in bottle</div>
+</div>
+<div class="version-stripe">file · lego-v1.html</div>
+
+<div style="font-size:13.5px;color:var(--muted);line-height:1.55;margin:6px 0 14px">
+  Every brick you stole. Preview it. Click to expand the code. Tick multiple bricks into the <b style="color:var(--accent)">bottle</b> to copy them together or export a single <code>.htm</code> page combining them all.
+</div>
+
+<div class="bar">
+  <input type="text" id="q" placeholder="Search bricks by name or content…">
+  <button id="select-all">Select all</button>
+  <button id="clear-sel">Clear selection</button>
+  <button id="import-btn">Import .htm</button>
+  <input type="file" id="import-file" accept=".htm,.html" style="display:none">
+</div>
+
+<div class="layout">
+  <div>
+    <div class="bricks" id="bricks"></div>
+    <div class="empty-state" id="empty" style="display:none">
+      <b>No bricks yet.</b><br><br>
+      Head to the <a href="stealer.html">UI Stealer</a>, load any of your pages, tap something you like and save it as a brick. It'll show up here.
+    </div>
+  </div>
+
+  <aside class="bottle">
+    <h3><span>Bottle clipboard</span><span class="c" id="bottle-count">0</span></h3>
+    <div id="stack" class="stack"></div>
+    <div id="bottle-empty" class="empty">Tick bricks to stack them here.</div>
+    <div class="actions">
+      <button id="b-copy" class="primary">Copy all to clipboard</button>
+      <button id="b-export">Export bottle as .htm</button>
+      <button id="b-html-only">Copy HTML only</button>
+      <button id="b-css-only">Copy CSS only</button>
+      <button id="b-js-only">Copy JS only</button>
+      <button id="b-clear" class="danger">Empty bottle</button>
+    </div>
+  </aside>
+</div>
+
+<div style="margin-top:18px;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--muted);line-height:1.7;padding:14px 16px;background:var(--panel);border:1px solid var(--line);border-radius:8px">
+  <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);margin-bottom:6px">Dev tools built in</div>
+  Tick a brick · <b style="color:var(--ink)">click preview</b> to toggle expanded code · HTML/CSS/JS/brick tabs · copy individual pieces · download as standalone .htm · rename / retag / delete · search across names + code content · multi-select → bottle · copy-all / export bottle as one file · import .htm back in.
+</div>
+
+<div class="nav-bar">
+  <a href="stealer.html">← UI Stealer</a>
+  <a href="index.html">Home →</a>
+</div>
+
+<div class="footer"><b>Your bricks, your fingers.</b> Everything here is in localStorage. Import / export a brick as .htm to move it between devices.</div>
+
+<div class="flash" id="flash"></div>
+
+<script>
+(function(){
+  const LEGO_KEY = "hub.lego.v1";
+  const $ = s => document.querySelector(s);
+
+  let store = loadStore();
+  function loadStore(){
+    try { return JSON.parse(localStorage.getItem(LEGO_KEY)) || { bricks:[], bottle:[] }; }
+    catch(e){ return { bricks:[], bottle:[] }; }
+  }
+  function saveStore(){ try{ localStorage.setItem(LEGO_KEY, JSON.stringify(store)); }catch(e){} }
+
+  // ── render bricks
+  const grid = $('#bricks');
+  const empty = $('#empty');
+  function render(){
+    const q = ($('#q').value || '').toLowerCase().trim();
+    const list = q
+      ? store.bricks.filter(b => (b.name||'').toLowerCase().includes(q) || (b.brick||'').toLowerCase().includes(q))
+      : store.bricks.slice();
+
+    if (list.length === 0){
+      grid.innerHTML = ''; empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      grid.innerHTML = list.map(b => renderBrick(b)).join('');
+      wireBricks();
+    }
+    $('#count').textContent = store.bricks.length + ' brick' + (store.bricks.length===1?'':'s') + ' · ' + store.bottle.length + ' in bottle';
+    renderBottle();
+  }
+
+  function renderBrick(b){
+    const selected = store.bottle.includes(b.id);
+    const previewSrc = esc(b.brick || '<html><body></body></html>');
+    const when = b.when ? new Date(b.when).toLocaleString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+    return `
+      <div class="brick ${selected?'selected':''}" data-id="${b.id}">
+        <div class="brick-head">
+          <div class="sel" data-action="sel" role="checkbox" aria-checked="${selected}" tabindex="0" aria-label="Select brick"></div>
+          <div class="nm" title="${esc(b.name)}" contenteditable="false" data-action="name">${esc(b.name||'untitled')}</div>
+          <button class="icon" data-action="rename" style="background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:12px">✎</button>
+        </div>
+        <div class="brick-meta">
+          <span class="from">${esc(b.source||'—')}</span>
+          <span>${when}</span>
+        </div>
+        <div class="brick-preview" data-action="expand" role="button" tabindex="0" aria-label="Toggle expanded code for ${esc(b.name||'brick')}">
+          <iframe srcdoc="${previewSrc}" sandbox="allow-same-origin" loading="lazy"></iframe>
+          <div class="over"></div>
+        </div>
+        <div class="brick-tools">
+          <button data-action="copy">Copy .htm</button>
+          <button data-action="copy-html">HTML</button>
+          <button data-action="copy-css">CSS</button>
+          <button data-action="copy-js">JS</button>
+          <button data-action="download">Save .htm</button>
+          <button data-action="delete" class="danger">Delete</button>
+        </div>
+        <div class="expanded-code">
+          <div class="code-tabs">
+            <div class="code-tab active" data-tab="html">HTML</div>
+            <div class="code-tab" data-tab="css">CSS</div>
+            <div class="code-tab" data-tab="js">JS</div>
+            <div class="code-tab" data-tab="brick">.htm brick</div>
+          </div>
+          <pre class="code code-box active" data-box="html">${esc(b.html||'(empty)')}</pre>
+          <pre class="code code-box" data-box="css">${esc(b.css||'(empty)')}</pre>
+          <pre class="code code-box" data-box="js">${esc(b.js||'(empty)')}</pre>
+          <pre class="code code-box" data-box="brick">${esc(b.brick||'(empty)')}</pre>
+        </div>
+      </div>`;
+  }
+
+  function wireBricks(){
+    grid.querySelectorAll('.brick').forEach(el => {
+      const id = el.dataset.id;
+      el.querySelectorAll('[data-action]').forEach(t => {
+        t.addEventListener('click', e => {
+          e.stopPropagation();
+          const act = t.dataset.action;
+          const b = store.bricks.find(x => x.id === id);
+          if (!b) return;
+          if (act === 'sel')      toggleBottle(b);
+          if (act === 'expand')   el.classList.toggle('expanded');
+          if (act === 'rename')   renameBrick(b);
+          if (act === 'copy')     copy(b.brick, 'Brick copied.');
+          if (act === 'copy-html')copy(b.html,  'HTML copied.');
+          if (act === 'copy-css') copy(b.css,   'CSS copied.');
+          if (act === 'copy-js')  copy(b.js,    'JS copied.');
+          if (act === 'download') download(b.name + '-v1', b.brick);
+          if (act === 'delete')   deleteBrick(b);
+        });
+        // keyboard support
+        if (t.getAttribute('tabindex') !== null){
+          t.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t.click(); }
+          });
+        }
+      });
+      el.querySelectorAll('.code-tab').forEach(t => {
+        t.addEventListener('click', e => {
+          e.stopPropagation();
+          el.querySelectorAll('.code-tab').forEach(o => o.classList.remove('active'));
+          el.querySelectorAll('.code-box').forEach(o => o.classList.remove('active'));
+          t.classList.add('active');
+          el.querySelector('.code-box[data-box="' + t.dataset.tab + '"]').classList.add('active');
+        });
+      });
+    });
+  }
+
+  function renameBrick(b){
+    const name = prompt('Rename brick:', b.name || 'untitled');
+    if (name == null) return;
+    b.name = name.trim() || 'untitled';
+    saveStore(); render();
+  }
+  function deleteBrick(b){
+    if (!confirm('Delete "' + b.name + '"?')) return;
+    store.bricks = store.bricks.filter(x => x.id !== b.id);
+    store.bottle = store.bottle.filter(x => x !== b.id);
+    saveStore(); render();
+  }
+
+  function toggleBottle(b){
+    const i = store.bottle.indexOf(b.id);
+    if (i >= 0) store.bottle.splice(i,1);
+    else store.bottle.push(b.id);
+    saveStore(); render();
+  }
+
+  function renderBottle(){
+    const wrap = $('#stack');
+    const emptyB = $('#bottle-empty');
+    const cnt = $('#bottle-count');
+    cnt.textContent = store.bottle.length;
+    if (store.bottle.length === 0){
+      wrap.innerHTML = ''; emptyB.style.display = 'block';
+      return;
+    }
+    emptyB.style.display = 'none';
+    const items = store.bottle.map((id, i) => {
+      const b = store.bricks.find(x => x.id === id);
+      if (!b) return '';
+      return `<div class="item"><span class="nm" title="${esc(b.name)}">#${i+1} · ${esc(b.name||'untitled')}</span><span class="x" data-id="${id}">✕</span></div>`;
+    }).join('');
+    wrap.innerHTML = items;
+    wrap.querySelectorAll('.x').forEach(x => x.addEventListener('click', () => {
+      store.bottle = store.bottle.filter(id => id !== x.dataset.id);
+      saveStore(); render();
+    }));
+  }
+
+  // ── toolbar
+  $('#q').addEventListener('input', render);
+  $('#select-all').addEventListener('click', () => {
+    store.bottle = store.bricks.map(b => b.id);
+    saveStore(); render();
+  });
+  $('#clear-sel').addEventListener('click', () => {
+    store.bottle = [];
+    saveStore(); render();
+  });
+
+  // ── bottle actions
+  function bottleBricks(){ return store.bottle.map(id => store.bricks.find(b => b.id === id)).filter(Boolean); }
+  $('#b-copy').addEventListener('click', () => {
+    const bs = bottleBricks();
+    if (!bs.length) return flash('Bottle empty.');
+    const out = bs.map(b => '/* ─── ' + b.name + ' ─── */\n' + (b.brick || '')).join('\n\n');
+    copy(out, bs.length + ' brick' + (bs.length===1?'':'s') + ' copied.');
+  });
+  $('#b-html-only').addEventListener('click', () => copySection('html','HTML'));
+  $('#b-css-only').addEventListener('click',  () => copySection('css','CSS'));
+  $('#b-js-only').addEventListener('click',   () => copySection('js','JS'));
+  function copySection(k, label){
+    const bs = bottleBricks();
+    if (!bs.length) return flash('Bottle empty.');
+    const out = bs.map(b => '/* ─── ' + b.name + ' ─── */\n' + (b[k] || '')).join('\n\n');
+    copy(out, label + ' from ' + bs.length + ' brick' + (bs.length===1?'':'s') + ' copied.');
+  }
+  $('#b-export').addEventListener('click', () => {
+    const bs = bottleBricks();
+    if (!bs.length) return flash('Bottle empty.');
+    const css = bs.map(b => '/* ' + b.name + ' */\n' + (b.css || '')).join('\n\n');
+    const js  = bs.map(b => '/* ' + b.name + ' */\n' + (b.js  || '')).join('\n\n');
+    const html= bs.map(b => '<section data-brick="' + esc(b.name) + '">\n' + (b.html || '') + '\n</section>').join('\n\n');
+    const doc = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bottle · ${bs.length} bricks · v1</title>
+<style>
+${css}
+</style>
+</head>
+<body>
+
+${html}
+
+<script>
+${js}
+<\/script>
+</body>
+</html>`;
+    download('bottle-' + bs.length + '-bricks-v1', doc);
+  });
+  $('#b-clear').addEventListener('click', () => {
+    if (!confirm('Empty the bottle? (Bricks themselves stay.)')) return;
+    store.bottle = []; saveStore(); render();
+  });
+
+  // ── import .htm
+  $('#import-btn').addEventListener('click', () => $('#import-file').click());
+  $('#import-file').addEventListener('change', async e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const text = await f.text();
+    const name = f.name.replace(/\.(htm|html)$/i, '');
+    // naïve split — assume single brick; just store as html+brick
+    const cssMatch = text.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+    const jsMatch  = text.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+    const bodyMatch= text.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    store.bricks.unshift({
+      id: 'b-' + Date.now().toString(36),
+      name, source: 'imported',
+      html: bodyMatch ? bodyMatch[1].trim() : text,
+      css: cssMatch ? cssMatch[1].trim() : '',
+      js: jsMatch ? jsMatch[1].trim() : '',
+      brick: text,
+      when: Date.now(), tags: []
+    });
+    saveStore(); render();
+    flash('Imported ' + f.name);
+    e.target.value = '';
+  });
+
+  // ── utils
+  function esc(s){ return (s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+  function copy(t, msg){
+    navigator.clipboard.writeText(t||'').then(
+      ()=>flash(msg||'Copied.'),
+      ()=>flash('Copy failed.')
+    );
+  }
+  function download(name, content){
+    const blob = new Blob([content], {type:'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name + '.htm';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+    flash('Saved ' + name + '.htm');
+  }
+  let flashT;
+  function flash(m){
+    const el = $('#flash');
+    el.textContent = m; el.classList.add('show');
+    clearTimeout(flashT);
+    flashT = setTimeout(()=>el.classList.remove('show'), 1700);
+  }
+
+  render();
+
+  // live refresh when localStorage changes on another tab
+  window.addEventListener('storage', e => {
+    if (e.key === LEGO_KEY){ store = loadStore(); render(); }
+  });
+})();
+</script>
+</body>
+</html>
