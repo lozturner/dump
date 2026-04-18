@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e0f12">
+<title>Epigraph · Laurence Turner, 2026</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body{
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    min-height:100vh;padding:60px 24px 40px;max-width:820px;
+    position:relative;
+  }
+  .nav-thin{position:absolute;top:22px;left:18px;display:flex;gap:6px}
+  .nav-thin a{
+    font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);padding:7px 10px;border-radius:6px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .nav-thin a:active{background:var(--panel)}
+  .nav-thin a .arr{color:var(--accent)}
+
+  .quote-mark{
+    font-size:120px;font-family:Georgia,"Times New Roman",serif;
+    color:var(--accent);line-height:0.6;margin-bottom:-10px;
+    opacity:0;animation:fade-up 0.8s ease-out 0.2s forwards;
+    user-select:none;
+  }
+  .hero-quote{
+    font-size:clamp(28px, 6vw, 44px);
+    font-weight:600;line-height:1.22;letter-spacing:-0.015em;
+    color:var(--ink);text-align:left;max-width:720px;
+    opacity:0;animation:fade-up 0.9s ease-out 0.45s forwards;
+  }
+  .hero-quote .q{color:var(--accent);font-style:italic;font-weight:400;font-family:Georgia,"Times New Roman",serif;padding:0 1px}
+  .attrib{
+    margin-top:32px;display:flex;align-items:center;gap:14px;max-width:720px;
+    opacity:0;animation:fade-up 0.9s ease-out 0.75s forwards;
+  }
+  .attrib .dash{width:34px;height:1px;background:var(--muted)}
+  .attrib .who{font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  .attrib .who b{color:var(--ink);font-weight:500}
+
+  .context{
+    margin-top:48px;padding:22px 24px;
+    border-left:2px solid var(--line);
+    font-size:14.5px;line-height:1.7;color:#c8c6bf;
+    max-width:680px;font-style:italic;
+    opacity:0;animation:fade-up 1s ease-out 1.05s forwards;
+  }
+  .context .plain{font-style:normal;color:var(--muted);font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+  .context p{margin-bottom:10px}
+  .context p:last-child{margin-bottom:0}
+  .context .trailing{color:var(--dim)}
+
+  .ornament{
+    margin:40px auto 0;width:80px;height:1px;
+    background:linear-gradient(90deg,transparent,var(--dim),transparent);
+    opacity:0;animation:fade-up 1s ease-out 1.35s forwards;
+  }
+
+  .links-below{
+    margin-top:30px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+    opacity:0;animation:fade-up 1s ease-out 1.55s forwards;
+  }
+  .links-below a{
+    font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);padding:8px 12px;border:1px solid var(--line);border-radius:6px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .links-below a:active{color:var(--ink);border-color:var(--muted);background:var(--panel)}
+
+  @keyframes fade-up {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav-thin">
+  <a href="index.html"><span class="arr">←</span> Home</a>
+  <a href="gallery.html">⌘ Map</a>
+</div>
+
+<div class="quote-mark">“</div>
+
+<div class="hero-quote">
+  What does it mean <span class="q">to look in on something</span> and <span class="q">see things moving along</span>?
+</div>
+
+<div class="attrib">
+  <span class="dash"></span>
+  <span class="who"><b>Laurence Turner</b> · 2026</span>
+</div>
+
+<div class="context">
+  <div class="plain">context</div>
+  <p>Said on his phone, mid-thread with Claude, trying to figure out how to stand up a UI — the right frontend libraries, the backend stack behind them — a layer that would let him <span class="trailing">(sentence trailing)</span></p>
+  <p class="trailing">...see things, touch things, and know things were continuing to happen for him even while he wasn't looking.</p>
+</div>
+
+<div class="ornament"></div>
+
+<div class="links-below">
+  <a href="index.html">Home</a>
+  <a href="picture.html">The picture</a>
+  <a href="path.html">The path</a>
+  <a href="gallery.html">Gallery</a>
+  <a href="hub.html">Monitoring layer</a>
+</div>
+
+</body>
+</html>
