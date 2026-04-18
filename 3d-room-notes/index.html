@@ -88,16 +88,61 @@
   #prompt kbd {
     background:#f4b860; color:#111; padding:1px 6px; border-radius:3px; font-weight:600;
   }
+
+  /* ------- mobile touch UI ------- */
+  #touch { position:fixed; inset:0; z-index:6; pointer-events:none; display:none; }
+  body.touch #touch { display:block; }
+  body.touch #hud { font-size:11px; max-width:220px; }
+
+  #stick {
+    position:absolute; left:20px; bottom:24px; width:130px; height:130px;
+    border-radius:50%; background:rgba(255,255,255,0.06);
+    border:2px solid rgba(255,255,255,0.2); pointer-events:auto;
+    touch-action:none;
+  }
+  #stickNub {
+    position:absolute; left:50%; top:50%; width:54px; height:54px; margin:-27px 0 0 -27px;
+    border-radius:50%; background:rgba(244,184,96,0.85);
+    border:2px solid rgba(255,255,255,0.4);
+  }
+
+  #lookPad {
+    position:absolute; right:0; top:0; width:55%; height:100%;
+    pointer-events:auto; touch-action:none;
+  }
+
+  .tbtn {
+    position:absolute; pointer-events:auto; touch-action:manipulation;
+    background:rgba(15,15,20,0.82); color:#f4b860; border:1px solid rgba(244,184,96,0.5);
+    width:64px; height:64px; border-radius:50%; font-size:22px; font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+    user-select:none; -webkit-user-select:none;
+  }
+  #btnN { right:22px; bottom:120px; }
+  #btnE { right:100px; bottom:120px; display:none; }
+  #btnE.on { display:flex; }
+  #btnRun { right:22px; bottom:200px; width:52px; height:52px; font-size:11px; }
+  #btnRun.on { background:rgba(244,184,96,0.85); color:#111; }
 </style>
 </head>
 <body>
 
 <div id="start">
   <h1>Your Room</h1>
-  <p>WASD to walk &middot; Mouse to look &middot; Shift to sprint</p>
-  <p><kbd>N</kbd> drop note in free space &middot; <kbd>E</kbd> interact (near whiteboard)</p>
-  <p style="margin-top:18px; color:#666;">ESC to release mouse</p>
-  <div class="cta">Click to enter</div>
+  <p class="deskHelp">WASD to walk &middot; Mouse to look &middot; Shift to sprint</p>
+  <p class="deskHelp"><kbd>N</kbd> drop note in free space &middot; <kbd>E</kbd> interact (near whiteboard)</p>
+  <p class="deskHelp" style="margin-top:18px; color:#666;">ESC to release mouse</p>
+  <p class="touchHelp" style="display:none;">Left stick to walk &middot; Drag right side to look</p>
+  <p class="touchHelp" style="display:none;"><b style="color:#f4b860">N</b> drop note &middot; <b style="color:#f4b860">E</b> whiteboard (when close)</p>
+  <div class="cta">Tap to enter</div>
+</div>
+
+<div id="touch">
+  <div id="stick"><div id="stickNub"></div></div>
+  <div id="lookPad"></div>
+  <div class="tbtn" id="btnRun">RUN</div>
+  <div class="tbtn" id="btnE">E</div>
+  <div class="tbtn" id="btnN">N</div>
 </div>
 
 <div id="hud">
@@ -396,12 +441,30 @@ const lampLight = new THREE.PointLight(0xffc98a, 0.8, 5, 1.8);
 lampLight.position.set(-3.5, 1.55, 3);
 scene.add(lampLight);
 
+// ---------- detect touch ----------
+const IS_TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+if (IS_TOUCH) {
+  document.body.classList.add('touch');
+  document.querySelectorAll('.deskHelp').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.touchHelp').forEach(el => el.style.display = 'block');
+}
+
 // ---------- controls ----------
 const controls = new PointerLockControls(camera, renderer.domElement);
 scene.add(controls.getObject());
 
+// on touch we don't use pointerlock; we simulate "locked" with a flag
+let touchActive = false;
+
 const startEl = document.getElementById('start');
-startEl.addEventListener('click', () => controls.lock());
+startEl.addEventListener('click', () => {
+  if (IS_TOUCH) {
+    touchActive = true;
+    startEl.style.display = 'none';
+  } else {
+    controls.lock();
+  }
+});
 controls.addEventListener('lock',   () => startEl.style.display = 'none');
 controls.addEventListener('unlock', () => {
   if (!noteModal.classList.contains('on') && !boardModal.classList.contains('on')) {
@@ -409,14 +472,90 @@ controls.addEventListener('unlock', () => {
   }
 });
 
+function isActive() { return IS_TOUCH ? touchActive : controls.isLocked; }
+
 // ---------- movement ----------
 const keys = {};
 addEventListener('keydown', e => {
   keys[e.code] = true;
-  if (e.code === 'KeyN' && controls.isLocked) openNoteModal();
-  if (e.code === 'KeyE' && controls.isLocked && nearBoard) openBoardModal();
+  if (e.code === 'KeyN' && isActive()) openNoteModal();
+  if (e.code === 'KeyE' && isActive() && nearBoard) openBoardModal();
 });
 addEventListener('keyup', e => keys[e.code] = false);
+
+// ---------- touch: joystick + look drag + buttons ----------
+const touchMove = { x: 0, y: 0 };
+let touchRun = false;
+
+(function setupStick() {
+  const stick = document.getElementById('stick');
+  const nub   = document.getElementById('stickNub');
+  const R     = 55;
+  let active = null, cx = 0, cy = 0;
+
+  stick.addEventListener('pointerdown', e => {
+    active = e.pointerId;
+    const r = stick.getBoundingClientRect();
+    cx = r.left + r.width/2;
+    cy = r.top  + r.height/2;
+    stick.setPointerCapture(e.pointerId);
+    updateNub(e.clientX, e.clientY);
+  });
+  stick.addEventListener('pointermove', e => {
+    if (e.pointerId !== active) return;
+    updateNub(e.clientX, e.clientY);
+  });
+  const end = e => {
+    if (e.pointerId !== active) return;
+    active = null;
+    touchMove.x = 0; touchMove.y = 0;
+    nub.style.transform = 'translate(0,0)';
+  };
+  stick.addEventListener('pointerup', end);
+  stick.addEventListener('pointercancel', end);
+
+  function updateNub(x, y) {
+    let dx = x - cx, dy = y - cy;
+    const d = Math.hypot(dx, dy);
+    if (d > R) { dx = dx * R / d; dy = dy * R / d; }
+    nub.style.transform = `translate(${dx}px, ${dy}px)`;
+    touchMove.x = dx / R;
+    touchMove.y = dy / R;
+  }
+})();
+
+(function setupLook() {
+  const pad = document.getElementById('lookPad');
+  let pid = null, lx = 0, ly = 0;
+  const SENS = 0.003;
+  const obj = controls.getObject();
+  const pitchObj = camera; // PointerLockControls rotates yaw on obj, pitch on camera
+
+  pad.addEventListener('pointerdown', e => {
+    pid = e.pointerId;
+    lx = e.clientX; ly = e.clientY;
+    pad.setPointerCapture(e.pointerId);
+  });
+  pad.addEventListener('pointermove', e => {
+    if (e.pointerId !== pid || !isActive()) return;
+    const dx = e.clientX - lx;
+    const dy = e.clientY - ly;
+    lx = e.clientX; ly = e.clientY;
+    obj.rotation.y -= dx * SENS;
+    pitchObj.rotation.x -= dy * SENS;
+    pitchObj.rotation.x = Math.max(-Math.PI/2 + 0.01, Math.min(Math.PI/2 - 0.01, pitchObj.rotation.x));
+  });
+  const end = e => { if (e.pointerId === pid) pid = null; };
+  pad.addEventListener('pointerup', end);
+  pad.addEventListener('pointercancel', end);
+})();
+
+document.getElementById('btnN').addEventListener('click', () => { if (isActive()) openNoteModal(); });
+document.getElementById('btnE').addEventListener('click', () => { if (isActive() && nearBoard) openBoardModal(); });
+document.getElementById('btnRun').addEventListener('click', e => {
+  touchRun = !touchRun;
+  e.currentTarget.classList.toggle('on', touchRun);
+});
 
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
@@ -442,14 +581,14 @@ noteText.addEventListener('keydown', e => {
 });
 
 function openNoteModal() {
-  controls.unlock();
+  if (!IS_TOUCH) controls.unlock();
   noteModal.classList.add('on');
   setTimeout(() => noteText.focus(), 30);
 }
 function closeNoteModal() {
   noteModal.classList.remove('on');
   noteText.value = '';
-  controls.lock();
+  if (!IS_TOUCH) controls.lock();
 }
 
 const notes = [];
@@ -550,7 +689,7 @@ document.getElementById('boardClear').onclick = () => {
 document.getElementById('boardClose').onclick = () => {
   syncToBoard();
   boardModal.classList.remove('on');
-  controls.lock();
+  if (!IS_TOUCH) controls.lock();
 };
 
 function boardPt(e) {
@@ -588,7 +727,7 @@ bigCanvas.addEventListener('touchmove', moveDraw,  { passive:false });
 addEventListener('touchend', endDraw);
 
 function openBoardModal() {
-  controls.unlock();
+  if (!IS_TOUCH) controls.unlock();
   syncFromBoard();
   boardModal.classList.add('on');
 }
@@ -603,7 +742,8 @@ function checkBoardProximity() {
   const yOk = Math.abs(camera.position.y - 1.7) < 1.2;
   const inZ = Math.abs(dz) < BOARD_W/2 + 0.4;
   nearBoard = dist < 1.6 && inZ && yOk;
-  promptEl.classList.toggle('on', nearBoard && controls.isLocked);
+  promptEl.classList.toggle('on', nearBoard && isActive() && !IS_TOUCH);
+  document.getElementById('btnE').classList.toggle('on', nearBoard && isActive() && IS_TOUCH);
 }
 
 // ---------- loop ----------
@@ -611,14 +751,19 @@ const clock = new THREE.Clock();
 function animate() {
   const dt = Math.min(clock.getDelta(), 0.1);
 
-  if (controls.isLocked) {
-    const speed = (keys['ShiftLeft'] || keys['ShiftRight']) ? 6.5 : 3.2;
+  if (isActive()) {
+    const running = keys['ShiftLeft'] || keys['ShiftRight'] || touchRun;
+    const speed = running ? 6.5 : 3.2;
     direction.set(0, 0, 0);
     if (keys['KeyW'] || keys['ArrowUp'])    direction.z -= 1;
     if (keys['KeyS'] || keys['ArrowDown'])  direction.z += 1;
     if (keys['KeyA'] || keys['ArrowLeft'])  direction.x -= 1;
     if (keys['KeyD'] || keys['ArrowRight']) direction.x += 1;
-    direction.normalize();
+    if (IS_TOUCH) {
+      direction.x += touchMove.x;
+      direction.z += touchMove.y;
+    }
+    if (direction.lengthSq() > 0) direction.normalize();
 
     velocity.x -= velocity.x * 10 * dt;
     velocity.z -= velocity.z * 10 * dt;
