@@ -40,12 +40,21 @@ Ranked by how reliable they are in practice.
 - **Cons:** public only on free tier; ~30 s propagation after first enable; needs one manual settings click.
 - **AI prompt snippet:** *"Publish it to a gh-pages branch and tell me the github.io URL. Create the branch if it doesn't exist."*
 
-### 2. htmlpreview.github.io (instant, zero-config)
-- **When to use:** file is already pushed to any branch; you need a link in 10 seconds.
+### 2. raw.githack.com (the one that actually works when others blank out)
+- **When to use:** file pushed to any branch; Pages not enabled; htmlpreview returned blank.
+- **URL shape:** `https://raw.githack.com/<user>/<repo>/<branch>/<file>.html`
+- **Pros:** serves with correct MIME types so browsers render HTML inline; tolerates branch names with slashes (e.g. `claude/feature-foo`); no setup; no rate limits in practice.
+- **Cons:** `raw.githack.com` is CDN-cached — if you just pushed, hit Ctrl-F5 or append `?v=2`. For production use they recommend `rawcdn.githack.com` (immutable commit-pinned).
+- **AI prompt snippet:** *"Give me a raw.githack.com URL for the file on the branch you just pushed."*
+
+### 2b. cdn.statically.io (identical purpose, different CDN)
+- **URL shape:** `https://cdn.statically.io/gh/<user>/<repo>/<branch>/<file>.html`
+- **Use as a fallback** if raw.githack is down or cached wrong.
+
+### 2c. htmlpreview.github.io (older, flakier)
 - **URL shape:** `https://htmlpreview.github.io/?https://github.com/<user>/<repo>/blob/<branch>/<file>.html`
-- **Pros:** no Pages setup, works on any branch, renders immediately.
-- **Cons:** chokes on anything that loads sub-resources by relative path (images, CSS files, JS modules). Inline-only pages work fine. Service occasionally down.
-- **AI prompt snippet:** *"After you push, give me the htmlpreview.github.io URL for the file."*
+- **Known failure modes:** branch names containing `/` sometimes parse wrong; the preview iframes the content and some layouts render blank; occasionally the service itself is down.
+- **Reality:** tried 18 Apr 2026 — returned a blank white page on iPhone Safari. Use only as a last resort. Prefer raw.githack.com (#2) above.
 
 ### 3. Raw GitHub link (the honest fallback)
 - **When to use:** you just want to read the source or copy it.
@@ -88,11 +97,20 @@ Ranked by how reliable they are in practice.
 ## A prompt block to paste into future AI sessions
 
 > Whenever you build an HTML file I need to view, do **not** hand me `localhost` or `127.0.0.1` links — those don't reach my phone. Instead, default to this order:
-> 1. If the repo has GitHub Pages, push to the Pages branch and give me the `github.io` URL.
-> 2. Otherwise push to any branch and give me the `htmlpreview.github.io/?...` URL.
-> 3. If the HTML has external assets (CSS/JS/images as separate files), skip htmlpreview — set up Pages instead.
-> 4. If I say I want to interact with a running dev server, expose it with cloudflared and give me the `trycloudflare.com` URL.
-> 5. Only offer a local server command if I explicitly say I'm on the same machine as you.
+> 1. If the repo has GitHub Pages already enabled, push to the Pages branch and give me the `github.io` URL.
+> 2. Otherwise push to any branch and give me a `raw.githack.com/<user>/<repo>/<branch>/<file>.html` URL (this is the reliable default — works with slashes in branch names, renders inline HTML correctly).
+> 3. If raw.githack is down, fall back to `cdn.statically.io/gh/<user>/<repo>/<branch>/<file>.html`.
+> 4. Do **not** default to htmlpreview.github.io — it silently returns blank pages too often. Only offer it as a last-resort third fallback.
+> 5. If the HTML pulls in sibling CSS/JS/image files, Pages or raw.githack both work (they preserve folder structure). htmlpreview does not — skip it.
+> 6. If I want to interact with a running dev server, expose it with cloudflared and give me the `trycloudflare.com` URL. Never offer a localhost URL.
+> 7. Before giving me the link, verify it yourself with a fetch — if your sandbox blocks outbound, say so explicitly rather than handing me an unverified URL.
+
+## Gotchas found on 18 Apr 2026
+
+- **`localhost:8000` from AI sandbox → phone on 4G = 0% chance.** Never suggest it without a tunnel.
+- **Pages existing on a branch ≠ Pages enabled.** The `gh-pages` branch was already in the repo with commits, but visiting `https://<user>.github.io/<repo>/` returned 404 because Pages had never been switched on in Settings. Having the branch is step 1 of 2.
+- **htmlpreview.github.io returned blank** on the exact URL the AI suggested. Branch names with slashes (`claude/create-site-map-t4Un7`) are suspected. raw.githack.com handled the same path fine.
+- **AI sandboxes often block outbound HTTPS to random hosts** (got 403 on raw.githack, statically.io, and github.io from inside the sandbox). That means the AI can't always self-verify a preview URL — it has to push and trust, or tell you that up front.
 
 ---
 
