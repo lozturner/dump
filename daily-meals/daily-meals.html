@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e0f12">
+<title>Daily meals · v1</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  body{max-width:820px}
+  .toprow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+
+  .dayhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .dayhead .date{font-size:24px;font-weight:600;letter-spacing:-0.01em}
+  .dayhead .date .sub{display:block;font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+  .dayhead .nav{display:flex;gap:6px}
+  .dayhead .nav button{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:8px 11px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .dayhead .nav button:active{background:var(--panel2)}
+
+  .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .summary .s{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+  .summary .s .n{font-size:22px;font-weight:600}
+  .summary .s .l{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+
+  .timeline{position:relative;padding-left:28px;margin-bottom:18px}
+  .timeline::before{content:"";position:absolute;left:8px;top:4px;bottom:4px;width:2px;background:linear-gradient(180deg,var(--accent),var(--blue),var(--green),var(--amber))}
+  .meal{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;animation:slide-in .35s ease-out backwards}
+  .meal:nth-child(1){animation-delay:.05s}
+  .meal:nth-child(2){animation-delay:.15s}
+  .meal:nth-child(3){animation-delay:.25s}
+  .meal:nth-child(4){animation-delay:.35s}
+  .meal:nth-child(5){animation-delay:.45s}
+  .meal::before{
+    content:"";position:absolute;left:-23px;top:16px;
+    width:12px;height:12px;border-radius:50%;
+    background:var(--accent);border:2px solid var(--bg);
+    box-shadow:0 0 0 1px var(--accent);
+  }
+  .meal[data-kind="breakfast"]::before{background:var(--amber);box-shadow:0 0 0 1px var(--amber)}
+  .meal[data-kind="lunch"]::before{background:var(--green);box-shadow:0 0 0 1px var(--green)}
+  .meal[data-kind="dinner"]::before{background:var(--violet);box-shadow:0 0 0 1px var(--violet)}
+  .meal[data-kind="snack"]::before{background:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+
+  .meal-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+  .meal-head .time{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--muted);letter-spacing:.08em}
+  .meal-head .kind{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+  .meal[data-kind="breakfast"] .kind{color:var(--amber);border-color:var(--amber)}
+  .meal[data-kind="lunch"] .kind{color:var(--green);border-color:var(--green)}
+  .meal[data-kind="dinner"] .kind{color:var(--violet);border-color:var(--violet)}
+  .meal[data-kind="snack"] .kind{color:var(--blue);border-color:var(--blue)}
+  .meal .name{font-size:14.5px;font-weight:600;line-height:1.35;margin-bottom:4px}
+  .meal .desc{font-size:13px;line-height:1.55;color:#c8c6bf}
+  .meal .source{margin-top:8px;font-family:ui-monospace,Menlo,monospace;font-size:10px;color:var(--dim);letter-spacing:.05em;display:flex;justify-content:space-between;gap:10px}
+  .meal .source a{color:var(--blue)}
+  .meal .del{position:absolute;top:10px;right:12px;color:var(--dim);font-size:14px;cursor:pointer;padding:2px 6px;-webkit-tap-highlight-color:transparent}
+  .meal .del:hover{color:var(--accent)}
+
+  @keyframes slide-in {
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  .add-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  .add-bar input,.add-bar select{font:inherit;font-size:13px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:9px 11px}
+  .add-bar #m-name{flex:1;min-width:160px}
+  .add-bar button{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:#fff;border:1px solid var(--accent);border-radius:7px;padding:9px 12px;font-weight:600;cursor:pointer}
+
+  .kitchen-cta{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    background:linear-gradient(90deg,rgba(232,76,30,.14),rgba(163,113,247,.10));
+    border:1px solid var(--accent);border-radius:12px;padding:14px 16px;margin-bottom:14px;
+    text-decoration:none;color:var(--ink);
+  }
+  .kitchen-cta .l .k{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  .kitchen-cta .l .t{font-size:15px;font-weight:600;margin-top:3px}
+  .kitchen-cta .arrow{font-size:22px;color:var(--accent)}
+
+  .empty{font-size:13px;color:var(--dim);font-style:italic;padding:24px 12px;text-align:center;border:1px dashed var(--line);border-radius:10px;margin-bottom:12px}
+</style>
+</head>
+<body data-hue="amber">
+
+<div class="toprow">
+  <a class="back" href="../index.html"><span class="arr">←</span> Home</a>
+  <a class="back" href="../gallery.html"><span class="arr">⌘</span> Map</a>
+  <a class="back" href="../health.html"><span class="arr">♥</span> Health lane</a>
+</div>
+
+<div class="page-head">
+  <div class="hey">
+    <span class="chev">‹</span>
+    <span class="name">Daily meals</span>
+    <span class="chev">›</span>
+  </div>
+  <div style="margin-top:8px;font-size:14px;color:var(--muted);line-height:1.55">
+    A decorated timeline of what you're eating. Start the day from scratch, or pipe in a YouTuber's day-of-eating video via the <b style="color:var(--accent)">transcript kitchen</b> and commit the parsed meals to today.
+  </div>
+</div>
+
+<a class="kitchen-cta" href="transcript-kitchen-v1.html">
+  <span class="l">
+    <span class="k">Sub-menu</span>
+    <span class="t">✎ Open transcript kitchen — paste a YouTube URL, see what happens →</span>
+  </span>
+  <span class="arrow">›</span>
+</a>
+
+<div class="dayhead">
+  <div class="date"><span id="date-main">—</span><span class="sub" id="date-sub">—</span></div>
+  <div class="nav">
+    <button id="prev-day">← day</button>
+    <button id="today">today</button>
+    <button id="next-day">day →</button>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="s"><div class="n" id="count-meals">0</div><div class="l">Meals logged</div></div>
+  <div class="s"><div class="n" id="count-kinds">0</div><div class="l">Kinds covered</div></div>
+  <div class="s"><div class="n" id="count-source">0</div><div class="l">From videos</div></div>
+</div>
+
+<div class="timeline" id="timeline"></div>
+
+<div class="add-bar">
+  <input id="m-time" type="time" value="08:00">
+  <select id="m-kind">
+    <option value="breakfast">Breakfast</option>
+    <option value="snack">Snack</option>
+    <option value="lunch">Lunch</option>
+    <option value="dinner">Dinner</option>
+  </select>
+  <input id="m-name" placeholder="What did you eat?">
+  <button id="m-add">Add meal</button>
+</div>
+
+<div class="nav-bar">
+  <a href="../health.html">← Health lane</a>
+  <a href="../index.html">Home →</a>
+</div>
+
+<div class="footer">
+  <b>Everything saves on this device.</b> Timeline rebuilds itself from localStorage every time you come back.
+</div>
+
+<script defer src="../shit-switch.js"></script>
+<script>
+(function(){
+  const KEY = "hub.meals.v1";
+  const $ = s => document.querySelector(s);
+
+  let state = load() || { days:{} };
+  function load(){ try { return JSON.parse(localStorage.getItem(KEY)); } catch(e){ return null; } }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+  function todayKey(d){ d=d||new Date(); return d.toISOString().slice(0,10); }
+
+  let current = todayKey();
+
+  function dayState(){
+    if (!state.days[current]) state.days[current] = { meals:[], sources:[] };
+    return state.days[current];
+  }
+
+  function render(){
+    const d = new Date(current + "T00:00:00");
+    $('#date-main').textContent = d.toLocaleDateString(undefined,{weekday:'long', day:'numeric', month:'long'});
+    $('#date-sub').textContent = current + (current === todayKey() ? ' · today' : '');
+    const ds = dayState();
+    $('#count-meals').textContent = ds.meals.length;
+    $('#count-kinds').textContent = new Set(ds.meals.map(m=>m.kind)).size;
+    $('#count-source').textContent = (ds.sources||[]).length;
+
+    const tl = $('#timeline');
+    if (ds.meals.length === 0){
+      tl.innerHTML = '<div class="empty">No meals logged for this day. Add one below or pipe a video through the transcript kitchen.</div>';
+      return;
+    }
+    const sorted = ds.meals.slice().sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    tl.innerHTML = sorted.map((m,i) => `
+      <div class="meal" data-kind="${esc(m.kind||'snack')}" data-i="${i}">
+        <span class="del" data-i="${i}">✕</span>
+        <div class="meal-head">
+          <span class="time">${esc(m.time||'')}</span>
+          <span class="kind">${esc(m.kind||'meal')}</span>
+        </div>
+        <div class="name">${esc(m.name||'untitled')}</div>
+        ${m.desc ? '<div class="desc">' + esc(m.desc) + '</div>' : ''}
+        ${m.source ? '<div class="source"><span>from: ' + esc(m.source.label||'') + '</span>' +
+          (m.source.url ? '<a href="' + esc(m.source.url) + '" target="_blank" rel="noopener">open ↗</a>' : '') +
+          '</div>' : ''}
+      </div>`).join('');
+
+    tl.querySelectorAll('.del').forEach(d => d.addEventListener('click', () => {
+      const i = parseInt(d.dataset.i,10);
+      // find in sorted → map back to original index
+      const target = sorted[i];
+      const idx = ds.meals.indexOf(target);
+      if (idx >= 0) ds.meals.splice(idx, 1);
+      save(); render();
+    }));
+  }
+
+  function esc(s){ return (s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+  // ── nav
+  $('#prev-day').addEventListener('click', () => {
+    const d = new Date(current + "T00:00:00");
+    d.setDate(d.getDate()-1);
+    current = todayKey(d); render();
+  });
+  $('#next-day').addEventListener('click', () => {
+    const d = new Date(current + "T00:00:00");
+    d.setDate(d.getDate()+1);
+    current = todayKey(d); render();
+  });
+  $('#today').addEventListener('click', () => { current = todayKey(); render(); });
+
+  // ── add
+  $('#m-add').addEventListener('click', () => {
+    const name = $('#m-name').value.trim();
+    if (!name) return;
+    dayState().meals.push({
+      time: $('#m-time').value || '',
+      kind: $('#m-kind').value,
+      name,
+      desc: '',
+      source: null,
+      added: Date.now()
+    });
+    $('#m-name').value = '';
+    save(); render();
+  });
+
+  // ── on load, check for incoming from kitchen
+  try {
+    const incoming = JSON.parse(sessionStorage.getItem('hub.meals.incoming') || 'null');
+    if (incoming && incoming.day && incoming.meals && incoming.meals.length){
+      if (confirm('Commit ' + incoming.meals.length + ' meals from the transcript kitchen to ' + incoming.day + '?')){
+        if (!state.days[incoming.day]) state.days[incoming.day] = { meals:[], sources:[] };
+        state.days[incoming.day].meals.push(...incoming.meals);
+        state.days[incoming.day].sources = state.days[incoming.day].sources || [];
+        if (incoming.source) state.days[incoming.day].sources.push(incoming.source);
+        save();
+        current = incoming.day;
+      }
+      sessionStorage.removeItem('hub.meals.incoming');
+    }
+  } catch(e){}
+
+  render();
+})();
+</script>
+</body>
+</html>
