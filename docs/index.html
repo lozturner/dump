@@ -7,126 +7,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hub">
 <meta name="theme-color" content="#0e0f12">
-<title>Hub</title>
-<style>
-  :root{
-    --bg:#0e0f12; --panel:#16181d; --panel2:#1c1f25; --ink:#e8e6e0;
-    --muted:#7a7e88; --dim:#4a4e58; --line:#23262d;
-    --accent:#e84c1e; --blue:#4b8df8; --green:#3fb950; --amber:#d89a2a; --violet:#a371f7; --pink:#e8568c;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--bg);color:var(--ink);font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
-  body{padding:28px 18px 80px;max-width:760px;margin:0 auto}
-
-  .greeting{margin-bottom:22px}
-  .greeting .who{font-size:32px;font-weight:600;letter-spacing:-0.015em;line-height:1.1}
-  .greeting .who em{font-style:normal;color:var(--accent)}
-  .greeting .line{font-size:15px;color:var(--muted);margin-top:8px;line-height:1.5;max-width:540px}
-
-  .bigbtn{
-    display:flex;align-items:center;justify-content:space-between;gap:12px;
-    width:100%;padding:18px 20px;margin:22px 0 28px;
-    background:linear-gradient(90deg,rgba(232,76,30,0.16),rgba(75,141,248,0.16));
-    border:1px solid var(--accent); border-radius:12px;
-    color:var(--ink); text-decoration:none;
-    font-size:15px;font-weight:500;
-    -webkit-tap-highlight-color:transparent; cursor:pointer;
-    transition:transform 0.12s, border-color 0.15s;
-  }
-  .bigbtn:active{transform:scale(0.985)}
-  .bigbtn .l{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
-  .bigbtn .l .k{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);font-family:ui-monospace,Menlo,monospace}
-  .bigbtn .l .t{font-size:16px;font-weight:600}
-  .bigbtn .arrow{font-size:22px;color:var(--accent);font-weight:400}
-
-  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  @media (min-width:560px){ .tiles{grid-template-columns:1fr 1fr 1fr} }
-
-  .tile{
-    background:var(--panel); border:1px solid var(--line); border-radius:12px;
-    padding:14px 14px 12px; cursor:pointer; -webkit-tap-highlight-color:transparent;
-    display:flex;flex-direction:column;gap:6px;
-    transition:border-color 0.15s, transform 0.1s;
-    position:relative; user-select:none;
-  }
-  .tile:active{transform:scale(0.985)}
-  .tile .dot{width:8px;height:8px;border-radius:50%;position:absolute;top:14px;right:14px}
-  .tile[data-hue="accent"] .dot{background:var(--accent)}
-  .tile[data-hue="blue"]   .dot{background:var(--blue)}
-  .tile[data-hue="green"]  .dot{background:var(--green)}
-  .tile[data-hue="amber"]  .dot{background:var(--amber)}
-  .tile[data-hue="violet"] .dot{background:var(--violet)}
-  .tile[data-hue="pink"]   .dot{background:var(--pink)}
-  .tile .nm{font-size:13.5px;font-weight:600;padding-right:18px;line-height:1.25}
-  .tile .hint{font-size:11.5px;color:var(--muted);line-height:1.4}
-  .tile .badge{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dim);margin-top:2px}
-
-  /* EXPANSION */
-  .tile.open{grid-column:1/-1; background:var(--panel2); border-color:var(--muted); cursor:default}
-  .tile.open:active{transform:none}
-  .tile.open .collapsed-view{display:none}
-  .tile .expanded-view{display:none; padding-top:4px}
-  .tile.open .expanded-view{display:block}
-
-  .expanded-view .header{
-    display:flex; align-items:center; gap:10px;
-    font-size:17px; font-weight:500; line-height:1.3;
-    margin-bottom:14px;
-  }
-  .expanded-view .header .chev{color:var(--dim);font-size:14px}
-  .expanded-view .header .name{color:var(--ink);font-weight:600}
-  .tile[data-hue="accent"].open .expanded-view .header .name{color:var(--accent)}
-  .tile[data-hue="blue"].open   .expanded-view .header .name{color:var(--blue)}
-  .tile[data-hue="green"].open  .expanded-view .header .name{color:var(--green)}
-  .tile[data-hue="amber"].open  .expanded-view .header .name{color:var(--amber)}
-  .tile[data-hue="violet"].open .expanded-view .header .name{color:var(--violet)}
-  .tile[data-hue="pink"].open   .expanded-view .header .name{color:var(--pink)}
-
-  .expanded-view .body{font-size:14px;line-height:1.6;color:#c8c6bf}
-  .expanded-view .rows{display:flex;flex-direction:column;gap:6px;margin-top:12px}
-  .expanded-view .row{
-    display:flex;gap:10px;align-items:flex-start;
-    font-size:13px;line-height:1.45;color:#b8b6b0;
-    padding:8px 10px;background:var(--panel);border:1px solid var(--line);border-radius:7px;
-  }
-  .expanded-view .row .k{
-    color:var(--muted);font-family:ui-monospace,Menlo,monospace;
-    font-size:10px;letter-spacing:0.05em;text-transform:uppercase;
-    min-width:66px;flex-shrink:0;padding-top:1px;
-  }
-  .expanded-view .row .v{flex:1}
-
-  .expanded-view .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-  .expanded-view button, .expanded-view .btn{
-    font:inherit;font-size:11.5px;letter-spacing:0.1em;text-transform:uppercase;
-    background:transparent;color:var(--muted);
-    border:1px solid var(--line);border-radius:6px;
-    padding:7px 11px;cursor:pointer;-webkit-tap-highlight-color:transparent;
-    text-decoration:none;
-  }
-  .expanded-view .btn:hover, .expanded-view button:hover{border-color:var(--muted);color:var(--ink)}
-  .expanded-view .close{
-    position:absolute;top:12px;right:14px;
-    background:transparent;border:none;color:var(--dim);
-    font-size:22px;line-height:1;cursor:pointer;padding:4px 8px;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .expanded-view .close:hover{color:var(--ink)}
-
-  .footer{
-    margin-top:40px;padding:14px 16px;
-    font-size:11.5px;color:var(--muted);line-height:1.6;
-    font-family:ui-monospace,Menlo,monospace;
-    border-top:1px solid var(--line);
-  }
-  .footer b{color:var(--ink);font-weight:500}
-</style>
+<title>Hub · Laurence</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="greeting">
   <div class="who">Laurence,</div>
-  <div class="line">feel free to check in. I've been here — watching your lanes, keeping the small stuff pinned so you don't have to remember. Tap any tile and I'll tell you how it's going.</div>
+  <div class="line">feel free to check in. I've been here — watching your lanes, keeping the small stuff pinned so you don't have to remember. Tap a tile and I'll tell you how it's going.</div>
 </div>
 
 <a class="bigbtn" href="hub.html">
@@ -137,185 +25,28 @@
   <span class="arrow">›</span>
 </a>
 
-<div class="tiles" id="tiles"></div>
-
-<div class="footer">
-  <b>You check on me.</b> I don't start when you ask — I'm already here. Everything saves on this device, nothing leaves it.
+<div class="tiles">
+  <a class="tile" data-hue="accent" href="court.html"><span class="dot"></span><div class="nm">Family Court</div><div class="hint">Evidence · 2 new docs</div><div class="badge">T−9d hearing</div><span class="go">›</span></a>
+  <a class="tile" data-hue="green"  href="markets.html"><span class="dot"></span><div class="nm">Markets</div><div class="hint">3 legs ITM · 1 IV crush</div><div class="badge">Live</div><span class="go">›</span></a>
+  <a class="tile" data-hue="blue"   href="complaints.html"><span class="dot"></span><div class="nm">Complaints</div><div class="hint">CC case waiting · 1 reply</div><div class="badge">CC-2026-0842</div><span class="go">›</span></a>
+  <a class="tile" data-hue="violet" href="links.html"><span class="dot"></span><div class="nm">Links &amp; Tools</div><div class="hint">4 new URLs bridged</div><div class="badge">Bridged</div><span class="go">›</span></a>
+  <a class="tile" data-hue="blue"   href="inbox.html"><span class="dot"></span><div class="nm">Inbox</div><div class="hint">42 held · 1 solicitor</div><div class="badge">Triaged</div><span class="go">›</span></a>
+  <a class="tile" data-hue="pink"   href="calendar.html"><span class="dot"></span><div class="nm">Calendar</div><div class="hint">4 deadlines in 9 days</div><div class="badge">Tracking</div><span class="go">›</span></a>
+  <a class="tile" data-hue="green"  href="gov.html"><span class="dot"></span><div class="nm">Gov Portals</div><div class="hint">4 sessions held</div><div class="badge">Live</div><span class="go">›</span></a>
+  <a class="tile" data-hue="violet" href="research.html"><span class="dot"></span><div class="nm">Research</div><div class="hint">11 quotes extracted</div><div class="badge">Indexed</div><span class="go">›</span></a>
+  <a class="tile" data-hue="amber"  href="money.html"><span class="dot"></span><div class="nm">Money</div><div class="hint">4 charges · 2 zombies</div><div class="badge">Watching</div><span class="go">›</span></a>
+  <a class="tile" data-hue="accent" href="people.html"><span class="dot"></span><div class="nm">People</div><div class="hint">Solicitor · sister · quiet</div><div class="badge">Graph</div><span class="go">›</span></a>
+  <a class="tile" data-hue="blue"   href="devices.html"><span class="dot"></span><div class="nm">Devices</div><div class="hint">5 devices · 1 active</div><div class="badge">Synced</div><span class="go">›</span></a>
+  <a class="tile" data-hue="green"  href="captures.html"><span class="dot"></span><div class="nm">Captures</div><div class="hint">14 clips · 6 shots</div><div class="badge">24h</div><span class="go">›</span></a>
+  <a class="tile" data-hue="violet" href="ai.html"><span class="dot"></span><div class="nm">AI Threads</div><div class="hint">Claude · GPT · Gemini</div><div class="badge">Stitched</div><span class="go">›</span></a>
+  <a class="tile" data-hue="pink"   href="kids.html"><span class="dot"></span><div class="nm">Kids · Day</div><div class="hint">1 form · 7 photos</div><div class="badge">Quiet</div><span class="go">›</span></a>
+  <a class="tile" data-hue="amber"  href="health.html"><span class="dot"></span><div class="nm">Health</div><div class="hint">Sleep 5h40 · load heavy</div><div class="badge">Gentle</div><span class="go">›</span></a>
+  <a class="tile" data-hue="accent" href="ideas.html"><span class="dot"></span><div class="nm">Ideas</div><div class="hint">1 missing · 3 live</div><div class="badge">Archive</div><span class="go">›</span></a>
 </div>
 
-<script>
-(function(){
-  const TILES = [
-    { id:"court",      hue:"accent", name:"Family Court",    hint:"Evidence · 2 new docs",       badge:"T−9d hearing",
-      body:"The children's file. Two documents landed this week, one of them contradicts the Feb 18 statement — I've flagged it. Next hearing window opens in nine days and the bundle is about three-quarters assembled.",
-      rows:[
-        {k:"Since last", v:"2 docs auto-sorted into the timeline."},
-        {k:"Flag",       v:"Contradiction on exhibit-C page 47."},
-        {k:"You left",   v:"Reading exhibit-C, paragraph 3."},
-      ]},
-    { id:"markets",    hue:"green",  name:"Markets",         hint:"3 legs ITM · 1 IV crush",     badge:"Live",
-      body:"Today's tape against your sheet. Three of your legs moved into the money since open. The position you flagged Tuesday had its premium collapse — IV crush, down 22%.",
-      rows:[
-        {k:"Sheet",   v:"options-watchlist · 3 legs ITM."},
-        {k:"Alert",   v:"IV crush on Tue's flagged position."},
-        {k:"Pending", v:"Limit order still unfilled at strike."},
-      ]},
-    { id:"complaints", hue:"blue",   name:"Complaints",      hint:"CC case waiting · 1 reply",   badge:"CC-2026-0842",
-      body:"Case CC-2026-0842 hasn't moved since the 11th — next expected response the 25th. The ombudsman sent an acknowledgement this morning. Your escalation draft is still half-written.",
-      rows:[
-        {k:"CC",    v:"Status unchanged. Next: 25 Apr."},
-        {k:"Reply", v:"Ombudsman acknowledged 09:17."},
-        {k:"Draft", v:"Escalation letter still open."},
-      ]},
-    { id:"links",      hue:"violet", name:"Links & Tools",   hint:"4 new URLs bridged",          badge:"Bridged",
-      body:"The bridge between the websites you browse and the tools you've built. Four links carried across today. Your screenshots are indexed and OCR'd. Two of your own tools have gone quiet.",
-      rows:[
-        {k:"Bridged",   v:"4 URLs → research-vault."},
-        {k:"Capture",   v:"Clipboard indexed, OCR'd."},
-        {k:"Dormant",   v:"2 tools unused 11 days."},
-      ]},
-    { id:"inbox",      hue:"blue",   name:"Inbox",           hint:"42 held · 1 solicitor",        badge:"Triaged",
-      body:"Noise is held back — 42 low-priority emails parked. What reaches you reaches you on purpose. Your solicitor sent one with 'affidavit' in the subject.",
-      rows:[
-        {k:"Held",      v:"42 low-priority parked."},
-        {k:"Forward",   v:"Solicitor · re: affidavit."},
-        {k:"Reply-due", v:"3 you owe. Oldest 6 days."},
-      ]},
-    { id:"calendar",   hue:"pink",   name:"Calendar",        hint:"4 deadlines in 9 days",        badge:"Tracking",
-      body:"Every deadline I can see across your portals and inboxes, pulled onto one line. The court window is the heavy one; everything else fits around it.",
-      rows:[
-        {k:"T−9d", v:"Family court filing opens."},
-        {k:"T−3d", v:"Centrelink review form due."},
-        {k:"T−1d", v:"Options expiry, 2 short legs."},
-        {k:"Today",v:"16:30 ombudsman call-back."},
-      ]},
-    { id:"gov",        hue:"green",  name:"Gov Portals",     hint:"4 sessions held",              badge:"Live",
-      body:"MyGov, ATO, Medicare, AAT — I keep the sessions warm so you don't re-login into the abyss. ATO pushed a refund assessment: $1,284. Your AAT matter moved to Directions.",
-      rows:[
-        {k:"ATO",  v:"Refund assessment · $1,284."},
-        {k:"AAT",  v:"Pre-hearing → Directions issued."},
-        {k:"MyGov",v:"1 new message (read here)."},
-      ]},
-    { id:"research",   hue:"violet", name:"Research",        hint:"11 quotes extracted",          badge:"Indexed",
-      body:"Where you stopped reading, and what I pulled from everything else while you were elsewhere. Eleven quotes are tagged for your submission. Two passages contradict each other — flagged.",
-      rows:[
-        {k:"Stopped",     v:"Hansard 2024-11-14 · p47."},
-        {k:"Extracted",   v:"11 quotes tagged for submission."},
-        {k:"Queue",       v:"5 PDFs sorted by relevance."},
-      ]},
-    { id:"money",      hue:"amber",  name:"Money",           hint:"4 charges · 2 zombies",        badge:"Watching",
-      body:"Balances and what's leaving soon. Four charges in the next week totalling $387. Two subscriptions you haven't used in 90 days. A disputed charge reversed overnight.",
-      rows:[
-        {k:"Upcoming", v:"4 charges · $387.20 total."},
-        {k:"Zombie",   v:"2 subs unused 90 days."},
-        {k:"Refund",   v:"Disputed charge reversed."},
-      ]},
-    { id:"people",     hue:"accent", name:"People",          hint:"Solicitor · sister · quiet",   badge:"Graph",
-      body:"The humans in the loop. Who's owed a reply, who's gone quiet, who to leave alone today. Your sister checked in — no urgency. Your solicitor is waiting on a draft.",
-      rows:[
-        {k:"Solicitor", v:"3 days · draft sits in outbox."},
-        {k:"Support",   v:"Sister texted · no urgency."},
-        {k:"Avoid",     v:"Do-not-contact list respected."},
-      ]},
-    { id:"devices",    hue:"blue",   name:"Devices",         hint:"5 devices · 1 active",         badge:"Synced",
-      body:"Which device you're on and what each one was last doing. Same hub from any of them — pick up wherever.",
-      rows:[
-        {k:"Phone",  v:"Last: Gmail · 1 unsaved draft."},
-        {k:"Tablet", v:"Reading exhibit-C · mirrored."},
-        {k:"Laptop", v:"Sleeping · 6 tabs held."},
-      ]},
-    { id:"captures",   hue:"green",  name:"Captures",        hint:"14 clips · 6 shots",           badge:"24h",
-      body:"Everything you copied, screenshotted, or spoke at a device — kept and searchable. Nothing lost to the void.",
-      rows:[
-        {k:"Clipboard",  v:"14 items · 3 pinned."},
-        {k:"Screenshots",v:"6 today · all OCR'd."},
-        {k:"Voice",      v:"Walking note · 340 words."},
-      ]},
-    { id:"ai",         hue:"violet", name:"AI Threads",      hint:"Claude · GPT · Gemini",        badge:"Stitched",
-      body:"Every AI chat you've opened, knitted together. No more retelling your story to a fresh window. Three concepts still unresolved across models.",
-      rows:[
-        {k:"Claude",     v:"This thread + 2 linked priors."},
-        {k:"ChatGPT",    v:"Options strategy · last 2d."},
-        {k:"Carry-over", v:"Three-lane overseer missing."},
-      ]},
-    { id:"kids",       hue:"pink",   name:"Kids · Day",      hint:"1 form · 7 photos",            badge:"Quiet",
-      body:"Separate from the court file. The small things. One permission form to sign by Friday. Seven new photos on the shared album. No school-side concerns this week.",
-      rows:[
-        {k:"School", v:"1 form due Fri · 1 newsletter."},
-        {k:"Photos", v:"7 new on shared album."},
-        {k:"Dates",  v:"Parent-teacher 29 Apr."},
-      ]},
-    { id:"health",     hue:"amber",  name:"Health",          hint:"Sleep 5h40 · load heavy",      badge:"Gentle",
-      body:"How much you've had to carry today. Your sleep was short; I'm filtering harder. I'm holding three non-urgent items back unless you ask for them.",
-      rows:[
-        {k:"Sleep", v:"5h 40m · below 7h target."},
-        {k:"Load",  v:"38 decisions today · filtering."},
-        {k:"Meds",  v:"Morning dose confirmed 08:04."},
-      ]},
-    { id:"ideas",      hue:"accent", name:"Ideas",           hint:"1 missing · 3 live",           badge:"Archive",
-      body:"Things you said once, half-said once, or drew on a napkin once. I don't let them fall off. The three-lane overseer concept is still missing from the archive — I'm still looking.",
-      rows:[
-        {k:"Missing", v:"Three-lane overseer · hunting."},
-        {k:"Tracked", v:"Always-on hub · this thing."},
-        {k:"Seeded",  v:"Voice via Web Speech · not yet."},
-      ]},
-  ];
+<div class="footer">
+  <b>You check on me.</b> I don't start when you ask — I'm already here. Each tile is its own page. Everything saves on this device.
+</div>
 
-  // Render tiles
-  const root = document.getElementById('tiles');
-  TILES.forEach(t => {
-    const el = document.createElement('div');
-    el.className = 'tile';
-    el.dataset.hue = t.hue;
-    el.dataset.id = t.id;
-    el.innerHTML = `
-      <span class="dot"></span>
-      <div class="collapsed-view">
-        <div class="nm">${t.name}</div>
-        <div class="hint">${t.hint}</div>
-        <div class="badge">${t.badge}</div>
-      </div>
-      <div class="expanded-view">
-        <button class="close" aria-label="Close">×</button>
-        <div class="header">
-          <span class="chev">‹</span>
-          <span>Hey <span class="name">${t.name}</span>,</span>
-          <span class="chev">›</span>
-          <span>how are you getting on?</span>
-        </div>
-        <div class="body">${t.body}</div>
-        <div class="rows">
-          ${t.rows.map(r => `<div class="row"><span class="k">${r.k}</span><span class="v">${r.v}</span></div>`).join('')}
-        </div>
-        <div class="controls">
-          <button class="ack">Mark read</button>
-          <button class="pin">Pin to top</button>
-          <a class="btn" href="hub.html#${t.id}">Open in monitor →</a>
-        </div>
-      </div>
-    `;
-    root.appendChild(el);
-  });
-
-  // Expand / collapse behaviour
-  const tiles = document.querySelectorAll('.tile');
-  tiles.forEach(tile => {
-    tile.addEventListener('click', (e) => {
-      // ignore clicks on buttons/links inside the expanded view
-      if (e.target.closest('.expanded-view button') || e.target.closest('.expanded-view a')) return;
-      if (tile.classList.contains('open')) return;
-      // close others
-      tiles.forEach(o => o.classList.remove('open'));
-      tile.classList.add('open');
-      tile.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-    const close = tile.querySelector('.close');
-    if (close) close.addEventListener('click', (e) => {
-      e.stopPropagation();
-      tile.classList.remove('open');
-    });
-  });
-})();
-</script>
 </body>
 </html>
