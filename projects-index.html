@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projects — Swiss Army Knife for Lawrence</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #f7f6f3;
+    --ink: #1a1a1a;
+    --muted: #888;
+    --border: #ddd;
+    --card: #fff;
+    --c1: #e84c1e;
+    --c2: #2563eb;
+    --c3: #16a34a;
+    --c4: #d97706;
+    --c5: #7c3aed;
+    --c6: #0891b2;
+    --c7: #db2777;
+    --c8: #475569;
+    --c9: #84cc16;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--ink);
+    padding: 32px 20px 60px;
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 36px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 16px;
+  }
+
+  header .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  header .sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .intro {
+    font-size: 14px;
+    line-height: 1.65;
+    color: #333;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    border-radius: 6px;
+    margin-bottom: 28px;
+  }
+
+  .intro strong { font-weight: 600; }
+
+  .project {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 22px;
+    margin-bottom: 18px;
+  }
+
+  .project.p1 { border-left-color: var(--c1); }
+  .project.p2 { border-left-color: var(--c2); }
+  .project.p3 { border-left-color: var(--c3); }
+  .project.p4 { border-left-color: var(--c4); }
+  .project.p5 { border-left-color: var(--c5); }
+  .project.p6 { border-left-color: var(--c6); }
+  .project.p7 { border-left-color: var(--c7); }
+  .project.p8 { border-left-color: var(--c8); }
+  .project.p9 { border-left-color: var(--c9); }
+
+  .project .num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .project h2 {
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .project .tagline {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .project.p1 h2 { color: var(--c1); }
+  .project.p2 h2 { color: var(--c2); }
+  .project.p3 h2 { color: var(--c3); }
+  .project.p4 h2 { color: var(--c4); }
+  .project.p5 h2 { color: var(--c5); }
+  .project.p6 h2 { color: var(--c6); }
+  .project.p7 h2 { color: var(--c7); }
+  .project.p8 h2 { color: var(--c8); }
+  .project.p9 h2 { color: var(--c9); }
+
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 14px;
+    margin-bottom: 6px;
+  }
+
+  .project p {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: #333;
+  }
+
+  .project ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .project ul li {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #444;
+    padding-left: 18px;
+    position: relative;
+    margin-bottom: 3px;
+  }
+
+  .project ul li::before {
+    content: '↳';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .tbd {
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: #fef9c3;
+    border: 1px dashed #ca8a04;
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #713f12;
+    line-height: 1.6;
+  }
+
+  .tbd .k { font-weight: 600; }
+
+  .footer {
+    margin-top: 40px;
+    padding: 16px 20px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .footer .status-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">Project Index · 19 Apr 2026 · branch: ai-multi-tool-dashboard</div>
+  <h1>Swiss Army Knife for Lawrence</h1>
+  <div class="sub">9 projects scoped · awaiting visual direction before build</div>
+</header>
+
+<div class="intro">
+  <strong>Rules of engagement.</strong> Each project below is scoped from the phone-call dump. Read through — if I've misheard one, correct it. If a project is missing, add it. Once the list is right, we lock <em>viewpoint, diagrams, colour, typography</em> per project, then I build one at a time. Nothing here is yet visual-committed; the yellow blocks are the decisions you'll make per project before I lift a finger on the build.
+</div>
+
+<div class="project p1">
+  <div class="num">Project 01</div>
+  <h2>Research Scaffolder</h2>
+  <div class="tagline">Substitute exec function · life-decisions engine</div>
+
+  <p>You feed it a decision ("when do I move out of the Portsmouth council flat", "when do I file the complaint", "when do I collect evidence") and it works the answer out the way you would if the executive-function bit of your brain was working.</p>
+
+  <div class="section-label">Core loop</div>
+  <ul>
+    <li>Input: the decision framed as variables (situation, constraints, deadline, risk tolerance).</li>
+    <li>Engine: multi-shot — variables → search → match → recommend.</li>
+    <li>Output: a recommendation backed by citations, not vibes.</li>
+  </ul>
+
+  <div class="section-label">Citation rules (non-negotiable)</div>
+  <ul>
+    <li>Textbooks preferred over web links.</li>
+    <li>Every cited fact shows: bibliography entry + specific chapter/page + pasted excerpt in [brackets].</li>
+    <li>Web search allowed as fallback; still cited with excerpt.</li>
+  </ul>
+
+  <div class="tbd">
+    <div class="k">TBD before build →</div>
+    viewpoint (form-first? wizard? single long page?) · colour · how the citations render (footnote / sidebar / inline) · whether variables are typed forms or free-text.
+  </div>
+</div>
+
+<div class="project p2">
+  <div class="num">Project 02</div>
+  <h2>LLM Whack</h2>
+  <div class="tagline">Leaderboard · prompt × model × output</div>
+
+  <p>A Mickey-Mouse-simple AI chat button fronting a leaderboard of <em>prompts that generate things</em> across LLMs. Current #1: <strong>liminal space</strong>. Claude renders it as a fully walkable 3D room; Grok, Gemini, GPT each render it differently. The point of the site is to show which model wins per prompt.</p>
+
+  <div class="section-label">Mechanics</div>
+  <ul>
+    <li>Single prompt input at the top. One-click generate.</li>
+    <li>Grid of outputs — one cell per model (Claude / Grok / Gemini / GPT).</li>
+    <li>Leaderboard ranks <em>prompts</em> by how strong their outputs are across models.</li>
+    <li>Submit-a-prompt flow; voting on outputs.</li>
+    <li>Extensible: same pattern applied to company websites, product pages, etc.</li>
+  </ul>
+
+  <div class="tbd">
+    <div class="k">TBD before build →</div>
+    viewpoint (arena/grid/scrolling feed?) · how 3D outputs embed · colour · is this static-leaderboard demo or wired to real model APIs?
+  </div>
+</div>
+
+<div class="project p3">
+  <div class="num">Project 03</div>
+  <h2>Pokedex — Personal Lawrence Turner</h2>
+  <div class="tagline">Catalogue · flick through · add at leisure · export JSON</div>
+
+  <p>An index of every tool, idea, concept, and app you've built or want to build — rendered as cards you flick through like a Pokedex. Fallback position for anything that isn't fully built yet: the entry still lives here as a skeleton.</p>
+
+  <div class="section-label">Card content</div>
+  <ul>
+    <li>Name · type · one-line description · status (built / skeleton / concept).</li>
+    <li>Stats block — which tech, which model, which dependencies.</li>
+    <li>Notes field · image/sketch slot · link to launch if built.</li>
+  </ul>
+
+  <div class="section-label">Behaviour</div>
+  <ul>
+    <li>Flick forward/back through cards.</li>
+    <li>Add new cards at will.</li>
+    <li>Export the whole dex as JSON; re-import.</li>
+  </ul>
+
+  <div class="tbd">
+    <div class="k">TBD before build →</div>
+    viewpoint (single card full-screen vs. grid overview + flip) · card face style (retro Pokemon / modern flat / terminal) · colour per type · storage (localStorage vs. JSON file).
+  </div>
+</div>
+
+<div class="project p4">
+  <div class="num">Project 04</div>
+  <h2>Evidence Organiser (Legal)</h2>
+  <div class="tagline">AI does what a solicitor does with your paperwork</div>
+
+  <p>Same brief as the thing your brother did for family: feed in videos, documents, chats; AI picks out the salient bits, timestamps them, stacks them into bundles, writes a summary a lawyer could use.</p>
+
+  <div class="section-label">Pipeline</div>
+  <ul>
+    <li>Intake — video / audio / PDF / screenshots / chat exports.</li>
+    <li>Transcribe + OCR + chunk.</li>
+    <li>Salient-moment extraction — timestamps, quotes, faces-on-camera, raised voices.</li>
+    <li>Bundle builder — chronological, thematic, or per-allegation.</li>
+    <li>Export — PDF bundle, cited summary, timeline.</li>
+  </ul>
+
+  <div class="section-label">If full build isn't possible</div>
+  <ul>
+    <li>Pseudo-code the pipeline.</li>
+    <li>Web search the market — what free / open-source tools already do parts of this.</li>
+    <li>Infer missing features from descriptions of popular paid apps; feed those into an LLM to scaffold the gaps.</li>
+  </ul>
+
+  <div class="tbd">
+    <div class="k">TBD before build →</div>
+    viewpoint (timeline / case-file / inbox-style?) · colour (legal-grey and navy, or break that?) · how redaction is visualised · which of the pipeline stages we actually build first.
+  </div>
+</div>
+
+<div class="project p5">
+  <div class="num">Project 05</div>
+  <h2>Mermaid Flow Studio</h2>
+  <div class="tagline">Every tool as an interactive, clickable, pannable flow</div>
+
+  <p>You don't like console output. You don't like JSON on the screen. You want every tool rendered as a Mermaid-style flow diagram, wrapped in HTML, interactive. This is the tool that makes that.</p>
+
+  <div class="section-label">Viewer mode</div>
+  <ul>
+    <li>Pan, zoom, click any node.</li>
+    <li>Nodes animate in, in index order, as the diagram loads.</li>
+  </ul>
+
+  <div class="section-label">Edit mode</div>
+  <ul>
+    <li>One compressed edit button flips it to editable.</li>
+    <li>Drag nodes; re-wire connections; change connection settings.</li>
+    <li>Add new nodes.</li>
+    <li>Freeze button — saves the layout to permanent space.</li>
+    <li>Export — JSON of the full graph.</li>
+  </ul>
+
+  <div class="tbd">
+    <div class="k">TBD before build →</div>
+    viewpoint (fullscreen canvas vs. diagram + side panel) · node/edge aesthetic (hand-drawn / boxy / rounded) · colour per node-type · whether built on Mermaid.js or a custom SVG engine.
+  </div>
+</div>
+
+<div class="project p6">
+  <div class="num">Project 06</div>
+  <h2>Swiss Army Knife (the shell)</h2>
+  <div class="tagline">Not an OS · a desktop that feels like one · all applets in one place</div>
+
+  <p>The main object. One browser page that behaves like a lightweight desktop — start menu, taskbar, clock, windowed apps — and hosts every applet below. The metaphor is the Swiss Army knife: one handle, many tools, no separate apps to open.</p>
+
+  <div class="section-label">Built-in applets</div>
+  <ul>
+    <li>Browser (embedded).</li>
+    <li>Notepad (multi-note, persistent).</li>
+    <li>Clock (taskbar + fullscreen app).</li>
+    <li>Calendar (month view, clickable days).</li>
+    <li>Start menu / all-star items.</li>
+    <li>Desktop — persistent files/notes/sketches pinned to the background.</li>
+    <li>Drawing board · whiteboard · sketch pad.</li>
+    <li>Address book.</li>
+    <li>Emoji shortcuts.</li>
+    <li>Quick statements (snippets / canned phrases).</li>
+  </ul>
+
+  <div class="section-label">Integrations</div>
+  <ul>
+    <li>Projects 01–05 launch as windowed applets inside here.</li>
+    <li>Desktop remembers state across reloads.</li>
+  </ul>
+
+  <div class="tbd">
+    <div class="k">TBD before build →</div>
+    viewpoint (Win95 homage / macOS-ish / brutalist original / CRT retro) · colour palette · window chrome · how many applets ship in v1 vs. later · storage strategy.
+  </div>
+</div>
+
+<div class="project p7">
+  <div class="num">Project 07</div>
+  <h2>Windows LLM</h2>
+  <div class="tagline">OS-as-a-fine-tune · every layer rendered by the model</div>
+
+  <p>Take the whole Windows install and fine-tune an LLM on it. When you run the site, the model <em>is</em> Windows — Start menu, Explorer, dialogs, Control Panel, the error beeps, the registry — all generated through every layer by the model. Not a screenshot, not an emulator. A hallucinated, interactive Windows.</p>
+
+  <div class="section-label">What the model renders</div>
+  <ul>
+    <li>Shell chrome — taskbar, Start, tray, window borders.</li>
+    <li>Apps — click Notepad, the model writes Notepad. Click Paint, it writes Paint.</li>
+    <li>System layers — file system views, settings pages, error dialogs, BSODs.</li>
+    <li>State persistence across clicks so it feels like the same session.</li>
+  </ul>
+
+  <div class="section-label">Open questions</div>
+  <ul>
+    <li>Which Windows (3.1 / 95 / XP / 11) — style and scope massively different.</li>
+    <li>Fine-tune on what corpus — screenshots, source leaks, UI spec docs, manuals?</li>
+    <li>Stateless per-click vs. session-memory.</li>
+  </ul>
+
+  <div class="tbd">
+    <div class="k">TBD before build →</div>
+    which Windows version · realism vs. dream-logic · whether model calls are real or scripted demo · colour (stay authentic-beige or re-skin).
+  </div>
+</div>
+
+<div class="project p8">
+  <div class="num">Project 08</div>
+  <h2>Fantastic Manager</h2>
+  <div class="tagline">Task Manager, but it's a game · and a teacher</div>
+
+  <p>Type in your PC specs. It tells you what rig you've got, what you can run, what to buy. Then it <em>is</em> that PC — you open apps, the LLM fabricates them on the fly as you search; they feel real, they consume real-modelled resources, and the thing slows down, chokes, crashes the way a real machine would. Your job is to manage it: buy more RAM, close apps, or dive into the backend and code your way out.</p>
+
+  <div class="section-label">Two modes</div>
+  <ul>
+    <li><strong>Game mode</strong> — scored, clock ticking, resource pressure, upgrade economy.</li>
+    <li><strong>Teaching mode</strong> — same simulator, but with tooltips, explainers, and a guided track through CPU / RAM / disk / network concepts.</li>
+  </ul>
+
+  <div class="section-label">Mechanics</div>
+  <ul>
+    <li>Spec entry — CPU, RAM, GPU, disk. Those become the real ceiling.</li>
+    <li>App launching — LLM generates the app's UI on demand as you type its name.</li>
+    <li>Resource modelling — each generated app costs cycles, memory, I/O.</li>
+    <li>Two exits when stuck: <em>buy more</em> (economy) or <em>WYSIWYG + backend code</em> (engineering).</li>
+    <li>Task Manager itself is the main HUD.</li>
+  </ul>
+
+  <div class="tbd">
+    <div class="k">TBD before build →</div>
+    viewpoint (desktop-in-a-desktop vs. fullscreen HUD) · retro CRT or modern flat · resource economy numbers · how much of the "LLM generates apps" is real vs. pre-canned for v1.
+  </div>
+</div>
+
+<div class="project p9">
+  <div class="num">Project 09</div>
+  <h2>This Index</h2>
+  <div class="tagline">The meta-doc · the contract</div>
+
+  <p>The page you're reading. Lives in the repo so we can re-open it each session and check we're still on the same page. Updates as projects gain visual-direction decisions and move from <em>scoped</em> → <em>locked</em> → <em>built</em>.</p>
+
+  <div class="tbd">
+    <div class="k">Keep or bin →</div>
+    decide if this index stays a flat HTML page or gets folded into the Pokedex (Project 03) once that exists.
+  </div>
+</div>
+
+<div class="footer">
+  <div class="status-label">Next move — you pick one project, we lock its visuals, I build.</div>
+  01 Research Scaffolder &nbsp;·&nbsp; 02 LLM Whack &nbsp;·&nbsp; 03 Pokedex &nbsp;·&nbsp; 04 Evidence Organiser &nbsp;·&nbsp; 05 Mermaid Flow Studio &nbsp;·&nbsp; 06 Swiss Army Knife &nbsp;·&nbsp; 07 Windows LLM &nbsp;·&nbsp; 08 Fantastic Manager
+</div>
+
+</body>
+</html>
