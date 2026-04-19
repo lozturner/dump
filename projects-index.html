@@ -20,6 +20,8 @@
     --c5: #7c3aed;
     --c6: #0891b2;
     --c7: #db2777;
+    --c8: #475569;
+    --c9: #84cc16;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -89,6 +91,8 @@
   .project.p5 { border-left-color: var(--c5); }
   .project.p6 { border-left-color: var(--c6); }
   .project.p7 { border-left-color: var(--c7); }
+  .project.p8 { border-left-color: var(--c8); }
+  .project.p9 { border-left-color: var(--c9); }
 
   .project .num {
     font-family: 'IBM Plex Mono', monospace;
@@ -120,6 +124,8 @@
   .project.p5 h2 { color: var(--c5); }
   .project.p6 h2 { color: var(--c6); }
   .project.p7 h2 { color: var(--c7); }
+  .project.p8 h2 { color: var(--c8); }
+  .project.p9 h2 { color: var(--c9); }
 
   .section-label {
     font-family: 'IBM Plex Mono', monospace;
@@ -199,7 +205,7 @@
 <header>
   <div class="label">Project Index · 19 Apr 2026 · branch: ai-multi-tool-dashboard</div>
   <h1>Swiss Army Knife for Lawrence</h1>
-  <div class="sub">7 projects scoped · awaiting visual direction before build</div>
+  <div class="sub">9 projects scoped · awaiting visual direction before build</div>
 </header>
 
 <div class="intro">
@@ -374,6 +380,62 @@
 
 <div class="project p7">
   <div class="num">Project 07</div>
+  <h2>Windows LLM</h2>
+  <div class="tagline">OS-as-a-fine-tune · every layer rendered by the model</div>
+
+  <p>Take the whole Windows install and fine-tune an LLM on it. When you run the site, the model <em>is</em> Windows — Start menu, Explorer, dialogs, Control Panel, the error beeps, the registry — all generated through every layer by the model. Not a screenshot, not an emulator. A hallucinated, interactive Windows.</p>
+
+  <div class="section-label">What the model renders</div>
+  <ul>
+    <li>Shell chrome — taskbar, Start, tray, window borders.</li>
+    <li>Apps — click Notepad, the model writes Notepad. Click Paint, it writes Paint.</li>
+    <li>System layers — file system views, settings pages, error dialogs, BSODs.</li>
+    <li>State persistence across clicks so it feels like the same session.</li>
+  </ul>
+
+  <div class="section-label">Open questions</div>
+  <ul>
+    <li>Which Windows (3.1 / 95 / XP / 11) — style and scope massively different.</li>
+    <li>Fine-tune on what corpus — screenshots, source leaks, UI spec docs, manuals?</li>
+    <li>Stateless per-click vs. session-memory.</li>
+  </ul>
+
+  <div class="tbd">
+    <div class="k">TBD before build →</div>
+    which Windows version · realism vs. dream-logic · whether model calls are real or scripted demo · colour (stay authentic-beige or re-skin).
+  </div>
+</div>
+
+<div class="project p8">
+  <div class="num">Project 08</div>
+  <h2>Fantastic Manager</h2>
+  <div class="tagline">Task Manager, but it's a game · and a teacher</div>
+
+  <p>Type in your PC specs. It tells you what rig you've got, what you can run, what to buy. Then it <em>is</em> that PC — you open apps, the LLM fabricates them on the fly as you search; they feel real, they consume real-modelled resources, and the thing slows down, chokes, crashes the way a real machine would. Your job is to manage it: buy more RAM, close apps, or dive into the backend and code your way out.</p>
+
+  <div class="section-label">Two modes</div>
+  <ul>
+    <li><strong>Game mode</strong> — scored, clock ticking, resource pressure, upgrade economy.</li>
+    <li><strong>Teaching mode</strong> — same simulator, but with tooltips, explainers, and a guided track through CPU / RAM / disk / network concepts.</li>
+  </ul>
+
+  <div class="section-label">Mechanics</div>
+  <ul>
+    <li>Spec entry — CPU, RAM, GPU, disk. Those become the real ceiling.</li>
+    <li>App launching — LLM generates the app's UI on demand as you type its name.</li>
+    <li>Resource modelling — each generated app costs cycles, memory, I/O.</li>
+    <li>Two exits when stuck: <em>buy more</em> (economy) or <em>WYSIWYG + backend code</em> (engineering).</li>
+    <li>Task Manager itself is the main HUD.</li>
+  </ul>
+
+  <div class="tbd">
+    <div class="k">TBD before build →</div>
+    viewpoint (desktop-in-a-desktop vs. fullscreen HUD) · retro CRT or modern flat · resource economy numbers · how much of the "LLM generates apps" is real vs. pre-canned for v1.
+  </div>
+</div>
+
+<div class="project p9">
+  <div class="num">Project 09</div>
   <h2>This Index</h2>
   <div class="tagline">The meta-doc · the contract</div>
 
@@ -387,7 +449,7 @@
 
 <div class="footer">
   <div class="status-label">Next move — you pick one project, we lock its visuals, I build.</div>
-  01 Research Scaffolder &nbsp;·&nbsp; 02 LLM Whack &nbsp;·&nbsp; 03 Pokedex &nbsp;·&nbsp; 04 Evidence Organiser &nbsp;·&nbsp; 05 Mermaid Flow Studio &nbsp;·&nbsp; 06 Swiss Army Knife
+  01 Research Scaffolder &nbsp;·&nbsp; 02 LLM Whack &nbsp;·&nbsp; 03 Pokedex &nbsp;·&nbsp; 04 Evidence Organiser &nbsp;·&nbsp; 05 Mermaid Flow Studio &nbsp;·&nbsp; 06 Swiss Army Knife &nbsp;·&nbsp; 07 Windows LLM &nbsp;·&nbsp; 08 Fantastic Manager
 </div>
 
 </body>
