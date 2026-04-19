@@ -9,6 +9,8 @@ scene.fog = new THREE.Fog(0x1a1a22, 12, 28);
 const camera = new THREE.PerspectiveCamera(72, innerWidth/innerHeight, 0.05, 100);
 camera.position.set(0, 1.65, 4);
 
+const topCam = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.05, 100);
+
 const renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
@@ -19,6 +21,8 @@ document.body.appendChild(renderer.domElement);
 addEventListener('resize', () => {
   camera.aspect = innerWidth/innerHeight;
   camera.updateProjectionMatrix();
+  topCam.aspect = innerWidth/innerHeight;
+  topCam.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
 
@@ -179,6 +183,38 @@ lampShade.position.set(-3.5, 1.7, 3); scene.add(lampShade);
 const lampLight = new THREE.PointLight(0xffc98a, 0.8, 5, 1.8);
 lampLight.position.set(-3.5, 1.55, 3); scene.add(lampLight);
 
+// ---------- avatar (visible in top view) ----------
+const avatar = new THREE.Group();
+const avatarBody = new THREE.Mesh(
+  new THREE.CapsuleGeometry(0.26, 0.7, 6, 12),
+  new THREE.MeshStandardMaterial({ color: 0xf4b860, roughness: 0.6 })
+);
+avatarBody.position.y = 0.85; avatarBody.castShadow = true;
+avatar.add(avatarBody);
+const avatarHead = new THREE.Mesh(
+  new THREE.SphereGeometry(0.17, 16, 12),
+  new THREE.MeshStandardMaterial({ color: 0xfde3b7, roughness: 0.7 })
+);
+avatarHead.position.y = 1.55; avatarHead.castShadow = true;
+avatar.add(avatarHead);
+const avatarArrow = new THREE.Mesh(
+  new THREE.ConeGeometry(0.18, 0.45, 4),
+  new THREE.MeshBasicMaterial({ color: 0xe84c1e })
+);
+avatarArrow.rotation.x = Math.PI / 2;
+avatarArrow.position.set(0, 1.75, -0.45);
+avatar.add(avatarArrow);
+avatar.visible = false;
+scene.add(avatar);
+
+let topMode = false;
+function toggleTop() {
+  topMode = !topMode;
+  avatar.visible = topMode;
+  const btn = document.getElementById('btnTop');
+  if (btn) btn.classList.toggle('on', topMode);
+}
+
 // ---------- touch detect ----------
 const IS_TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 if (IS_TOUCH) {
@@ -210,6 +246,7 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   if (e.code === 'KeyN' && isActive()) openNoteModal();
   if (e.code === 'KeyE' && isActive() && nearBoard) openBoardModal();
+  if (e.code === 'KeyT' && isActive()) toggleTop();
 });
 addEventListener('keyup', e => keys[e.code] = false);
 
@@ -277,6 +314,7 @@ document.getElementById('btnRun').addEventListener('click', e => {
   touchRun = !touchRun;
   e.currentTarget.classList.toggle('on', touchRun);
 });
+document.getElementById('btnTop').addEventListener('click', () => { if (isActive()) toggleTop(); });
 
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
@@ -467,8 +505,20 @@ function animate() {
     if (collide(obj.position)) obj.position.z = before.z;
     for (const n of notes) n.lookAt(camera.position);
   }
+
+  const pObj = controls.getObject();
+  avatar.position.set(pObj.position.x, 0, pObj.position.z);
+  avatar.rotation.y = pObj.rotation.y;
+
   checkBoardProximity();
-  renderer.render(scene, camera);
+
+  if (topMode) {
+    topCam.position.set(pObj.position.x, 8.5, pObj.position.z + 0.001);
+    topCam.lookAt(pObj.position.x, 0, pObj.position.z);
+    renderer.render(scene, topCam);
+  } else {
+    renderer.render(scene, camera);
+  }
   requestAnimationFrame(animate);
 }
 animate();
