@@ -1,0 +1,12 @@
+# Optional: merge addresses that belong to the same person.
+# The script auto-groups by exact address; use this to collapse aliases.
+# Example:
+#
+# P1:
+#   - alex.example@gmail.com
+#   - alex.example@hotmail.com
+#   - a.example@work.co.uk
+# P2:
+#   - other@example.com
+#
+# Leave this file unpopulated and the pipeline will use raw addresses.

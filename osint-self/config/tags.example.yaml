@@ -1,0 +1,35 @@
+# User-defined regex tag categories. Each tag runs against subject + body_text.
+# Edit these to match your own vocabulary and save as config/tags.yaml
+# Patterns are case-insensitive Python regex.
+
+threats:
+  - "\\bkill\\b"
+  - "\\bhurt you\\b"
+  - "\\bwatch your back\\b"
+  - "\\bI'?ll (find|come for) you\\b"
+
+apology:
+  - "\\bi'?m sorry\\b"
+  - "\\bi apologi[sz]e\\b"
+  - "\\bmy fault\\b"
+
+denial:
+  - "\\bnever said that\\b"
+  - "\\bnever did that\\b"
+  - "\\bthat'?s not what happened\\b"
+
+financial:
+  - "\\b(rent|bill|owe|money|paid|payment|transfer|bank)\\b"
+
+child_related:
+  - "\\b(child|kid|son|daughter|baby|nursery|school run|contact centre)\\b"
+
+location_mention:
+  - "\\b(brighton|portsmouth|southampton|london)\\b"  # edit to your own
+
+distress:
+  - "\\b(leave me alone|stop (messaging|calling)|fuck off)\\b"
+  - "\\b(scared|terrified|exhausted|can'?t cope)\\b"
+
+boundary_setting:
+  - "\\b(do not contact|no contact|don'?t message|boundary)\\b"

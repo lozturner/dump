@@ -1,0 +1,18 @@
+# Never commit personal data
+data/
+output/
+*.mbox
+*.mbox.gz
+*.parquet
+*.sqlite
+*.db
+.venv/
+__pycache__/
+*.pyc
+.env
+.ipynb_checkpoints/
+
+# Keep example configs, ignore user configs
+config/tags.yaml
+config/contacts.yaml
+!config/*.example.yaml
