@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reword — Column Method</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #f7f6f3;
+    --ink: #1a1a1a;
+    --muted: #888;
+    --accent: #e84c1e;
+    --accent2: #2563eb;
+    --accent3: #16a34a;
+    --warn: #d97706;
+    --border: #ddd;
+    --card: #fff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--ink);
+    padding: 24px 16px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  header { margin-bottom: 16px; }
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  h1 .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-left: 8px;
+  }
+  .sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  .scenario {
+    margin: 16px 0;
+    padding: 12px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    font-size: 14px;
+  }
+  .scenario label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .presets {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+  }
+  .preset, .btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 6px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition: all 0.15s;
+  }
+  .preset:hover, .btn:hover {
+    border-color: var(--ink);
+  }
+  .preset.active {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+
+  .board-wrap {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--border);
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  .board {
+    position: relative;
+    display: flex;
+    gap: 24px;
+    padding: 16px;
+    min-width: 100%;
+    width: max-content;
+  }
+  svg.lines {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .col {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 120px;
+  }
+  .col-head {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    padding-bottom: 4px;
+    border-bottom: 1px dashed var(--border);
+    margin-bottom: 4px;
+  }
+  .box {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.1s;
+    position: relative;
+  }
+  .box:hover {
+    border-color: var(--ink);
+  }
+  .box.picked {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+  .box.dimmed {
+    opacity: 0.35;
+  }
+
+  .output {
+    margin-top: 24px;
+    padding: 16px 18px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+  }
+  .output label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .output .sentence {
+    font-size: 16px;
+    line-height: 1.5;
+    min-height: 24px;
+  }
+  .output .sentence .slot {
+    background: #fff3ee;
+    color: var(--accent);
+    padding: 0 2px;
+  }
+
+  .note {
+    margin-top: 20px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    border-top: 1px dashed var(--border);
+    padding-top: 12px;
+  }
+  .note strong { color: var(--ink); }
+
+  footer {
+    margin-top: 24px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Reword <span class="tag">Column Method · v0.1</span></h1>
+  <div class="sub">Same message, different audience. Pick one box per column, trace the line.</div>
+</header>
+
+<div class="scenario">
+  <label>Scenario</label>
+  <div id="scenarioText">Answer the question: <em>"What did you have for dinner?"</em></div>
+</div>
+
+<div class="presets">
+  <button class="preset" data-preset="child">Child</button>
+  <button class="preset" data-preset="adult">Adult</button>
+  <button class="preset" data-preset="waiter">Waiter</button>
+  <button class="preset" data-preset="text">Texting a mate</button>
+  <button class="preset" data-preset="formal">Formal email</button>
+  <button class="btn" id="clearBtn">Clear</button>
+  <button class="btn" id="randomBtn">Shuffle</button>
+</div>
+
+<div class="board-wrap">
+  <div class="board" id="board">
+    <svg class="lines" id="lines"></svg>
+  </div>
+</div>
+
+<div class="output">
+  <label>Constructed sentence</label>
+  <div class="sentence" id="sentence">—</div>
+</div>
+
+<div class="note">
+  <strong>Method.</strong> Each column is a slot in the sentence. Each box is one way to fill that slot for a given audience. You pick one box per column; the line you trace is your version of the sentence. Same meaning — different words, different register, different listener. Like algebra: columns are variables, boxes are values. The "preset" rows are worked examples — child / adult / waiter — each a clean line through all ten columns.
+</div>
+
+<footer>prototype · single file · drag-free · keyboard: 1-7 to pick, ← → to move column</footer>
+
+<script>
+// ---- Data: columns are sentence slots; each row (index) is an audience voice.
+// The preset "child" = row 0 across all columns. Adult = row 1. Waiter = row 2. etc.
+// Picking a mix across rows is allowed — that's the whole point.
+
+const columns = [
+  {
+    head: "Opener",
+    boxes: [
+      "I had",
+      "I had",
+      "You had",
+      "Just smashed",
+      "This evening I had"
+    ]
+  },
+  {
+    head: "Quantity",
+    boxes: [
+      "some",
+      "a plate of",
+      "our",
+      "a massive bowl of",
+      "a modest portion of"
+    ]
+  },
+  {
+    head: "Main (body)",
+    boxes: [
+      "meat",
+      "minced beef",
+      "chef's special slow-braised beef ragu",
+      "that mince thing",
+      "slow-cooked beef"
+    ]
+  },
+  {
+    head: "Main (form)",
+    boxes: [
+      "and pasta",
+      "lasagna",
+      "lasagna al forno",
+      "lasagne",
+      "a layered lasagna"
+    ]
+  },
+  {
+    head: "Sauce",
+    boxes: [
+      "",
+      "in a red wine sauce",
+      "finished with a rich red-wine jus",
+      "",
+      "in a red-wine reduction"
+    ]
+  },
+  {
+    head: "Link",
+    boxes: [
+      "and",
+      "with",
+      "served alongside",
+      "with",
+      "accompanied by"
+    ]
+  },
+  {
+    head: "Side (body)",
+    boxes: [
+      "veg",
+      "broccoli",
+      "sautéed tenderstem broccoli",
+      "some broc",
+      "tenderstem broccoli"
+    ]
+  },
+  {
+    head: "Side (prep)",
+    boxes: [
+      "",
+      "",
+      "lightly charred in garlic oil",
+      "",
+      "gently sautéed"
+    ]
+  },
+  {
+    head: "Drink",
+    boxes: [
+      "and juice",
+      "with a glass of red",
+      "paired with our house Malbec",
+      "",
+      "with a glass of Malbec"
+    ]
+  },
+  {
+    head: "Closer",
+    boxes: [
+      ".",
+      ". It was really good.",
+      ". Hope you enjoy it.",
+      " 🍝",
+      ". Thank you."
+    ]
+  }
+];
+
+const rowLabels = ["child", "adult", "waiter", "text", "formal"];
+
+// selection[colIndex] = rowIndex or null
+let selection = columns.map(() => null);
+
+const board = document.getElementById("board");
+const svg = document.getElementById("lines");
+const sentenceEl = document.getElementById("sentence");
+
+function buildBoard() {
+  // remove existing columns (keep svg)
+  [...board.querySelectorAll(".col")].forEach(n => n.remove());
+  columns.forEach((col, ci) => {
+    const colEl = document.createElement("div");
+    colEl.className = "col";
+    colEl.dataset.col = ci;
+    const head = document.createElement("div");
+    head.className = "col-head";
+    head.textContent = (ci + 1) + ". " + col.head;
+    colEl.appendChild(head);
+    col.boxes.forEach((text, ri) => {
+      const b = document.createElement("div");
+      b.className = "box";
+      b.dataset.col = ci;
+      b.dataset.row = ri;
+      b.textContent = text || "—";
+      if (!text) b.style.fontStyle = "italic", b.style.color = "var(--muted)";
+      b.addEventListener("click", () => pick(ci, ri));
+      colEl.appendChild(b);
+    });
+    board.appendChild(colEl);
+  });
+}
+
+function pick(ci, ri) {
+  selection[ci] = selection[ci] === ri ? null : ri;
+  setActivePreset(null);
+  render();
+}
+
+function applyPreset(name) {
+  const row = rowLabels.indexOf(name);
+  if (row < 0) return;
+  selection = columns.map(() => row);
+  setActivePreset(name);
+  render();
+}
+
+function setActivePreset(name) {
+  document.querySelectorAll(".preset").forEach(p => {
+    p.classList.toggle("active", p.dataset.preset === name);
+  });
+}
+
+function clearAll() {
+  selection = columns.map(() => null);
+  setActivePreset(null);
+  render();
+}
+
+function shuffle() {
+  selection = columns.map(col => Math.floor(Math.random() * col.boxes.length));
+  setActivePreset(null);
+  render();
+}
+
+function render() {
+  // box styling
+  document.querySelectorAll(".box").forEach(b => {
+    const ci = +b.dataset.col, ri = +b.dataset.row;
+    const picked = selection[ci] === ri;
+    b.classList.toggle("picked", picked);
+    b.classList.toggle("dimmed", selection[ci] !== null && !picked);
+  });
+  drawLines();
+  renderSentence();
+}
+
+function drawLines() {
+  const rect = board.getBoundingClientRect();
+  svg.setAttribute("width", board.scrollWidth);
+  svg.setAttribute("height", board.scrollHeight);
+  svg.innerHTML = "";
+  const picked = [];
+  selection.forEach((ri, ci) => {
+    if (ri === null) return;
+    const el = board.querySelector(`.box[data-col="${ci}"][data-row="${ri}"]`);
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    picked.push({
+      ci,
+      x: r.right - rect.left,
+      y: r.top + r.height / 2 - rect.top,
+      x2: r.left - rect.left,
+    });
+  });
+  for (let i = 0; i < picked.length - 1; i++) {
+    const a = picked[i], b = picked[i + 1];
+    const dx = Math.max(30, (b.x2 - a.x) / 2);
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", `M ${a.x} ${a.y} C ${a.x + dx} ${a.y}, ${b.x2 - dx} ${b.y}, ${b.x2} ${b.y}`);
+    path.setAttribute("stroke", "var(--accent)");
+    path.setAttribute("stroke-width", "2");
+    path.setAttribute("fill", "none");
+    svg.appendChild(path);
+  }
+}
+
+function renderSentence() {
+  const parts = selection.map((ri, ci) => {
+    if (ri === null) return `<span class="slot">[${columns[ci].head}]</span>`;
+    return columns[ci].boxes[ri] || "";
+  }).filter(Boolean);
+  let s = parts.join(" ")
+    .replace(/\s+([.,!?])/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+  sentenceEl.innerHTML = s || "—";
+}
+
+document.querySelectorAll(".preset").forEach(p => {
+  p.addEventListener("click", () => applyPreset(p.dataset.preset));
+});
+document.getElementById("clearBtn").addEventListener("click", clearAll);
+document.getElementById("randomBtn").addEventListener("click", shuffle);
+window.addEventListener("resize", drawLines);
+
+buildBoard();
+applyPreset("adult");
+</script>
+</body>
+</html>
