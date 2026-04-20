@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repent — Turner Works Lab</title>
+<meta name="description" content="A digital confessional. Speak what you've carried. Walk away lighter.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+
+  :root {
+    --bg: #0a0908;
+    --bg-2: #121110;
+    --ink: #ebe7e0;
+    --ink-dim: #8a857c;
+    --muted: #4a4640;
+    --accent: #c2410c;
+    --stain: #5a1a0a;
+    --border: #2a2724;
+    --thread: #3a3632;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 20%, rgba(194,65,12,0.06), transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: 64px;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+
+  h1 .dot { color: var(--accent); }
+
+  .sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--ink-dim);
+  }
+
+  .booth {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+  }
+
+  .booth-head {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .dot-live {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .dot-live.on { background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: pulse 1.4s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .transcript {
+    padding: 28px 24px;
+    min-height: 280px;
+    max-height: 440px;
+    overflow-y: auto;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 19px;
+    line-height: 1.6;
+  }
+
+  .transcript:empty::before {
+    content: 'Begin when you are ready. Nothing here is ever heard twice.';
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .line { margin-bottom: 16px; }
+
+  .line.you {
+    color: var(--ink);
+  }
+
+  .line.you::before {
+    content: '— ';
+    color: var(--accent);
+  }
+
+  .line.reply {
+    color: var(--ink-dim);
+    font-style: italic;
+    padding-left: 16px;
+    border-left: 2px solid var(--thread);
+  }
+
+  .line.interim {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .controls {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: #0d0c0b;
+  }
+
+  button, .btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 12px 18px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s;
+  }
+
+  button:hover { border-color: var(--ink-dim); }
+
+  button.speak {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    flex: 1;
+  }
+
+  button.speak.listening {
+    background: var(--stain);
+    border-color: var(--stain);
+    animation: pulse 1.4s infinite;
+  }
+
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .text-input {
+    flex: 1;
+    padding: 12px 14px;
+    background: #0d0c0b;
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    border-radius: 3px;
+    outline: none;
+  }
+
+  .text-input:focus { border-color: var(--accent); }
+
+  .row { display: flex; gap: 10px; width: 100%; }
+
+  .notice {
+    margin-top: 28px;
+    padding: 16px 18px;
+    border: 1px dashed var(--border);
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    line-height: 1.7;
+    color: var(--ink-dim);
+  }
+
+  .notice b { color: var(--ink); font-weight: 600; }
+  .notice a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); }
+
+  footer {
+    margin-top: 48px;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  footer a { color: var(--ink-dim); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+
+  .fallback {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--warn, #d97706);
+    background: rgba(217,119,6,0.08);
+    border-radius: 3px;
+  }
+
+  .fallback.show { display: block; }
+
+  @media (max-width: 540px) {
+    h1 { font-size: 44px; }
+    .transcript { font-size: 17px; padding: 22px 18px; min-height: 240px; }
+    .wrap { padding: 32px 16px 60px; }
+    .row { flex-wrap: wrap; }
+    button.speak { flex: 1 1 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="lab">Turner Works Lab · Field Study 04</div>
+    <h1>Repent<span class="dot">.</span></h1>
+    <div class="sub">Say it once. Then walk.</div>
+  </header>
+
+  <div class="booth">
+    <div class="booth-head">
+      <span><span class="dot-live" id="liveDot"></span><span id="status">Ready</span></span>
+      <span id="counter">0 words</span>
+    </div>
+
+    <div class="transcript" id="transcript" aria-live="polite"></div>
+
+    <div class="controls">
+      <div class="row">
+        <button class="speak" id="speakBtn">Hold to speak</button>
+        <button id="endBtn" title="Close the session">End</button>
+      </div>
+    </div>
+    <div class="controls" style="border-top: 1px solid var(--border);">
+      <div class="row">
+        <input class="text-input" id="textInput" placeholder="Or type it here…" autocomplete="off">
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="fallback" id="fallback">
+    Voice input is not supported in this browser. Use the text field below, or open in Chrome / Edge / Safari.
+  </div>
+
+  <div class="notice">
+    <b>Before you begin.</b> This is a research instrument operated by Turner Works Lab. Everything you say
+    is stripped of identifiers, kept anonymous, and studied in aggregate to understand the shape of
+    guilt, shame, and the barriers people carry. No names, no faces, no lookup. You can end the session
+    at any moment. No clergy. No database of souls. Just the pattern underneath.
+    <br><br>
+    <span style="color:var(--muted);">By continuing you consent to anonymous use of the transcript for research under the Lab ethics framework.</span>
+  </div>
+
+  <footer>
+    repent.repent.co.uk &nbsp;·&nbsp; <a href="#">Turner Works</a> &nbsp;·&nbsp; <a href="#">Privacy</a> &nbsp;·&nbsp; <a href="#">Study notes</a>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const transcriptEl = document.getElementById('transcript');
+  const speakBtn = document.getElementById('speakBtn');
+  const endBtn = document.getElementById('endBtn');
+  const textInput = document.getElementById('textInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const statusEl = document.getElementById('status');
+  const liveDot = document.getElementById('liveDot');
+  const counterEl = document.getElementById('counter');
+  const fallbackEl = document.getElementById('fallback');
+
+  const sessionId = crypto.randomUUID();
+  const startedAt = Date.now();
+  const utterances = [];
+  let wordCount = 0;
+
+  const reflections = [
+    'Go on.',
+    'And what did that cost you?',
+    'Who else knows this?',
+    'How long have you carried it?',
+    'Say the part you almost skipped.',
+    'What would you call it if you had to name it?',
+    'And if no one ever forgave you — then what?',
+    'Is the weight in what you did, or in who saw?',
+    'Keep going. Nothing here leaves a mark.',
+    'Where does it sit in your body right now?'
+  ];
+
+  function appendLine(text, kind = 'you') {
+    const line = document.createElement('div');
+    line.className = 'line ' + kind;
+    line.textContent = text;
+    transcriptEl.appendChild(line);
+    transcriptEl.scrollTop = transcriptEl.scrollHeight;
+    return line;
+  }
+
+  function reflect() {
+    const r = reflections[Math.floor(Math.random() * reflections.length)];
+    setTimeout(() => appendLine(r, 'reply'), 600 + Math.random() * 800);
+  }
+
+  function commit(text) {
+    const clean = text.trim();
+    if (!clean) return;
+    appendLine(clean, 'you');
+    utterances.push({ t: Date.now() - startedAt, text: clean });
+    wordCount += clean.split(/\s+/).length;
+    counterEl.textContent = wordCount + ' words';
+    persistAnon();
+    reflect();
+  }
+
+  // Local-only persistence placeholder. In production this is the anonymization hop
+  // (strip PII → hash → POST /api/confessions). Here it just mirrors to sessionStorage
+  // so the data pipeline shape is visible in devtools without leaking anything.
+  function persistAnon() {
+    const payload = {
+      session: sessionId.slice(0, 8),
+      started: startedAt,
+      utterances: utterances.map(u => ({ t: u.t, text: redact(u.text) }))
+    };
+    try { sessionStorage.setItem('repent.session', JSON.stringify(payload)); } catch {}
+  }
+
+  // Minimal PII scrub: emails, phone numbers, obvious UK postcodes, "my name is X" patterns.
+  function redact(s) {
+    return s
+      .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, '[email]')
+      .replace(/\+?\d[\d\s().-]{7,}\d/g, '[number]')
+      .replace(/\b[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}\b/gi, '[postcode]')
+      .replace(/\bmy name is \w+/gi, 'my name is [name]')
+      .replace(/\bi am \w+ \w+/gi, 'I am [name]');
+  }
+
+  // --- Voice (Web Speech API, native, zero-dep) ---
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null;
+  let interim = null;
+  let listening = false;
+
+  if (!SR) {
+    fallbackEl.classList.add('show');
+    speakBtn.disabled = true;
+    speakBtn.textContent = 'Voice unavailable';
+  } else {
+    rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = 'en-GB';
+
+    rec.onresult = (e) => {
+      let finalText = '';
+      let interimText = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalText += r[0].transcript;
+        else interimText += r[0].transcript;
+      }
+      if (interimText) {
+        if (!interim) interim = appendLine(interimText, 'interim');
+        else interim.textContent = interimText;
+      }
+      if (finalText) {
+        if (interim) { interim.remove(); interim = null; }
+        commit(finalText);
+      }
+    };
+
+    rec.onend = () => {
+      if (listening) { try { rec.start(); } catch {} }
+    };
+
+    rec.onerror = (e) => {
+      statusEl.textContent = 'Mic error: ' + e.error;
+      stopListening();
+    };
+  }
+
+  function startListening() {
+    if (!rec || listening) return;
+    try { rec.start(); } catch {}
+    listening = true;
+    speakBtn.classList.add('listening');
+    speakBtn.textContent = 'Listening — release to pause';
+    liveDot.classList.add('on');
+    statusEl.textContent = 'Recording';
+  }
+
+  function stopListening() {
+    if (!rec) return;
+    listening = false;
+    try { rec.stop(); } catch {}
+    if (interim) { interim.remove(); interim = null; }
+    speakBtn.classList.remove('listening');
+    speakBtn.textContent = 'Hold to speak';
+    liveDot.classList.remove('on');
+    statusEl.textContent = 'Paused';
+  }
+
+  // Hold-to-talk on pointer + space-bar
+  speakBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); startListening(); });
+  speakBtn.addEventListener('pointerup', stopListening);
+  speakBtn.addEventListener('pointerleave', stopListening);
+  speakBtn.addEventListener('pointercancel', stopListening);
+
+  // Also allow click-to-toggle for accessibility
+  let holdTimer = null;
+  speakBtn.addEventListener('click', (e) => {
+    // if it was a genuine tap (no hold happened), toggle
+    if (!listening && !holdTimer) { startListening(); }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && document.activeElement !== textInput && !listening) {
+      e.preventDefault(); startListening();
+    }
+  });
+  document.addEventListener('keyup', (e) => {
+    if (e.code === 'Space') stopListening();
+  });
+
+  // --- Text input ---
+  function sendText() {
+    const v = textInput.value;
+    if (!v.trim()) return;
+    commit(v);
+    textInput.value = '';
+  }
+  sendBtn.addEventListener('click', sendText);
+  textInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); sendText(); }
+  });
+
+  // --- End session ---
+  endBtn.addEventListener('click', () => {
+    stopListening();
+    const words = wordCount;
+    transcriptEl.innerHTML = '';
+    appendLine('The booth is closed. ' + words + ' words set down. Nothing followed you out.', 'reply');
+    speakBtn.disabled = true;
+    textInput.disabled = true;
+    sendBtn.disabled = true;
+    statusEl.textContent = 'Ended';
+  });
+})();
+</script>
+</body>
+</html>
