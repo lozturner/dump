@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Room · 3D Notes</title>
+<style>
+  html, body { margin:0; height:100%; overflow:hidden; background:#0b0b0f; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:#eee; }
+  canvas { display:block; }
+
+  #hud {
+    position:fixed; left:14px; top:14px; z-index:10;
+    background:rgba(15,15,20,0.72); backdrop-filter:blur(6px);
+    padding:12px 14px; border-radius:8px; font-size:12px; line-height:1.55;
+    max-width:280px; border:1px solid rgba(255,255,255,0.08);
+  }
+  #hud b { color:#f4b860; }
+  #hud kbd {
+    background:#222; border:1px solid #333; border-bottom-width:2px;
+    border-radius:3px; padding:1px 5px; font-size:11px; font-family:ui-monospace,monospace;
+  }
+
+  #crosshair {
+    position:fixed; left:50%; top:50%; width:6px; height:6px;
+    transform:translate(-50%,-50%); border-radius:50%;
+    background:rgba(255,255,255,0.7); pointer-events:none; z-index:5;
+    mix-blend-mode:difference;
+  }
+
+  #start {
+    position:fixed; inset:0; background:rgba(8,8,12,0.92);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    z-index:50; cursor:pointer; text-align:center;
+  }
+  #start h1 { font-size:28px; margin:0 0 8px; letter-spacing:0.5px; }
+  #start p  { color:#aaa; margin:4px 0; font-size:13px; }
+  #start .cta {
+    margin-top:22px; padding:10px 20px; border:1px solid #f4b860; color:#f4b860;
+    border-radius:4px; font-size:13px; letter-spacing:0.08em; text-transform:uppercase;
+  }
+
+  #noteModal {
+    position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:40;
+    display:none; align-items:center; justify-content:center;
+  }
+  #noteModal.on { display:flex; }
+  #noteModal .box {
+    background:#fffbe6; color:#222; width:min(420px, 90vw);
+    padding:18px 18px 14px; border-radius:4px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.6);
+    transform:rotate(-0.5deg);
+  }
+  #noteModal textarea {
+    width:100%; min-height:120px; border:none; outline:none; resize:vertical;
+    font-family:"Comic Sans MS","Segoe Script",cursive; font-size:16px; background:transparent; color:#222;
+  }
+  #noteModal .row { display:flex; gap:8px; margin-top:10px; justify-content:space-between; align-items:center; }
+  #noteModal .hint { font-size:11px; color:#777; }
+  #noteModal button {
+    background:#222; color:#fff; border:none; padding:7px 14px;
+    border-radius:3px; cursor:pointer; font-size:12px; letter-spacing:0.05em;
+  }
+  #noteModal button.ghost { background:transparent; color:#555; }
+
+  #boardModal {
+    position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:40;
+    display:none; align-items:center; justify-content:center; flex-direction:column;
+  }
+  #boardModal.on { display:flex; }
+  #boardModal canvas {
+    background:#fafafa; border:8px solid #222; cursor:crosshair; touch-action:none;
+    max-width:90vw; max-height:70vh;
+  }
+  #boardModal .tools { margin-top:12px; display:flex; gap:8px; }
+  #boardModal button {
+    background:#222; color:#fff; border:1px solid #444; padding:7px 14px;
+    border-radius:3px; cursor:pointer; font-size:12px;
+  }
+  #boardModal .swatch { width:28px; height:28px; border-radius:50%; border:2px solid #444; cursor:pointer; }
+  #boardModal .swatch.active { border-color:#f4b860; }
+
+  #prompt {
+    position:fixed; left:50%; bottom:40px; transform:translateX(-50%);
+    background:rgba(15,15,20,0.82); padding:8px 14px; border-radius:20px;
+    font-size:12px; z-index:8; display:none; border:1px solid rgba(255,255,255,0.1);
+  }
+  #prompt.on { display:block; }
+  #prompt kbd {
+    background:#f4b860; color:#111; padding:1px 6px; border-radius:3px; font-weight:600;
+  }
+
+  /* ------- mobile touch UI ------- */
+  #touch { position:fixed; inset:0; z-index:6; pointer-events:none; display:none; }
+  body.touch #touch { display:block; }
+  body.touch #hud { font-size:11px; max-width:220px; }
+
+  #stick {
+    position:absolute; left:20px; bottom:24px; width:130px; height:130px;
+    border-radius:50%; background:rgba(255,255,255,0.06);
+    border:2px solid rgba(255,255,255,0.2); pointer-events:auto;
+    touch-action:none;
+  }
+  #stickNub {
+    position:absolute; left:50%; top:50%; width:54px; height:54px; margin:-27px 0 0 -27px;
+    border-radius:50%; background:rgba(244,184,96,0.85);
+    border:2px solid rgba(255,255,255,0.4);
+  }
+
+  #lookPad {
+    position:absolute; right:0; top:0; width:55%; height:100%;
+    pointer-events:auto; touch-action:none;
+  }
+
+  .tbtn {
+    position:absolute; pointer-events:auto; touch-action:manipulation;
+    background:rgba(15,15,20,0.82); color:#f4b860; border:1px solid rgba(244,184,96,0.5);
+    width:64px; height:64px; border-radius:50%; font-size:22px; font-weight:600;
+    display:flex; align-items:center; justify-content:center;
+    user-select:none; -webkit-user-select:none;
+  }
+  #btnN { right:22px; bottom:120px; }
+  #btnE { right:100px; bottom:120px; display:none; }
+  #btnE.on { display:flex; }
+  #btnRun { right:22px; bottom:200px; width:52px; height:52px; font-size:11px; }
+  #btnRun.on { background:rgba(244,184,96,0.85); color:#111; }
+  #btnTop { right:100px; bottom:200px; width:52px; height:52px; font-size:11px; }
+  #btnTop.on { background:rgba(244,184,96,0.85); color:#111; }
+</style>
+</head>
+<body>
+
+<div id="start">
+  <h1>Your Room</h1>
+  <p class="deskHelp">WASD to walk &middot; Mouse to look &middot; Shift to sprint</p>
+  <p class="deskHelp"><kbd>N</kbd> drop note in free space &middot; <kbd>E</kbd> interact (near whiteboard)</p>
+  <p class="deskHelp" style="margin-top:18px; color:#666;">ESC to release mouse</p>
+  <p class="touchHelp" style="display:none;">Left stick to walk &middot; Drag right side to look</p>
+  <p class="touchHelp" style="display:none;"><b style="color:#f4b860">N</b> drop note &middot; <b style="color:#f4b860">E</b> whiteboard (when close)</p>
+  <div class="cta">Tap to enter</div>
+</div>
+
+<div id="touch">
+  <div id="stick"><div id="stickNub"></div></div>
+  <div id="lookPad"></div>
+  <div class="tbtn" id="btnRun">RUN</div>
+  <div class="tbtn" id="btnTop">TOP</div>
+  <div class="tbtn" id="btnE">E</div>
+  <div class="tbtn" id="btnN">N</div>
+</div>
+
+<div id="hud">
+  <b>ROOM · 3D NOTES</b><br>
+  <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk &middot; <kbd>Shift</kbd> run<br>
+  <kbd>N</kbd> add floating note<br>
+  <kbd>E</kbd> use whiteboard (when close)<br>
+  <kbd>T</kbd> astral / top view<br>
+  <kbd>Esc</kbd> release mouse
+</div>
+
+<div id="crosshair"></div>
+
+<div id="prompt"><kbd>E</kbd> write on whiteboard</div>
+
+<div id="noteModal">
+  <div class="box">
+    <textarea id="noteText" placeholder="what's the thought..."></textarea>
+    <div class="row">
+      <span class="hint">drops where you're looking · Enter to place</span>
+      <div>
+        <button class="ghost" id="noteCancel">cancel</button>
+        <button id="noteOk">pin it</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="boardModal">
+  <canvas id="boardCanvas" width="1024" height="640"></canvas>
+  <div class="tools">
+    <div class="swatch active" data-color="#1a1a1a" style="background:#1a1a1a"></div>
+    <div class="swatch" data-color="#e84c1e" style="background:#e84c1e"></div>
+    <div class="swatch" data-color="#2563eb" style="background:#2563eb"></div>
+    <div class="swatch" data-color="#16a34a" style="background:#16a34a"></div>
+    <div class="swatch" data-color="#d97706" style="background:#d97706"></div>
+    <button id="boardErase">eraser</button>
+    <button id="boardClear">clear</button>
+    <button id="boardClose">done</button>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module" src="room.js"></script>
+</body>
+</html>
