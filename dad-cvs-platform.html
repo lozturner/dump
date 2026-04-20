@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dad CVs — Platform Brief</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #f7f6f3;
+    --ink: #1a1a1a;
+    --muted: #888;
+    --accent: #e84c1e;
+    --accent2: #2563eb;
+    --accent3: #16a34a;
+    --accent4: #7c3aed;
+    --warn: #d97706;
+    --border: #ddd;
+    --card: #fff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--ink);
+    padding: 32px 20px 60px;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 36px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 16px;
+  }
+
+  header .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  header .sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .premise {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--ink);
+    padding: 16px 18px;
+    margin-bottom: 28px;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .premise strong {
+    font-weight: 600;
+  }
+
+  .thread {
+    margin-bottom: 28px;
+    border-left: 3px solid var(--border);
+    padding-left: 18px;
+    position: relative;
+  }
+
+  .thread::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 4px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--border);
+  }
+
+  .thread.red { border-left-color: var(--accent); }
+  .thread.red::before { border-color: var(--accent); }
+  .thread.blue { border-left-color: var(--accent2); }
+  .thread.blue::before { border-color: var(--accent2); }
+  .thread.green { border-left-color: var(--accent3); }
+  .thread.green::before { border-color: var(--accent3); }
+  .thread.amber { border-left-color: var(--warn); }
+  .thread.amber::before { border-color: var(--warn); }
+  .thread.purple { border-left-color: var(--accent4); }
+  .thread.purple::before { border-color: var(--accent4); }
+
+  .thread-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .thread.red .thread-title { color: var(--accent); }
+  .thread.blue .thread-title { color: var(--accent2); }
+  .thread.green .thread-title { color: var(--accent3); }
+  .thread.amber .thread-title { color: var(--warn); }
+  .thread.purple .thread-title { color: var(--accent4); }
+
+  .thread p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: #333;
+  }
+
+  .branches {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .branch {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #444;
+  }
+
+  .branch-icon {
+    font-size: 11px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    opacity: 0.6;
+  }
+
+  .sites {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .site {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 14px;
+  }
+
+  .site-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+    gap: 10px;
+  }
+
+  .site-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .site-role {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .site p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: #444;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .tag.open { background: #fef3c7; color: #92400e; }
+  .tag.charity { background: #dbeafe; color: #1e40af; }
+  .tag.profit { background: #dcfce7; color: #166534; }
+  .tag.personal { background: #f3e8ff; color: #6b21a8; }
+
+  .status-bar {
+    margin-top: 40px;
+    padding: 16px 20px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .status-bar .status-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 8px;
+  }
+
+  .status-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .stat { text-align: center; }
+  .stat .n { font-size: 22px; font-weight: 600; }
+  .stat .l { font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: 0.1em; }
+
+  .callout {
+    background: #1a1a1a;
+    color: #eee;
+    padding: 14px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-top: 10px;
+  }
+
+  .callout em {
+    font-style: normal;
+    color: #f59e0b;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">Platform Brief · Dad CVs · 20 Apr 2026</div>
+  <h1>Dad CVs.<br>CVs for the people who can't read them.</h1>
+  <div class="sub">Separated out from the gym-stand thread · 4 surfaces · 1 personal seed</div>
+</header>
+
+<div class="premise">
+  <strong>Premise.</strong> CVs are dead in the age of AI. Nobody needs to write one for a job any more. So flip the artefact: write it for your children instead. What you provide, what you're good at, what you'd want them to know if they ever went looking. One community site for any caregiver without contact. One personal sister site for the founder — seeded into his own timeline so his kids can find it when they search. Philanthropy = using what you have to build a system other people can survive inside. Reese Witherspoon did it with publishing. Do it with fatherhood.
+</div>
+
+<div class="thread red">
+  <div class="thread-title">🔴 Core Concept</div>
+  <p>A CV isn't for an employer. It's for whoever inherits you. The format already exists — experience, skills, references, what you provide. Reframe it as a document a child can read later, whether you're estranged, dead, or just never got the words out.</p>
+  <div class="branches">
+    <div class="branch"><span class="branch-icon">↳</span> One community platform. Anyone without contact with their children can submit a CV / letter. Caregivers too, not only dads.</div>
+    <div class="branch"><span class="branch-icon">↳</span> AI-assisted — you tell it what you've done, it structures it. Same trick as the gym-stand stack generator, different product.</div>
+    <div class="branch"><span class="branch-icon">↳</span> Output = a page a child could Google their own name and find. A record that says "someone was thinking about you."</div>
+  </div>
+</div>
+
+<div class="thread blue">
+  <div class="thread-title">🔵 Four Surfaces</div>
+  <p>Not one site — a ring of them. Each does a different job. Together they cover charity, data, personal, and press.</p>
+
+  <div class="sites">
+    <div class="site">
+      <div class="site-head">
+        <div class="site-name">01 · dadcvs.*</div>
+        <div class="site-role">Community <span class="tag charity">Charity</span></div>
+      </div>
+      <p>Anyone submits a CV for a child they can't reach. Caregivers, dads, mums. Free. The cornerstone — no profit, drives the press.</p>
+    </div>
+
+    <div class="site">
+      <div class="site-head">
+        <div class="site-name">02 · compare.dadcvs.*</div>
+        <div class="site-role">Data mirror <span class="tag profit">Revenue</span></div>
+      </div>
+      <p>Normalises the CV data. "Here's what other dads in your income / age / postcode bracket say they provide." Either bait (social-intrusive) or mirror (normalising). Lean mirror — it's more defensible and the bait version is out of spec.</p>
+    </div>
+
+    <div class="site">
+      <div class="site-head">
+        <div class="site-name">03 · findaletter.*</div>
+        <div class="site-role">Matching portal <span class="tag charity">Charity</span></div>
+      </div>
+      <p>"If you're a kid who's ever wondered if your dad cared." Kid types their name. System checks for a submitted letter. If a personalised one exists, they see it. If not, they submit a request so the parent sees it's been searched. Push through MoneySavingExpert-scale coverage.</p>
+    </div>
+
+    <div class="site">
+      <div class="site-head">
+        <div class="site-name">04 · [founder].*</div>
+        <div class="site-role">Personal seed <span class="tag personal">Personal</span></div>
+      </div>
+      <p>The founder's own version. Personal to his kids, his voice, his style. Seeded with keywords across a timeline they'll eventually search. Links back to published books — the letters in book form. Whether they read them or not is theirs to decide.</p>
+    </div>
+  </div>
+</div>
+
+<div class="thread green">
+  <div class="thread-title">🟢 Matching Mechanism</div>
+  <p>The match layer is what turns a publishing platform into a service. Low-friction on both sides.</p>
+  <div class="branches">
+    <div class="branch"><span class="branch-icon">↳</span> Parent submits a letter tagged to a child's identifiers (name, DOB-bracket, location cues, optional verifiers).</div>
+    <div class="branch"><span class="branch-icon">↳</span> Child searches their own name. If a letter exists for them specifically, it surfaces. If only a general CV exists, they see that.</div>
+    <div class="branch"><span class="branch-icon">↳</span> If nothing exists, the search itself becomes a ping — the parent gets notified "someone searched for you." That's the hook. <span class="tag open">Design open</span></div>
+    <div class="branch"><span class="branch-icon">↳</span> Verification + abuse handling is the real build problem. Needs proper thought before launch — impersonation and coercion are obvious attack vectors.</div>
+  </div>
+</div>
+
+<div class="thread amber">
+  <div class="thread-title">🟠 Audience — Who This Is For</div>
+  <p>This is not a product for the dad-rights-crusader crowd. They're not the buyer. They're posturing, and they'll hijack the framing.</p>
+  <div class="branches">
+    <div class="branch"><span class="branch-icon">↳</span> Target: quiet men. Low-grade jobs. Drinking through it. Going through the motions. Nearer the edge than they'd admit.</div>
+    <div class="branch"><span class="branch-icon">↳</span> Men outnumber women. The channel needs to be specific to them — not a neutral "parenting" platform that defaults to mums.</div>
+    <div class="branch"><span class="branch-icon">↳</span> Tone: not moralising. Not "be a better dad." Closer to "write it down before you can't."</div>
+    <div class="branch"><span class="branch-icon">↳</span> The marketing isn't guilt. It's permission — a structured artefact for people who don't have the words.</div>
+  </div>
+</div>
+
+<div class="thread purple">
+  <div class="thread-title">🟣 Model — Reese Witherspoon Reference</div>
+  <p>The business shape is borrowed. Use a platform to amplify other people's stories; publishing becomes the revenue; fame becomes infrastructure for others.</p>
+  <div class="branches">
+    <div class="branch"><span class="branch-icon">↳</span> Reese: book club → publishing imprint → more income than her film work. Used her reach to build a pipe others ship through.</div>
+    <div class="branch"><span class="branch-icon">↳</span> Second reference: the woman who bought her hometown cafeteria and employs a retiree for life each year. Didn't give money — gave a system. That's the philanthropy model.</div>
+    <div class="branch"><span class="branch-icon">↳</span> Applied here: Dad CVs is the pipe. The books (founder's letters) are the publishing imprint. Coverage from the charity surfaces feeds the pipe.</div>
+    <div class="branch"><span class="branch-icon">↳</span> Philanthropy test: it builds a system people can survive inside without you. If it collapses when the founder walks away, it's branding not philanthropy.</div>
+  </div>
+</div>
+
+<div class="callout">
+  <em>Separation note.</em> Keep this ring-fenced from the gym-stand / supplement-kiosk idea. They share an AI-stack-builder mechanic but the audiences, tone, and legal exposure are completely different. Don't let the pill stand bleed into the fatherhood brand.
+</div>
+
+<div class="status-bar">
+  <div class="status-label">Brief summary</div>
+  <div class="status-row">
+    <div class="stat"><div class="n">4</div><div class="l">Surfaces</div></div>
+    <div class="stat"><div class="n">2</div><div class="l">Charity</div></div>
+    <div class="stat"><div class="n">1</div><div class="l">Revenue</div></div>
+    <div class="stat"><div class="n">1</div><div class="l">Personal</div></div>
+  </div>
+</div>
+
+</body>
+</html>
