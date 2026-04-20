@@ -36,22 +36,45 @@ archive. It will be used against you.
 3. Format: `.mbox`. Delivery: download link.
 4. Wait for the email, download the `.zip`, extract. You'll get
    `All mail Including Spam and Trash.mbox` (usually big — multi-GB is normal).
-5. Copy it to `osint-self/data/mail.mbox` (or pass a custom path with `--mbox`).
+5. Copy it to `osint-self\data\mail.mbox` (or pass a custom path with `--mbox`).
 
-## Phase 1..4 — Run the pipeline
+PowerShell copy from your Downloads folder:
 
-```bash
-cd osint-self
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-
-python scripts/01_ingest_mbox.py --mbox data/mail.mbox --out output/messages.parquet
-python scripts/02_normalize.py --in output/messages.parquet --out output/messages_norm.parquet
-python scripts/03_signals.py   --in output/messages_norm.parquet --tags config/tags.example.yaml --out output/messages_signals.parquet
-python scripts/04_dashboard.py --in output/messages_signals.parquet --out output/dashboard.html
+```powershell
+New-Item -ItemType Directory -Force .\osint-self\data | Out-Null; Copy-Item "$env:USERPROFILE\Downloads\Takeout\Mail\All mail Including Spam and Trash.mbox" .\osint-self\data\mail.mbox
 ```
 
-Open `output/dashboard.html` in any browser.
+## Phase 1..4 — Run the pipeline (PowerShell, Windows)
+
+One-liner — paste into PowerShell from inside the repo root, replace `you@gmail.com`:
+
+```powershell
+cd osint-self; python -m venv .venv; .\.venv\Scripts\Activate.ps1; pip install -r requirements.txt; python scripts\01_ingest_mbox.py --mbox data\mail.mbox --out output\m.parquet; python scripts\02_normalize.py --in output\m.parquet --out output\m2.parquet --me you@gmail.com; python scripts\03_signals.py --in output\m2.parquet --tags config\tags.example.yaml --out output\m3.parquet; python scripts\04_dashboard.py --in output\m3.parquet --out output\dashboard.html; Start-Process output\dashboard.html
+```
+
+Clickable terminal hyperlink to the rendered dashboard (OSC 8, works in Windows Terminal + PowerShell 7+):
+
+```powershell
+$p = (Resolve-Path .\output\dashboard.html).Path; $u = "file:///$($p -replace '\\','/')"; $e = [char]27; "$e]8;;$u$e\open dashboard$e]8;;$e\"
+```
+
+Re-run after edits (skip venv + pip):
+
+```powershell
+python scripts\01_ingest_mbox.py --mbox data\mail.mbox --out output\m.parquet; python scripts\02_normalize.py --in output\m.parquet --out output\m2.parquet --me you@gmail.com; python scripts\03_signals.py --in output\m2.parquet --tags config\tags.example.yaml --out output\m3.parquet; python scripts\04_dashboard.py --in output\m3.parquet --out output\dashboard.html; Start-Process output\dashboard.html
+```
+
+If `Activate.ps1` is blocked: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` once in the session.
+
+### Bash / WSL / macOS equivalent
+
+```bash
+cd osint-self && python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt && \
+python scripts/01_ingest_mbox.py --mbox data/mail.mbox --out output/m.parquet && \
+python scripts/02_normalize.py --in output/m.parquet --out output/m2.parquet --me you@gmail.com && \
+python scripts/03_signals.py   --in output/m2.parquet --tags config/tags.example.yaml --out output/m3.parquet && \
+python scripts/04_dashboard.py --in output/m3.parquet --out output/dashboard.html
+```
 
 ## Configuring tags
 
