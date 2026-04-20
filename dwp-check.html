@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e0f12">
+<title>DWP Check · Hub</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .q-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px 20px 18px;
+    margin: 12px 0;
+  }
+  .q-label {
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 10px;
+  }
+  .q-text {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--fg);
+    margin-bottom: 18px;
+    line-height: 1.4;
+  }
+  .q-hint {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .choice {
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--fg);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color .15s, background .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .choice:hover, .choice:focus {
+    border-color: var(--accent);
+    background: var(--panel);
+    outline: none;
+  }
+  .choice.selected {
+    border-color: var(--accent);
+    background: rgba(232,76,30,.12);
+    color: var(--fg);
+  }
+  .progress-bar {
+    height: 3px;
+    background: var(--line);
+    border-radius: 2px;
+    margin: 16px 0 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width .3s ease;
+  }
+  .progress-label {
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .result-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin: 10px 0;
+  }
+  .result-card h3 {
+    font-size: 13px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin: 0 0 10px;
+    font-weight: 600;
+  }
+  .result-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: flex-start;
+    line-height: 1.45;
+  }
+  .result-item:last-child { border-bottom: none; }
+  .result-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .dot-red   { background: #e84c1e; }
+  .dot-amber { background: #f5a623; }
+  .dot-green { background: #4caf70; }
+  .result-text { font-size: 14px; color: var(--fg); }
+  .result-text strong { color: var(--fg); font-weight: 600; }
+  .result-text small  { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .verdict {
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin: 10px 0 0;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--fg);
+  }
+  .verdict-label {
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 6px;
+  }
+  .nav-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .nav-btns .btn { flex: 1; text-align: center; }
+  .hidden { display: none; }
+</style>
+</head>
+<body data-hue="green">
+
+<a class="back" href="index.html"><span class="arr">←</span> Home</a>
+<a class="back" href="dwp.html" style="margin-left:6px"><span class="arr">⌘</span> DWP Ref</a>
+
+<div class="page-head">
+  <div class="hey">
+    <span class="chev">‹</span>
+    <span>Quick check</span>
+    <span class="name">DWP Checker</span>
+    <span class="chev">›</span>
+    <span>what you actually need to do</span>
+  </div>
+  <span class="badge">5 questions</span>
+</div>
+
+<div id="quiz">
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="progress-label" id="prog-label">Question 1 of 5</div>
+
+  <div class="q-card" id="q-wrap">
+    <div class="q-label" id="q-num">Question 1 of 5</div>
+    <div class="q-text" id="q-text"></div>
+    <div class="q-hint" id="q-hint"></div>
+    <div class="choices" id="q-choices"></div>
+  </div>
+</div>
+
+<div id="result" class="hidden">
+  <div class="result-card">
+    <h3>Your situation</h3>
+    <div id="result-items"></div>
+  </div>
+  <div class="verdict">
+    <div class="verdict-label">Bottom line</div>
+    <div id="verdict-text"></div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn" onclick="restart()">Start again</button>
+    <a class="btn primary" href="dwp.html">Full reference →</a>
+  </div>
+</div>
+
+<div class="footer" id="footer-q">
+  <b>Nothing is stored.</b> Answers stay in-page and vanish when you close.
+</div>
+
+<script defer src="shit-switch.js"></script>
+<script>
+const questions = [
+  {
+    id: 'savings',
+    text: 'What\'s your total savings balance right now — across all accounts combined?',
+    hint: 'Add up current accounts, savings accounts, cash ISAs, anything in your name.',
+    choices: [
+      { label: 'Under £6,000',        value: 'under6' },
+      { label: '£6,000 – £16,000',    value: 'middle' },
+      { label: 'Over £16,000',         value: 'over16' },
+      { label: 'Not sure / prefer not to say', value: 'unsure' },
+    ]
+  },
+  {
+    id: 'deposits',
+    text: 'In the last 3 months, has money come into your account from anywhere other than your regular benefits or wages?',
+    hint: 'e.g. family helping out, a friend paying you back, selling something, odd jobs, gifts.',
+    choices: [
+      { label: 'No — just benefits / regular wages', value: 'no' },
+      { label: 'Yes — occasional one-off (gift, mate paying me back)', value: 'oneoff' },
+      { label: 'Yes — a few times, different sources',                 value: 'multiple' },
+      { label: 'Yes — regular extra money coming in',                  value: 'regular' },
+    ]
+  },
+  {
+    id: 'transfers',
+    text: 'Do you move money between accounts — savings to current, PayPal, a second bank, Monzo, etc.?',
+    hint: 'Transfers between your own accounts can look like separate income if not labelled clearly.',
+    choices: [
+      { label: 'No — I use one account',            value: 'no' },
+      { label: 'Occasionally',                      value: 'occasionally' },
+      { label: 'Yes — regularly between my accounts', value: 'yes' },
+    ]
+  },
+  {
+    id: 'selling',
+    text: 'Are you selling anything online — eBay, Vinted, Facebook Marketplace, Etsy, or similar?',
+    hint: 'Even clearing out your wardrobe counts. Consistent sales can look like a side hustle.',
+    choices: [
+      { label: 'No',                                          value: 'no' },
+      { label: 'The odd item — just clearing stuff out',      value: 'clearout' },
+      { label: 'Yes — a few sales a month',                   value: 'regular' },
+      { label: 'Yes — it\'s basically a side hustle',         value: 'hustle' },
+    ]
+  },
+  {
+    id: 'lump',
+    text: 'Have you received a large one-off payment of £500 or more in the past year?',
+    hint: 'Inheritance, back pay, insurance payout, compensation, loan repayment from someone else, etc.',
+    choices: [
+      { label: 'No',                                 value: 'no' },
+      { label: 'Yes — and I\'ve declared it',        value: 'declared' },
+      { label: 'Yes — but I haven\'t declared it',   value: 'undeclared' },
+      { label: 'Yes — I wasn\'t sure if I needed to', value: 'unsure' },
+    ]
+  },
+];
+
+let answers = {};
+let current = 0;
+
+function render() {
+  const q = questions[current];
+  const pct = (current / questions.length) * 100;
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = `Question ${current + 1} of ${questions.length}`;
+  document.getElementById('q-num').textContent = `Question ${current + 1} of ${questions.length}`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-hint').textContent = q.hint;
+
+  const wrap = document.getElementById('q-choices');
+  wrap.innerHTML = '';
+  q.choices.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'choice';
+    if (answers[q.id] === c.value) btn.classList.add('selected');
+    btn.textContent = c.label;
+    btn.addEventListener('click', () => pick(q.id, c.value, btn));
+    wrap.appendChild(btn);
+  });
+}
+
+function pick(id, value, btn) {
+  answers[id] = value;
+  document.querySelectorAll('.choice').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  setTimeout(() => {
+    if (current < questions.length - 1) {
+      current++;
+      render();
+    } else {
+      showResult();
+    }
+  }, 220);
+}
+
+function showResult() {
+  document.getElementById('prog').style.width = '100%';
+  document.getElementById('quiz').classList.add('hidden');
+  document.getElementById('footer-q').classList.add('hidden');
+  document.getElementById('result').classList.remove('hidden');
+
+  const items = [];
+  let riskLevel = 0;
+
+  // Savings
+  if (answers.savings === 'under6') {
+    items.push({ dot: 'green', text: 'Savings under £6,000', sub: 'No capital impact on your benefits.' });
+  } else if (answers.savings === 'middle') {
+    riskLevel += 2;
+    items.push({ dot: 'amber', text: 'Savings between £6k and £16k', sub: 'Your UC is already being reduced. Check the exact deduction and make sure it matches what DWP has on record.' });
+  } else if (answers.savings === 'over16') {
+    riskLevel += 4;
+    items.push({ dot: 'red', text: 'Savings over £16,000', sub: 'You are not entitled to means-tested benefits. PIP is still fine — but UC, Housing Benefit etc. would stop.' });
+  } else {
+    items.push({ dot: 'amber', text: 'Savings amount unclear', sub: 'Worth totalling everything up so you know exactly where you stand.' });
+  }
+
+  // Deposits
+  if (answers.deposits === 'no') {
+    items.push({ dot: 'green', text: 'No unusual deposits', sub: 'Nothing unexpected for them to query.' });
+  } else if (answers.deposits === 'oneoff') {
+    items.push({ dot: 'green', text: 'One-off deposits (gift/payback)', sub: 'Fine — but keep a note of what they were in case you\'re asked.' });
+  } else if (answers.deposits === 'multiple') {
+    riskLevel += 1;
+    items.push({ dot: 'amber', text: 'Multiple different income sources', sub: 'Could look like irregular income. Be ready to explain each one clearly.' });
+  } else if (answers.deposits === 'regular') {
+    riskLevel += 3;
+    items.push({ dot: 'red', text: 'Regular extra money coming in', sub: 'This is a primary trigger. If it\'s not declared, declare it now. If it is declared, make sure the records match your statements.' });
+  }
+
+  // Transfers
+  if (answers.transfers === 'no') {
+    items.push({ dot: 'green', text: 'Single account — no transfers', sub: 'Cleanest possible picture.' });
+  } else if (answers.transfers === 'occasionally') {
+    items.push({ dot: 'green', text: 'Occasional transfers between your accounts', sub: 'Low risk, but if asked, be clear that both accounts are yours.' });
+  } else if (answers.transfers === 'yes') {
+    riskLevel += 1;
+    items.push({ dot: 'amber', text: 'Regular transfers between your own accounts', sub: 'Can look like multiple income streams on a statement. Label them clearly in your bank\'s reference field, or be ready to walk them through it.' });
+  }
+
+  // Selling
+  if (answers.selling === 'no') {
+    items.push({ dot: 'green', text: 'Not selling online', sub: 'Nothing to declare here.' });
+  } else if (answers.selling === 'clearout') {
+    items.push({ dot: 'green', text: 'Occasional clearout sales', sub: 'One-off personal items are fine. Keep a simple note of what you sold and roughly what for.' });
+  } else if (answers.selling === 'regular') {
+    riskLevel += 2;
+    items.push({ dot: 'amber', text: 'Regular online sales', sub: 'A few sales a month can look like trading income. If the money is going into your account, DWP may count it. Worth flagging to your work coach what it actually is.' });
+  } else if (answers.selling === 'hustle') {
+    riskLevel += 3;
+    items.push({ dot: 'red', text: 'Side hustle via online selling', sub: 'This is self-employment income and must be declared. Undeclared self-employment is a major trigger for investigations.' });
+  }
+
+  // Lump sum
+  if (answers.lump === 'no') {
+    items.push({ dot: 'green', text: 'No large one-off payments', sub: 'Nothing to explain.' });
+  } else if (answers.lump === 'declared') {
+    items.push({ dot: 'green', text: 'Large payment received and declared', sub: 'Good. Make sure the declaration matches the amount on your statements.' });
+  } else if (answers.lump === 'undeclared') {
+    riskLevel += 4;
+    items.push({ dot: 'red', text: 'Large payment not declared', sub: 'This needs to be reported to DWP as a change in circumstances — the sooner the better. Voluntary disclosure is treated much better than them finding it.' });
+  } else if (answers.lump === 'unsure') {
+    riskLevel += 2;
+    items.push({ dot: 'amber', text: 'Large payment — unsure if it needed declaring', sub: 'Most one-off payments (inheritance, insurance, back pay) need to be reported. Check gov.uk or call DWP to confirm and report it proactively.' });
+  }
+
+  // Build items HTML
+  const container = document.getElementById('result-items');
+  container.innerHTML = items.map(i => `
+    <div class="result-item">
+      <div class="result-dot ${i.dot === 'green' ? 'dot-green' : i.dot === 'amber' ? 'dot-amber' : 'dot-red'}"></div>
+      <div class="result-text"><strong>${i.text}</strong><small>${i.sub}</small></div>
+    </div>
+  `).join('');
+
+  // Verdict
+  let verdict = '';
+  if (riskLevel === 0) {
+    verdict = 'Your picture looks clean. No obvious triggers, no undeclared income, savings in the safe zone. If DWP asks for statements, you can hand them over without worry.';
+  } else if (riskLevel <= 2) {
+    verdict = 'Low exposure, but a couple of things worth tidying. Keep simple notes on where money has come from — a one-line note per unusual transaction is enough. No urgent action needed.';
+  } else if (riskLevel <= 5) {
+    verdict = 'A few amber flags here. Nothing that can\'t be explained, but you should be ready with clear answers. Consider talking to your work coach proactively to get ahead of any questions.';
+  } else {
+    verdict = 'Some things here do need action — ideally before DWP asks. Voluntary disclosure is always handled better than them finding it. Citizens Advice can help you report changes of circumstance without it feeling overwhelming.';
+  }
+
+  document.getElementById('verdict-text').textContent = verdict;
+}
+
+function restart() {
+  answers = {};
+  current = 0;
+  document.getElementById('result').classList.add('hidden');
+  document.getElementById('footer-q').classList.remove('hidden');
+  document.getElementById('quiz').classList.remove('hidden');
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
