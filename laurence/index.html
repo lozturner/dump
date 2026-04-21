@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laurence — Life Timeline</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0d0b1e;
+    --bg2: #151130;
+    --ink: #f4f1ff;
+    --muted: #8a84b4;
+    --card: #1c1840;
+    --border: #2a2558;
+
+    --c-abuse:    #ff2e63;
+    --c-violence: #b537f2;
+    --c-health:   #f59e0b;
+    --c-system:   #22d3ee;
+    --c-family:   #f472b6;
+    --c-work:     #38bdf8;
+    --c-loss:     #94a3b8;
+    --c-other:    #a3e635;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    padding: 28px 18px 80px;
+    max-width: 960px;
+    margin: 0 auto;
+    background:
+      radial-gradient(900px 500px at 10% -10%, rgba(181,55,242,.25), transparent 60%),
+      radial-gradient(700px 500px at 110% 10%, rgba(34,211,238,.18), transparent 60%),
+      radial-gradient(600px 600px at 50% 120%, rgba(255,46,99,.22), transparent 60%),
+      var(--bg);
+    min-height: 100vh;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 18px;
+    margin-bottom: 24px;
+  }
+  .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  h1 {
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.05;
+    margin-top: 6px;
+    background: linear-gradient(90deg, #ff2e63, #f59e0b, #22d3ee, #b537f2);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .sub { font-size: 13px; color: var(--muted); margin-top: 8px; max-width: 640px; }
+
+  .toolbar {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin: 16px 0 24px;
+  }
+  button, .btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform .08s ease, background .2s ease;
+  }
+  button:hover { background: var(--bg2); transform: translateY(-1px); }
+  button.primary {
+    background: linear-gradient(90deg, #ff2e63, #b537f2);
+    border-color: transparent;
+    color: #fff;
+    font-weight: 600;
+  }
+  button.ghost { background: transparent; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #ff2e63, #f59e0b, #22d3ee, #b537f2);
+    border-radius: 2px;
+    opacity: .8;
+  }
+  .event {
+    position: relative;
+    margin-bottom: 18px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 6px 24px rgba(0,0,0,.25);
+  }
+  .event::before {
+    content: '';
+    position: absolute;
+    left: -24px; top: 18px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--dot, #fff);
+    box-shadow: 0 0 0 3px var(--bg), 0 0 12px var(--dot, #fff);
+  }
+  .event .row1 {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 12px; flex-wrap: wrap; margin-bottom: 6px;
+  }
+  .event .year {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dot, var(--ink));
+  }
+  .event .cat {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--dot) 18%, transparent);
+    color: var(--dot);
+    border: 1px solid color-mix(in srgb, var(--dot) 40%, transparent);
+  }
+  .event h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 4px 0 6px;
+  }
+  .event p { font-size: 13px; color: #d7d3ee; line-height: 1.5; }
+  .event .del {
+    position: absolute; top: 10px; right: 10px;
+    font-size: 10px; padding: 4px 8px;
+    background: transparent; color: var(--muted);
+  }
+  .event .del:hover { color: #ff6b8a; }
+
+  /* Add form */
+  .add-card {
+    background: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    display: none;
+  }
+  .add-card.open { display: block; }
+  .add-card .grid {
+    display: grid;
+    grid-template-columns: 120px 1fr 180px;
+    gap: 10px;
+  }
+  @media (max-width: 640px) {
+    .add-card .grid { grid-template-columns: 1fr; }
+  }
+  input, textarea, select {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    background: var(--bg2);
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 10px;
+    width: 100%;
+  }
+  textarea { grid-column: 1 / -1; min-height: 60px; resize: vertical; }
+  .add-card .actions { display: flex; gap: 8px; margin-top: 10px; }
+
+  /* Panels */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-top: 24px;
+    overflow: hidden;
+  }
+  .panel > header {
+    background: var(--bg2);
+    padding: 10px 14px;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    margin: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  .panel > header h2 {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .panel > header .chev { color: var(--muted); font-family: monospace; }
+  .panel .body { padding: 14px; display: none; }
+  .panel.open .body { display: block; }
+  .panel.open > header .chev { transform: rotate(90deg); }
+
+  /* Link table */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td {
+    text-align: left;
+    padding: 8px 6px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+  td code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    background: var(--bg2);
+    padding: 3px 6px;
+    border-radius: 4px;
+    word-break: break-all;
+    display: inline-block;
+    color: #e6e1ff;
+  }
+  .status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .status.ok   { background: rgba(34,211,238,.15); color: #22d3ee; border: 1px solid rgba(34,211,238,.4); }
+  .status.warn { background: rgba(245,158,11,.15); color: #f59e0b; border: 1px solid rgba(245,158,11,.4); }
+  .status.err  { background: rgba(255,46,99,.18);  color: #ff2e63; border: 1px solid rgba(255,46,99,.5); }
+  .status.idle { background: var(--bg2); color: var(--muted); border: 1px solid var(--border); }
+
+  /* Dev console */
+  #console {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    background: #07061a;
+    color: #c8c2f0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    max-height: 260px;
+    overflow: auto;
+    white-space: pre-wrap;
+    margin-top: 10px;
+  }
+  #console .ts { color: #5b5690; }
+  #console .ok { color: #22d3ee; }
+  #console .warn { color: #f59e0b; }
+  #console .err { color: #ff2e63; }
+  #console .info { color: #a3e635; }
+
+  #state {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    background: #07061a;
+    color: #c8c2f0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    max-height: 220px;
+    overflow: auto;
+    white-space: pre;
+  }
+
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .legend span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+  }
+
+  footer { margin-top: 40px; font-size: 11px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">Personal Timeline // Laurence</div>
+  <h1>His Lordship's colourful, popping timeline</h1>
+  <p class="sub">Live, editable, saved in this browser. Built for ranting, adding on the fly, and exporting later when Trace News AI syncs up. Nothing here leaves the page until you export it.</p>
+  <div class="legend">
+    <span style="color: var(--c-abuse)">abuse</span>
+    <span style="color: var(--c-violence)">violence</span>
+    <span style="color: var(--c-health)">health</span>
+    <span style="color: var(--c-system)">system</span>
+    <span style="color: var(--c-family)">family</span>
+    <span style="color: var(--c-work)">work</span>
+    <span style="color: var(--c-loss)">loss</span>
+    <span style="color: var(--c-other)">other</span>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button class="primary" id="btnAdd">+ Add event</button>
+  <button id="btnSortA">Oldest first</button>
+  <button id="btnSortD">Newest first</button>
+  <button id="btnExport">Export JSON</button>
+  <button id="btnImport">Import JSON</button>
+  <button class="ghost" id="btnReset">Reset to defaults</button>
+  <button class="ghost" id="btnWipe">Wipe all</button>
+</div>
+
+<div class="add-card" id="addCard">
+  <div class="grid">
+    <input id="fYear" placeholder="Year or date e.g. 2024-07">
+    <input id="fTitle" placeholder="Title — short heading">
+    <select id="fCat">
+      <option value="abuse">abuse</option>
+      <option value="violence">violence</option>
+      <option value="health">health</option>
+      <option value="system">system</option>
+      <option value="family">family</option>
+      <option value="work">work</option>
+      <option value="loss">loss</option>
+      <option value="other">other</option>
+    </select>
+    <textarea id="fDesc" placeholder="Description — what happened, who, impact…"></textarea>
+  </div>
+  <div class="actions">
+    <button class="primary" id="btnSave">Save event</button>
+    <button id="btnCancel">Cancel</button>
+  </div>
+</div>
+
+<div class="timeline" id="timeline"></div>
+
+<div class="panel" id="linksPanel">
+  <header onclick="togglePanel('linksPanel')">
+    <h2>Links to this file</h2>
+    <span class="chev">▸</span>
+  </header>
+  <div class="body">
+    <p class="sub" style="margin-bottom: 10px">All variants of where this page lives. Hit <b>Run 404 check</b> to verify each one — anything red is broken, green is reachable, amber means the browser couldn't confirm due to CORS but the URL format is valid.</p>
+    <div class="toolbar">
+      <button id="btnCheck">Run 404 check</button>
+      <button id="btnCopyAll">Copy all links</button>
+    </div>
+    <table id="linkTable">
+      <thead>
+        <tr><th>Kind</th><th>Location</th><th>Status</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="panel" id="devPanel">
+  <header onclick="togglePanel('devPanel')">
+    <h2>Dev console + live state</h2>
+    <span class="chev">▸</span>
+  </header>
+  <div class="body">
+    <p class="sub">Current timeline JSON (what's saved in <code>localStorage</code>). Trim this down later and paste into the file to bake it in as the new default.</p>
+    <pre id="state"></pre>
+    <div class="toolbar" style="margin-top: 10px">
+      <button id="btnCopyState">Copy state</button>
+      <button id="btnClearLog">Clear log</button>
+    </div>
+    <div id="console"></div>
+  </div>
+</div>
+
+<footer>
+  Saved locally in browser · <span id="count"></span> events · updated <span id="updated">—</span>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  const STORAGE_KEY = 'laurence.timeline.v1';
+  const REPO_OWNER = 'lozturner';
+  const REPO_NAME = 'dump';
+  const BRANCH = 'claude/temp-computer-wip-glGmm';
+  const REL_PATH = 'laurence/index.html';
+
+  const DEFAULTS = [
+    { id: 'd-2008', year: '2008', category: 'health',
+      title: 'Pectus carinatum — four ops, infection',
+      desc: 'Pectus carinatum surgery, infection, four operations. Off university/work for roughly 3–6 years after repeated failed recoveries.' },
+
+    { id: 'd-2017', year: '2017', category: 'health',
+      title: "Bell's palsy — two years off",
+      desc: "Bell's palsy. Two years off work recovering." },
+
+    { id: 'd-2021', year: '2021 (Christmas)', category: 'abuse',
+      title: 'Potentially date-raped — Jess',
+      desc: 'Christmas 2021 (or possibly 22), while with Jess. Potentially date-raped.' },
+
+    { id: 'd-2023a', year: '2023', category: 'abuse',
+      title: 'Private photos shown at work Christmas party',
+      desc: 'Domestically abused in public — private photos shown around to work colleagues at a Christmas party (2023 or 2024).' },
+
+    { id: 'd-2023b', year: '~2023', category: 'violence',
+      title: 'Knife in face — Paul Devlin',
+      desc: 'Had a knife held in his face by Paul Devlin.' },
+
+    { id: 'd-2023c', year: '~2023', category: 'violence',
+      title: 'Attacked by Gary Saunders',
+      desc: 'Physically attacked by Gary Saunders.' },
+
+    { id: 'd-2023d', year: '~2023', category: 'loss',
+      title: 'Run over by a taxi driver',
+      desc: 'Run over by a taxi driver. Kept him from work.' },
+
+    { id: 'd-2023e', year: '~2023', category: 'loss',
+      title: 'Neighbour Lee (#5) — taken down by armed police',
+      desc: 'Lee from his block at number 5 had an accident and was taken down by gun policemen.' },
+
+    { id: 'd-2024a', year: '2024-07', category: 'violence',
+      title: 'Witnessed shooting (19–22 July 2024)',
+      desc: 'Between the 19th and 22nd July 2024, witnessed a shooting. Woke up from it in July 2024.' },
+
+    { id: 'd-2024b', year: '2024-07', category: 'family',
+      title: 'Death threat from ex-partner\'s mother',
+      desc: 'Received a death threat from the mother of his fourth child — the grandmother of his youngest child.' },
+
+    { id: 'd-2024c', year: '2024', category: 'system',
+      title: 'DWP → DEA agent Kieran',
+      desc: 'Signed up for DWP, was assigned a DEA agent named Kieran, which one way or another led to the forced move (probably "this move for six").' },
+  ];
+
+  // ---------- storage ----------
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return structuredClone(DEFAULTS);
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return structuredClone(DEFAULTS);
+      return parsed;
+    } catch (e) {
+      log('err', 'Failed to load storage: ' + e.message);
+      return structuredClone(DEFAULTS);
+    }
+  }
+  function save(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data, null, 2));
+    renderState();
+    document.getElementById('updated').textContent = new Date().toLocaleTimeString();
+    log('ok', 'Saved (' + data.length + ' events)');
+  }
+
+  let state = load();
+
+  // ---------- logging ----------
+  function log(level, msg) {
+    const el = document.getElementById('console');
+    if (!el) return;
+    const ts = new Date().toLocaleTimeString();
+    const line = document.createElement('div');
+    line.innerHTML = '<span class="ts">[' + ts + ']</span> <span class="' + level + '">' + level.toUpperCase() + '</span> ' + escapeHtml(msg);
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ---------- sorting ----------
+  function yearKey(y) {
+    const m = String(y).match(/(\d{4})(?:[-/](\d{1,2}))?/);
+    if (!m) return 0;
+    return parseInt(m[1], 10) * 12 + (m[2] ? parseInt(m[2], 10) : 0);
+  }
+  function sortAsc() { state.sort((a, b) => yearKey(a.year) - yearKey(b.year)); save(state); render(); }
+  function sortDesc() { state.sort((a, b) => yearKey(b.year) - yearKey(a.year)); save(state); render(); }
+
+  // ---------- render ----------
+  function render() {
+    const tl = document.getElementById('timeline');
+    tl.innerHTML = '';
+    state.forEach(ev => {
+      const node = document.createElement('div');
+      node.className = 'event';
+      node.style.setProperty('--dot', 'var(--c-' + ev.category + ')');
+      node.innerHTML =
+        '<div class="row1">' +
+          '<span class="year">' + escapeHtml(ev.year) + '</span>' +
+          '<span class="cat">' + escapeHtml(ev.category) + '</span>' +
+        '</div>' +
+        '<h3>' + escapeHtml(ev.title) + '</h3>' +
+        '<p>' + escapeHtml(ev.desc) + '</p>' +
+        '<button class="del" data-id="' + ev.id + '">delete</button>';
+      tl.appendChild(node);
+    });
+    tl.querySelectorAll('.del').forEach(b => b.addEventListener('click', e => {
+      const id = e.target.dataset.id;
+      state = state.filter(x => x.id !== id);
+      save(state); render();
+      log('warn', 'Removed ' + id);
+    }));
+    document.getElementById('count').textContent = state.length;
+    renderState();
+  }
+  function renderState() {
+    document.getElementById('state').textContent = JSON.stringify(state, null, 2);
+  }
+
+  // ---------- add form ----------
+  function openAdd(open) {
+    const card = document.getElementById('addCard');
+    card.classList.toggle('open', open);
+    if (open) document.getElementById('fYear').focus();
+  }
+  document.getElementById('btnAdd').addEventListener('click', () => openAdd(true));
+  document.getElementById('btnCancel').addEventListener('click', () => openAdd(false));
+  document.getElementById('btnSave').addEventListener('click', () => {
+    const year = document.getElementById('fYear').value.trim();
+    const title = document.getElementById('fTitle').value.trim();
+    const desc = document.getElementById('fDesc').value.trim();
+    const category = document.getElementById('fCat').value;
+    if (!year || !title) { log('err', 'Year and title are required.'); return; }
+    const ev = { id: 'u-' + Date.now().toString(36), year, title, desc, category };
+    state.push(ev); save(state); render();
+    log('info', 'Added: ' + title);
+    document.getElementById('fYear').value = '';
+    document.getElementById('fTitle').value = '';
+    document.getElementById('fDesc').value = '';
+    openAdd(false);
+  });
+
+  // ---------- toolbar ----------
+  document.getElementById('btnSortA').addEventListener('click', sortAsc);
+  document.getElementById('btnSortD').addEventListener('click', sortDesc);
+  document.getElementById('btnExport').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'laurence-timeline-' + Date.now() + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    log('ok', 'Exported JSON');
+  });
+  document.getElementById('btnImport').addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'application/json';
+    input.onchange = () => {
+      const f = input.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const parsed = JSON.parse(r.result);
+          if (!Array.isArray(parsed)) throw new Error('not an array');
+          state = parsed; save(state); render();
+          log('ok', 'Imported ' + parsed.length + ' events');
+        } catch (e) { log('err', 'Import failed: ' + e.message); }
+      };
+      r.readAsText(f);
+    };
+    input.click();
+  });
+  document.getElementById('btnReset').addEventListener('click', () => {
+    if (!confirm('Reset to built-in defaults? Your current edits will be lost.')) return;
+    state = structuredClone(DEFAULTS); save(state); render();
+    log('warn', 'Reset to defaults');
+  });
+  document.getElementById('btnWipe').addEventListener('click', () => {
+    if (!confirm('Wipe all events?')) return;
+    state = []; save(state); render();
+    log('warn', 'Wiped all events');
+  });
+  document.getElementById('btnCopyState').addEventListener('click', () => {
+    navigator.clipboard.writeText(JSON.stringify(state, null, 2))
+      .then(() => log('ok', 'State copied'))
+      .catch(e => log('err', 'Copy failed: ' + e.message));
+  });
+  document.getElementById('btnClearLog').addEventListener('click', () => {
+    document.getElementById('console').innerHTML = '';
+  });
+
+  // ---------- panels ----------
+  window.togglePanel = function (id) {
+    document.getElementById(id).classList.toggle('open');
+  };
+
+  // ---------- links ----------
+  function buildLinks() {
+    const here = window.location;
+    const absolute = here.origin + here.pathname;
+    const pathname = here.pathname;
+    const filename = pathname.split('/').pop() || 'index.html';
+    const isFile = here.protocol === 'file:';
+    const cDrive = isFile
+      ? decodeURIComponent(here.href.replace(/^file:\/\/\/?/, '').replace(/\//g, '\\'))
+      : 'C:\\Users\\<you>\\...\\dump\\' + REL_PATH.replace(/\//g, '\\');
+    const localHost = (here.hostname === 'localhost' || here.hostname === '127.0.0.1')
+      ? absolute
+      : 'http://localhost:8000/' + REL_PATH;
+
+    return [
+      { kind: 'Hyperlink (this page)', url: absolute, check: true },
+      { kind: 'Local relative link',    url: './' + filename,   check: true },
+      { kind: 'Localhost link',         url: localHost,         check: here.hostname === 'localhost' || here.hostname === '127.0.0.1' },
+      { kind: 'Local file path',        url: pathname,          check: true },
+      { kind: 'C: drive path',          url: cDrive,            check: false },
+      { kind: 'GitHub repo URL',        url: `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${BRANCH}/${REL_PATH}`, check: true },
+      { kind: 'GitHub raw',             url: `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/${REL_PATH}`, check: true },
+      { kind: 'GitHub Pages (rendered)',url: `https://${REPO_OWNER}.github.io/${REPO_NAME}/${REL_PATH.replace(/index\.html$/, '')}`, check: true },
+    ];
+  }
+
+  function renderLinks() {
+    const tbody = document.querySelector('#linkTable tbody');
+    tbody.innerHTML = '';
+    buildLinks().forEach((l, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + escapeHtml(l.kind) + '</td>' +
+        '<td><a href="' + escapeHtml(l.url) + '" target="_blank" rel="noopener"><code>' + escapeHtml(l.url) + '</code></a></td>' +
+        '<td><span class="status idle" id="st-' + i + '">idle</span></td>';
+      tbody.appendChild(tr);
+    });
+  }
+  renderLinks();
+
+  async function runCheck() {
+    const links = buildLinks();
+    log('info', 'Running 404 check on ' + links.length + ' link(s)…');
+    for (let i = 0; i < links.length; i++) {
+      const el = document.getElementById('st-' + i);
+      const l = links[i];
+      if (!l.check) { el.className = 'status warn'; el.textContent = 'skipped'; continue; }
+      el.className = 'status idle'; el.textContent = '…';
+      try {
+        let res = await fetch(l.url, { method: 'HEAD', mode: 'cors' }).catch(() => null);
+        if (res && res.ok) { el.className = 'status ok'; el.textContent = res.status + ' ok'; continue; }
+        if (res && res.status === 404) { el.className = 'status err'; el.textContent = '404'; log('err', '404: ' + l.url); continue; }
+        // fallback — opaque response via no-cors just tells us the endpoint resolved
+        const res2 = await fetch(l.url, { method: 'GET', mode: 'no-cors' }).catch(() => null);
+        if (res2) { el.className = 'status warn'; el.textContent = 'cors-opaque'; }
+        else { el.className = 'status err'; el.textContent = 'unreachable'; log('err', 'Unreachable: ' + l.url); }
+      } catch (e) {
+        el.className = 'status err'; el.textContent = 'error';
+        log('err', l.url + ' — ' + e.message);
+      }
+    }
+    log('ok', '404 check complete');
+  }
+  document.getElementById('btnCheck').addEventListener('click', runCheck);
+  document.getElementById('btnCopyAll').addEventListener('click', () => {
+    const text = buildLinks().map(l => l.kind + ': ' + l.url).join('\n');
+    navigator.clipboard.writeText(text)
+      .then(() => log('ok', 'All links copied'))
+      .catch(e => log('err', 'Copy failed: ' + e.message));
+  });
+
+  // ---------- init ----------
+  document.getElementById('linksPanel').classList.add('open');
+  document.getElementById('devPanel').classList.add('open');
+  render();
+  document.getElementById('updated').textContent = new Date().toLocaleTimeString();
+  log('info', 'Ready. ' + state.length + ' events loaded from ' + (localStorage.getItem(STORAGE_KEY) ? 'localStorage' : 'defaults') + '.');
+})();
+</script>
+</body>
+</html>
