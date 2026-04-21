@@ -1,0 +1,9 @@
+{
+  "model": "base.en",
+  "push_to_dialog": true,
+  "copy_to_clipboard": true,
+  "dialog_port": 27182,
+  "hold_key": "ctrl+shift+r",
+  "vad_silence_s": 1.2,
+  "sample_rate": 16000
+}

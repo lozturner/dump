@@ -1,0 +1,6 @@
+{
+  "listen_port": 27183,
+  "dialog_port": 27182,
+  "save_dir": "~/Pictures/ShareX-captures",
+  "open_dialog": true
+}

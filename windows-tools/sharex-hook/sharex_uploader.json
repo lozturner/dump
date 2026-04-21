@@ -1,0 +1,15 @@
+{
+  "Version": "14.1.0",
+  "Name": "Loz Local Hook",
+  "DestinationType": "ImageUploader",
+  "RequestMethod": "POST",
+  "RequestURL": "http://127.0.0.1:27183/upload",
+  "Body": "Binary",
+  "Headers": {
+    "Content-Type": "$filename_ext_mimetypeimage$"
+  },
+  "URL": "$json:url$",
+  "ThumbnailURL": "",
+  "DeletionURL": "",
+  "ErrorMessage": ""
+}

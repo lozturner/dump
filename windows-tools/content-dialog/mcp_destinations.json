@@ -1,0 +1,11 @@
+{
+  "hotkeys": {
+    "clipboard": "ctrl+shift+v",
+    "whisper":   "ctrl+shift+w",
+    "sharex":    "ctrl+shift+s"
+  },
+  "listen_port": 27182,
+  "mcp_url": "http://localhost:3000/ingest",
+  "log_file": "%LOCALAPPDATA%\\loz-tools\\capture-log.txt",
+  "claude_exe": "%LOCALAPPDATA%\\AnthropicClaude\\claude.exe"
+}

@@ -1,0 +1,15 @@
+{
+  "trigger_px": 3,
+  "retract_ms": 2500,
+  "panel_width": 52,
+  "dialog_port": 27182,
+  "sharex_exe": "C:\\Program Files\\ShareX\\ShareX.exe",
+  "claude_exe": "%LOCALAPPDATA%\\AnthropicClaude\\claude.exe",
+  "buttons": [
+    {"label": "G",  "title": "Gallery",          "action": "url",    "value": "http://localhost:8765/gallery.html"},
+    {"label": "W",  "title": "Whisper capture",  "action": "dialog", "value": "whisper"},
+    {"label": "S",  "title": "ShareX region",    "action": "sharex", "value": "region"},
+    {"label": "C",  "title": "Claude Desktop",   "action": "claude", "value": ""},
+    {"label": "⍘", "title": "Clipboard",    "action": "dialog", "value": "clipboard"}
+  ]
+}
