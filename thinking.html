@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0e0f12">
+<title>How to think · framework</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.diagram-wrap{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:16px 8px 8px;margin-bottom:16px;overflow:hidden;
+}
+.diagram-wrap svg{width:100%;height:auto;display:block}
+
+.toggle-row{
+  display:flex;gap:0;margin-bottom:14px;
+  background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;
+}
+.toggle-btn{
+  flex:1;padding:11px;
+  font-family:ui-monospace,Menlo,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  background:transparent;color:var(--muted);border:none;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:background .15s,color .15s;
+}
+.toggle-btn.active{background:var(--violet);color:#fff}
+
+.stage-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  margin-bottom:8px;overflow:hidden;
+}
+.stage-head{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;
+}
+.stage-code{
+  font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.12em;font-weight:700;
+  padding:4px 9px;border-radius:5px;background:var(--panel2);border:1px solid var(--line);
+  min-width:44px;text-align:center;flex-shrink:0;
+}
+.stage-name{font-size:15px;font-weight:600;flex:1}
+.stage-sub{font-size:11px;color:var(--dim);font-style:italic;flex-shrink:0}
+.stage-chev{color:var(--dim);font-size:14px;flex-shrink:0;transition:transform .2s}
+.stage-card.open .stage-chev{transform:rotate(180deg)}
+
+.stage-body{display:none;padding:0 14px 14px;border-top:1px solid var(--line)}
+.stage-card.open .stage-body{display:block}
+
+.stage-q{
+  font-size:13px;color:var(--muted);font-style:italic;
+  margin:12px 0 8px;line-height:1.5;
+}
+.stage-answer{font-size:14.5px;line-height:1.7;color:#c8c6bf}
+.stage-answer.ctx{display:none}
+
+body.mode-ctx .stage-answer.gen{display:none}
+body.mode-ctx .stage-answer.ctx{display:block}
+
+.cycle-note{
+  font-size:11.5px;color:var(--dim);font-family:ui-monospace,Menlo,monospace;
+  letter-spacing:.04em;text-align:center;padding:10px 0;
+  border-top:1px solid var(--line);margin-top:4px;
+}
+
+.zoom-section{margin-top:22px}
+.zoom-label{
+  font-family:ui-monospace,Menlo,monospace;font-size:10px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;
+}
+.zoom-card{
+  background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:13px 14px;margin-bottom:8px;
+}
+.zoom-card .z-level{
+  font-family:ui-monospace,Menlo,monospace;font-size:9.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:7px;
+}
+.zoom-card .z-body{font-size:13.5px;line-height:1.6;color:#c0beba}
+
+.note-box{
+  background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--violet);
+  border-radius:8px;padding:12px 14px;margin-bottom:16px;
+  font-size:13px;line-height:1.6;color:var(--muted);
+}
+</style>
+</head>
+<body data-hue="violet">
+
+<a class="back" href="index.html"><span class="arr">←</span> Home</a>
+
+<div class="page-head">
+  <div class="hey">
+    <span class="chev">‹</span>
+    <span class="name">How to think</span>
+    <span class="chev">›</span>
+  </div>
+  <div style="margin-top:8px;font-size:14.5px;color:var(--muted);line-height:1.55">
+    A repeating loop for any level — from life direction down to what you type next.
+  </div>
+  <span class="badge">EX · C · PF · EG · AL</span>
+</div>
+
+<div class="note-box">
+  Couldn't load the video directly. These expansions are best-guess from context. Update them if you watch it and I'm wrong — but the diagram structure matches what you described exactly.
+</div>
+
+<!-- Diagram -->
+<div class="diagram-wrap">
+  <svg viewBox="0 0 400 210" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+        <path d="M0,0 L0,7 L7,3.5 z" fill="#4a4e58"/>
+      </marker>
+      <marker id="arr-v" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+        <path d="M0,0 L0,7 L7,3.5 z" fill="#a371f7"/>
+      </marker>
+      <marker id="arr-a" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+        <path d="M0,0 L0,7 L7,3.5 z" fill="#d89a2a"/>
+      </marker>
+    </defs>
+
+    <!-- ── Nodes ── -->
+    <!-- EX -->
+    <rect x="8" y="68" width="64" height="38" rx="8" fill="#1c1f25" stroke="#a371f7" stroke-width="1.5"/>
+    <text x="40" y="86" text-anchor="middle" fill="#a371f7" font-family="ui-monospace,monospace" font-size="12" font-weight="700" letter-spacing="2">EX</text>
+    <text x="40" y="99" text-anchor="middle" fill="#4a4e58" font-family="ui-monospace,monospace" font-size="8">experience</text>
+
+    <!-- C -->
+    <rect x="112" y="68" width="64" height="38" rx="8" fill="#1c1f25" stroke="#23262d" stroke-width="1.5"/>
+    <text x="144" y="86" text-anchor="middle" fill="#e8e6e0" font-family="ui-monospace,monospace" font-size="12" font-weight="700" letter-spacing="2">C</text>
+    <text x="144" y="99" text-anchor="middle" fill="#4a4e58" font-family="ui-monospace,monospace" font-size="8">concepts</text>
+
+    <!-- PF -->
+    <rect x="216" y="68" width="64" height="38" rx="8" fill="#1c1f25" stroke="#23262d" stroke-width="1.5"/>
+    <text x="248" y="86" text-anchor="middle" fill="#e8e6e0" font-family="ui-monospace,monospace" font-size="12" font-weight="700" letter-spacing="2">PF</text>
+    <text x="248" y="99" text-anchor="middle" fill="#4a4e58" font-family="ui-monospace,monospace" font-size="8">problem frame</text>
+
+    <!-- EG -->
+    <rect x="320" y="68" width="64" height="38" rx="8" fill="#1c1f25" stroke="#23262d" stroke-width="1.5"/>
+    <text x="352" y="86" text-anchor="middle" fill="#e8e6e0" font-family="ui-monospace,monospace" font-size="12" font-weight="700" letter-spacing="2">EG</text>
+    <text x="352" y="99" text-anchor="middle" fill="#4a4e58" font-family="ui-monospace,monospace" font-size="8">examples</text>
+
+    <!-- AL -->
+    <rect x="216" y="152" width="64" height="38" rx="8" fill="#1c1f25" stroke="#d89a2a" stroke-width="1.5"/>
+    <text x="248" y="170" text-anchor="middle" fill="#d89a2a" font-family="ui-monospace,monospace" font-size="12" font-weight="700" letter-spacing="2">AL</text>
+    <text x="248" y="183" text-anchor="middle" fill="#4a4e58" font-family="ui-monospace,monospace" font-size="8">action/learn</text>
+
+    <!-- ── Arrows ── -->
+    <!-- EX → C -->
+    <line x1="73" y1="87" x2="110" y2="87" stroke="#4a4e58" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- C → PF -->
+    <line x1="177" y1="87" x2="214" y2="87" stroke="#4a4e58" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- PF → EG -->
+    <line x1="281" y1="87" x2="318" y2="87" stroke="#4a4e58" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- PF → AL (down, amber dashed) -->
+    <line x1="248" y1="107" x2="248" y2="150" stroke="#d89a2a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-a)"/>
+    <!-- EG → EX (cycle, violet arc below) -->
+    <path d="M 352 107 Q 352 148 196 160 Q 40 148 40 107" fill="none" stroke="#a371f7" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-v)"/>
+  </svg>
+
+  <div style="display:flex;gap:18px;justify-content:center;padding:4px 0 2px;flex-wrap:wrap">
+    <span style="font-size:10px;font-family:ui-monospace,monospace;color:#a371f7;letter-spacing:.06em">— main loop</span>
+    <span style="font-size:10px;font-family:ui-monospace,monospace;color:#a371f7;letter-spacing:.06em">- - cycle back</span>
+    <span style="font-size:10px;font-family:ui-monospace,monospace;color:#d89a2a;letter-spacing:.06em">- - shortcut to action</span>
+  </div>
+</div>
+
+<!-- Toggle -->
+<div class="toggle-row">
+  <button class="toggle-btn active" onclick="setMode('gen',this)">Generic template</button>
+  <button class="toggle-btn" onclick="setMode('ctx',this)">Your situation</button>
+</div>
+
+<!-- Stage cards -->
+<div class="stage-card" onclick="toggleStage(this)">
+  <div class="stage-head">
+    <span class="stage-code" style="color:var(--violet)">EX</span>
+    <span class="stage-name">Experience</span>
+    <span class="stage-sub">start here</span>
+    <span class="stage-chev">▼</span>
+  </div>
+  <div class="stage-body">
+    <div class="stage-q">What am I actually experiencing right now?</div>
+    <div class="stage-answer gen">
+      State the raw situation — not your interpretation of it, just what's happening. What do you observe? What are the facts on the ground? Don't judge yet. Don't solve yet. Just: what is the thing in front of me?
+    </div>
+    <div class="stage-answer ctx">
+      I haven't seen my son in a significant stretch. Contact is being blocked. The court case is live and moving. I'm building a documentation system on a phone, one-handed, between court dates. Multiple threads are running in parallel — court, complaints, kids' day-to-day, money — and they don't wait for me.
+    </div>
+  </div>
+</div>
+
+<div class="stage-card" onclick="toggleStage(this)">
+  <div class="stage-head">
+    <span class="stage-code">C</span>
+    <span class="stage-name">Concepts</span>
+    <span class="stage-sub">what applies</span>
+    <span class="stage-chev">▼</span>
+  </div>
+  <div class="stage-body">
+    <div class="stage-q">What principles, patterns, or knowledge apply here?</div>
+    <div class="stage-answer gen">
+      Match the experience to structure you already have. What mental models fit? What have you learned before that's relevant? What domain rules govern this situation? You're not solving yet — you're locating the experience inside what you already know.
+    </div>
+    <div class="stage-answer ctx">
+      Courts reward documented patterns, not emotional accounts. Enforcement requires Form C79 and a threshold of denial events on record. Executive function gaps mean I need systems that run without me, not willpower. The sysadmin lesson: logs beat memory, always. The hub exists specifically to hold these logs so they're there when I need them.
+    </div>
+  </div>
+</div>
+
+<div class="stage-card" onclick="toggleStage(this)">
+  <div class="stage-head">
+    <span class="stage-code">PF</span>
+    <span class="stage-name">Problem Frame</span>
+    <span class="stage-sub">the hinge</span>
+    <span class="stage-chev">▼</span>
+  </div>
+  <div class="stage-body">
+    <div class="stage-q">What is the REAL problem — not the surface one?</div>
+    <div class="stage-answer gen">
+      Strip the noise. The surface problem is almost never the actual problem. Ask: what gap, if closed, would make this no longer a problem? Restate it in one clean sentence. This is the most important step. Get it wrong and all effort after it goes sideways. Right-framed problems often answer themselves.
+    </div>
+    <div class="stage-answer ctx">
+      Surface: "Why won't they let me see him?"<br><br>
+      Actual: "I need a documented, dated pattern of denial in a form a court will act on."<br><br>
+      The path page is built from problem frames. Each node on it IS a PF → AL pair. The whole hub is a machine for converting messy experience into clean frames.
+    </div>
+  </div>
+</div>
+
+<div class="stage-card" onclick="toggleStage(this)">
+  <div class="stage-head">
+    <span class="stage-code">EG</span>
+    <span class="stage-name">Examples</span>
+    <span class="stage-sub">test the frame</span>
+    <span class="stage-chev">▼</span>
+  </div>
+  <div class="stage-body">
+    <div class="stage-q">What does this look like concretely? Can you give one example?</div>
+    <div class="stage-answer gen">
+      Generate specific, concrete examples. What would a solution look like in practice? What have others done? Simulate it. If you can't produce a concrete example, the problem frame is wrong — go back to PF. Examples are reality-checks on your framing. They also generate new experience, which sends you around the loop again.
+    </div>
+    <div class="stage-answer ctx">
+      The picture page: 47 days logged, multiple missed marked with reasons. The court bundle: incidents with dates, times, what was said. C79 applications others have filed. The "enforcement order" node on the path page with its specific actions. Each of these is a concrete example — testable, referrable, real.
+    </div>
+  </div>
+</div>
+
+<div class="stage-card" onclick="toggleStage(this)">
+  <div class="stage-head">
+    <span class="stage-code" style="color:var(--amber)">AL</span>
+    <span class="stage-name">Action / Learning</span>
+    <span class="stage-sub">the output</span>
+    <span class="stage-chev">▼</span>
+  </div>
+  <div class="stage-body">
+    <div class="stage-q">What's the one thing I now do, or the one thing I now know?</div>
+    <div class="stage-answer gen">
+      Not a list — the one thing. Name the action you take, or the understanding you've gained. This is the output of the loop. After AL, you either act and that act becomes new Experience (EX again), or you pause with new knowledge and loop back deliberately. AL is not the end. It's what makes the next loop sharper.
+    </div>
+    <div class="stage-answer ctx">
+      <strong>Action:</strong> Document the next denial within 24 hours. Timestamp. Who said what. Any witnesses. Into the picture page.<br><br>
+      <strong>Learning:</strong> Building the hub is not a distraction from the real thing — it is the documentation infrastructure. Every hour on it is an hour building the evidential record. That's not escape. That's strategy.
+    </div>
+  </div>
+</div>
+
+<div class="cycle-note">EG ↺ loops back to EX &nbsp;·&nbsp; PF can jump straight to AL</div>
+
+<!-- Zoom levels -->
+<div class="zoom-section">
+  <div class="zoom-label">Apply at any resolution</div>
+
+  <div class="zoom-card">
+    <div class="z-level">Low resolution · life direction</div>
+    <div class="z-body">
+      <b>EX</b> I'm cut off from my son. &nbsp;<b>C</b> Courts, patience, documentation. &nbsp;<b>PF</b> I need enforcement evidence, not just feelings. &nbsp;<b>EG</b> The path page. &nbsp;<b>AL</b> Complete the next node.
+    </div>
+  </div>
+
+  <div class="zoom-card">
+    <div class="z-level">Mid resolution · today's task</div>
+    <div class="z-body">
+      <b>EX</b> Contact was denied again this weekend. &nbsp;<b>C</b> I need a formal log entry. &nbsp;<b>PF</b> What the log needs: date, time, reason given, any witnesses. &nbsp;<b>EG</b> The last entry I made that was clear. &nbsp;<b>AL</b> Write it now, before the details go soft.
+    </div>
+  </div>
+
+  <div class="zoom-card">
+    <div class="z-level">High resolution · this exact moment</div>
+    <div class="z-body">
+      <b>EX</b> I'm writing a sentence to the court. &nbsp;<b>C</b> Formal, factual, dated, no emotion. &nbsp;<b>PF</b> This sentence needs to achieve X specifically. &nbsp;<b>EG</b> The last letter that got a response. &nbsp;<b>AL</b> Revise or send.
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Framework: EX → C → PF → EG ↺ EX · PF ⤵ AL<br>
+  <b>Note:</b> Acronym expansions are inferred — update if the video uses different terms.
+</div>
+
+<script>
+function toggleStage(card){card.classList.toggle('open')}
+
+function setMode(mode,btn){
+  document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.body.classList.toggle('mode-ctx', mode==='ctx');
+}
+</script>
+
+</body>
+</html>
