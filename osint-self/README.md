@@ -49,7 +49,7 @@ New-Item -ItemType Directory -Force .\osint-self\data | Out-Null; Copy-Item "$en
 One-liner — paste into PowerShell from inside the repo root, replace `you@gmail.com`:
 
 ```powershell
-cd osint-self; python -m venv .venv; .\.venv\Scripts\Activate.ps1; pip install -r requirements.txt; python scripts\01_ingest_mbox.py --mbox data\mail.mbox --out output\m.parquet; python scripts\02_normalize.py --in output\m.parquet --out output\m2.parquet --me you@gmail.com; python scripts\03_signals.py --in output\m2.parquet --tags config\tags.example.yaml --out output\m3.parquet; python scripts\04_dashboard.py --in output\m3.parquet --out output\dashboard.html; Start-Process output\dashboard.html
+cd osint-self; python -m venv .venv; .\.venv\Scripts\Activate.ps1; pip install -r requirements.txt; python scripts\01_ingest_mbox.py --mbox data\mail.mbox --out output\m.parquet; python scripts\02_normalize.py --in output\m.parquet --out output\m2.parquet --me you@gmail.com; python scripts\03_signals.py --in output\m2.parquet --tags config\tags.example.yaml --out output\m3.parquet; python scripts\04_dashboard.py --in output\m3.parquet --out output\dashboard.html; python scripts\05_per_contact.py --in output\m3.parquet --out output\per_contact.parquet --csv output\per_contact.csv; Start-Process output\dashboard.html
 ```
 
 Clickable terminal hyperlink to the rendered dashboard (OSC 8, works in Windows Terminal + PowerShell 7+):
@@ -61,7 +61,7 @@ $p = (Resolve-Path .\output\dashboard.html).Path; $u = "file:///$($p -replace '\
 Re-run after edits (skip venv + pip):
 
 ```powershell
-python scripts\01_ingest_mbox.py --mbox data\mail.mbox --out output\m.parquet; python scripts\02_normalize.py --in output\m.parquet --out output\m2.parquet --me you@gmail.com; python scripts\03_signals.py --in output\m2.parquet --tags config\tags.example.yaml --out output\m3.parquet; python scripts\04_dashboard.py --in output\m3.parquet --out output\dashboard.html; Start-Process output\dashboard.html
+python scripts\01_ingest_mbox.py --mbox data\mail.mbox --out output\m.parquet; python scripts\02_normalize.py --in output\m.parquet --out output\m2.parquet --me you@gmail.com; python scripts\03_signals.py --in output\m2.parquet --tags config\tags.example.yaml --out output\m3.parquet; python scripts\04_dashboard.py --in output\m3.parquet --out output\dashboard.html; python scripts\05_per_contact.py --in output\m3.parquet --out output\per_contact.parquet --csv output\per_contact.csv; Start-Process output\dashboard.html
 ```
 
 If `Activate.ps1` is blocked: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` once in the session.
