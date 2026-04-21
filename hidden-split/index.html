@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Hidden Split</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,800&display=swap');
+
+  :root {
+    --bg: #0c0b10;
+    --ink: #f4efe6;
+    --muted: #7a7587;
+    --hot: #ff5a1f;
+    --cold: #3b82f6;
+    --warm: #fbbf24;
+    --spine: #e5e4e2;
+    --card: rgba(255,255,255,0.04);
+    --edge: rgba(255,255,255,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; overflow-x: hidden; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.55;
+    min-height: 100vh;
+    position: relative;
+    transition: background 900ms ease;
+  }
+
+  /* vignette — the thing the user literally asked for */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.55) 78%, rgba(0,0,0,0.92) 100%);
+    z-index: 1;
+    transition: opacity 900ms ease;
+  }
+
+  /* ambient color wash that follows slider position */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 30%, var(--wash, transparent) 0%, transparent 60%);
+    opacity: 0.45;
+    mix-blend-mode: screen;
+    z-index: 0;
+    transition: background 900ms ease;
+  }
+
+  main {
+    position: relative;
+    z-index: 2;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 60px 28px 120px;
+  }
+
+  header { margin-bottom: 54px; }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .eyebrow .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--hot);
+    box-shadow: 0 0 12px var(--hot);
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.75); }
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: clamp(44px, 9vw, 92px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 18px;
+  }
+
+  h1 .soft { font-weight: 300; font-style: italic; color: var(--muted); }
+
+  .tagline {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--muted);
+    max-width: 520px;
+  }
+
+  /* slider deck */
+  .deck {
+    margin: 48px 0 56px;
+    padding: 28px 24px 22px;
+    background: var(--card);
+    border: 1px solid var(--edge);
+    border-radius: 10px;
+    backdrop-filter: blur(8px);
+  }
+
+  .deck-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 22px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .slider-wrap {
+    position: relative;
+    padding: 8px 0 36px;
+  }
+
+  .slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--spine);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--ink);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 2px var(--ink), 0 0 24px var(--thumb-glow, var(--ink));
+    cursor: grab;
+    transition: box-shadow 300ms ease, transform 200ms ease;
+  }
+
+  .slider::-webkit-slider-thumb:active { cursor: grabbing; transform: scale(1.1); }
+
+  .slider::-moz-range-thumb {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--ink); border: 2px solid var(--bg);
+    box-shadow: 0 0 0 2px var(--ink), 0 0 24px var(--thumb-glow, var(--ink));
+    cursor: grab;
+  }
+
+  .ticks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-top: 8px;
+  }
+
+  .tick {
+    text-align: center;
+    width: 20%;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding-top: 22px;
+    position: relative;
+    transition: color 400ms ease;
+  }
+
+  .tick::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 10px;
+    background: var(--edge);
+  }
+
+  .tick:nth-child(1) { text-align: left; }
+  .tick:nth-child(1)::before { left: 0; transform: none; }
+  .tick:nth-child(5) { text-align: right; }
+  .tick:nth-child(5)::before { left: auto; right: 0; transform: none; }
+
+  .tick.active { color: var(--ink); }
+
+  /* readout */
+  .readout {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 20px;
+    align-items: baseline;
+    min-height: 60px;
+  }
+
+  .readout .num {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: 64px;
+    line-height: 1;
+    color: var(--accent, var(--ink));
+    transition: color 600ms ease;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
+  }
+
+  .readout .body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .readout .name {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 30px;
+    letter-spacing: -0.01em;
+    transition: opacity 400ms ease, transform 400ms ease;
+  }
+
+  .readout .sub {
+    font-style: italic;
+    color: var(--muted);
+    font-size: 14px;
+    transition: opacity 400ms ease, transform 400ms ease;
+  }
+
+  .readout.swapping .name,
+  .readout.swapping .sub { opacity: 0; transform: translateY(8px); }
+
+  /* narrator block */
+  .narrator {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--ink);
+    margin-bottom: 36px;
+    padding-left: 18px;
+    border-left: 2px solid var(--accent, var(--ink));
+    transition: opacity 500ms ease, transform 500ms ease, border-color 600ms ease;
+    min-height: 96px;
+  }
+
+  .narrator.swapping { opacity: 0; transform: translateX(-10px); }
+
+  /* fragments — these reorder */
+  .fragments {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    position: relative;
+  }
+
+  .fragment {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    padding: 16px 18px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid transparent;
+    transition:
+      transform 700ms cubic-bezier(0.22, 1, 0.36, 1),
+      background 600ms ease,
+      border-color 600ms ease,
+      color 600ms ease,
+      opacity 500ms ease;
+    will-change: transform;
+  }
+
+  .fragment:hover {
+    background: var(--card);
+    border-color: var(--edge);
+  }
+
+  .fragment .rank {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    min-width: 26px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .fragment .text {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 22px;
+    line-height: 1.35;
+    letter-spacing: -0.005em;
+    flex: 1;
+  }
+
+  .fragment.hot { color: var(--ink); }
+  .fragment.dim { color: var(--muted); }
+
+  .fragment.lead {
+    background: var(--card);
+    border-color: var(--accent, var(--edge));
+  }
+
+  .fragment.lead .rank {
+    color: var(--accent, var(--ink));
+  }
+
+  /* footer */
+  .foot {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--edge);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .foot a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--edge); }
+  .foot a:hover { border-bottom-color: var(--ink); }
+
+  /* key hint */
+  .hint {
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: rgba(12,11,16,0.75);
+    padding: 8px 14px;
+    border: 1px solid var(--edge);
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
+    opacity: 0.8;
+  }
+
+  .hint kbd {
+    display: inline-block;
+    padding: 1px 6px;
+    border: 1px solid var(--edge);
+    border-radius: 3px;
+    margin: 0 2px;
+    font-family: inherit;
+    color: var(--ink);
+  }
+
+  @media (max-width: 600px) {
+    .readout .num { font-size: 48px; }
+    .readout .name { font-size: 22px; }
+    .fragment .text { font-size: 18px; }
+    .hint { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+
+  <header>
+    <div class="eyebrow"><span class="dot"></span> Vlog 01 · Concept Draft · 21 Apr 2026</div>
+    <h1>The Hidden <span class="soft">Split</span></h1>
+    <p class="tagline">One person. Eight fragments. Five readings. Move the slider &mdash; and the same life tells a different story.</p>
+  </header>
+
+  <section class="deck" aria-label="Reading slider">
+    <div class="deck-head">
+      <span>Slider &middot; 0 – 4</span>
+      <span id="countReadout">Position 2 / 4</span>
+    </div>
+
+    <div class="slider-wrap">
+      <input type="range" min="0" max="4" step="1" value="2" class="slider" id="slider" aria-label="Reading position">
+      <div class="ticks" id="ticks" aria-hidden="true">
+        <span class="tick">Gift</span>
+        <span class="tick">Signal</span>
+        <span class="tick">Mirror</span>
+        <span class="tick">Mask</span>
+        <span class="tick">Predator</span>
+      </div>
+    </div>
+
+    <div class="readout" id="readout">
+      <div class="num" id="readoutNum">02</div>
+      <div class="body">
+        <div class="name" id="readoutName">Mirror</div>
+        <div class="sub" id="readoutSub">the overlap. same surface. nothing answers back.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="narrator" id="narrator">
+    Here the split is invisible. Same gestures, same silences. From the outside you cannot tell which one you are looking at &mdash; and, most of the time, neither can they.
+  </div>
+
+  <div class="fragments" id="fragments" aria-live="polite"></div>
+
+  <div class="foot">
+    <span>branch &middot; vlog-concept-exploration</span>
+    <span>draft · not published</span>
+  </div>
+
+</main>
+
+<div class="hint">Drag slider · or press <kbd>←</kbd> <kbd>→</kbd></div>
+
+<script>
+  /* ---------- data ---------- */
+
+  const FRAGMENTS = [
+    { id: 'a', text: 'She doesn’t answer when called.' },
+    { id: 'b', text: 'He speaks through people, not to them.' },
+    { id: 'c', text: 'The apology never arrives.' },
+    { id: 'd', text: 'The rules are for scenery.' },
+    { id: 'e', text: 'She missed the funeral.' },
+    { id: 'f', text: 'He sees the room before he enters it.' },
+    { id: 'g', text: 'Something is missing from the middle.' },
+    { id: 'h', text: 'The world is arranged wrong.' },
+  ];
+
+  // Each position defines: the ordering of fragments, which are "hot" / "dim",
+  // a narrator pass, and the accent colour + wash.
+  const POSITIONS = [
+    {
+      key: '00',
+      name: 'Gift',
+      sub: 'divergence read as clarity. honest to a fault.',
+      accent: '#7dd3fc',
+      wash:   'rgba(59, 130, 246, 0.28)',
+      narrator:
+        'Start here. These are symptoms of clarity, not cruelty. She does not lie because she cannot see the point of lying; he sees the room before he enters it because the room is a puzzle to him. Read the fragments as evidence that the world, in fact, is arranged wrong.',
+      order: ['h','f','d','a','g','b','e','c'],
+      lead: 'h',
+      hot: ['h','f','d','g'],
+      dim: ['e','c'],
+    },
+    {
+      key: '01',
+      name: 'Signal',
+      sub: 'the room notices. same person. now legible.',
+      accent: '#bae6fd',
+      wash:   'rgba(125, 211, 252, 0.22)',
+      narrator:
+        'Now the room starts to track. The same person, the same behaviour &mdash; but the order tilts. The gesture leads, the reason follows. Someone at the table feels seen through. Someone else feels exposed. Nothing has actually changed except the direction of attention.',
+      order: ['b','d','a','f','h','g','c','e'],
+      lead: 'b',
+      hot: ['b','d','a','f'],
+      dim: ['c','e'],
+    },
+    {
+      key: '02',
+      name: 'Mirror',
+      sub: 'the overlap. same surface. nothing answers back.',
+      accent: '#f4efe6',
+      wash:   'rgba(244, 239, 230, 0.18)',
+      narrator:
+        'Here the split is invisible. Same gestures, same silences. From the outside you cannot tell which one you are looking at &mdash; and, most of the time, neither can they. This is the middle of the slider, and the middle of the argument. It is also where most of real life actually happens.',
+      order: ['a','b','g','h','d','f','c','e'],
+      lead: 'g',
+      hot: ['a','b','g','h'],
+      dim: [],
+    },
+    {
+      key: '03',
+      name: 'Mask',
+      sub: 'the behaviour is performed now. same moves, different source.',
+      accent: '#fbbf24',
+      wash:   'rgba(251, 191, 36, 0.25)',
+      narrator:
+        'The behaviour is identical. The source has shifted. What was honest is now rehearsed; what was clarity is now pose. Watch the order slide &mdash; the apology drifts up, because the apology is the most important tool in the kit. The fragments that once answered each other start to quote each other instead.',
+      order: ['c','b','d','a','f','h','e','g'],
+      lead: 'c',
+      hot: ['c','b','d','f'],
+      dim: ['g','h'],
+    },
+    {
+      key: '04',
+      name: 'Predator',
+      sub: 'divergence used as cover. the apology was never real.',
+      accent: '#ff5a1f',
+      wash:   'rgba(255, 90, 31, 0.30)',
+      narrator:
+        'At the far end, the divergence is the alibi. The apology never arrives because the apology was never the point. She missed the funeral because the funeral was not hers. Read the fragments now with the bill at the bottom &mdash; notice that the order ends in absence, and that every earlier line was load-bearing for it.',
+      order: ['c','e','d','b','a','f','h','g'],
+      lead: 'c',
+      hot: ['c','e','d','b'],
+      dim: ['g','h'],
+    },
+  ];
+
+  /* ---------- render ---------- */
+
+  const $ = (id) => document.getElementById(id);
+  const slider = $('slider');
+  const fragmentsEl = $('fragments');
+  const narratorEl = $('narrator');
+  const readout = $('readout');
+  const readoutNum = $('readoutNum');
+  const readoutName = $('readoutName');
+  const readoutSub = $('readoutSub');
+  const countReadout = $('countReadout');
+  const ticks = $('ticks').querySelectorAll('.tick');
+
+  // Build the fragment nodes once, in id order, then animate them to their ranks.
+  const fragNodes = {};
+  const ROW_H = 62; // px spacing between ranks
+
+  FRAGMENTS.forEach((f, i) => {
+    const el = document.createElement('div');
+    el.className = 'fragment';
+    el.dataset.id = f.id;
+    el.innerHTML = `
+      <span class="rank">00</span>
+      <span class="text">${f.text}</span>
+    `;
+    fragmentsEl.appendChild(el);
+    fragNodes[f.id] = el;
+  });
+
+  // Give the fragments container a fixed height so absolute positioning works cleanly.
+  fragmentsEl.style.position = 'relative';
+  fragmentsEl.style.height = (FRAGMENTS.length * ROW_H) + 'px';
+  Object.values(fragNodes).forEach((el) => {
+    el.style.position = 'absolute';
+    el.style.left = '0';
+    el.style.right = '0';
+    el.style.top = '0';
+  });
+
+  function applyPosition(i, { animate = true } = {}) {
+    const pos = POSITIONS[i];
+
+    // Colour + wash
+    document.documentElement.style.setProperty('--accent', pos.accent);
+    document.documentElement.style.setProperty('--wash', pos.wash);
+    document.documentElement.style.setProperty('--thumb-glow', pos.accent);
+
+    // Readout swap animation
+    readout.classList.add('swapping');
+    narratorEl.classList.add('swapping');
+
+    window.setTimeout(() => {
+      readoutNum.textContent = pos.key;
+      readoutName.textContent = pos.name;
+      readoutSub.innerHTML = pos.sub;
+      narratorEl.innerHTML = pos.narrator;
+      narratorEl.style.borderLeftColor = pos.accent;
+      readoutNum.style.color = pos.accent;
+      readout.classList.remove('swapping');
+      narratorEl.classList.remove('swapping');
+    }, animate ? 260 : 0);
+
+    countReadout.textContent = `Position ${i} / 4`;
+
+    // Tick state
+    ticks.forEach((t, idx) => t.classList.toggle('active', idx === i));
+
+    // Move fragments into order
+    pos.order.forEach((id, rank) => {
+      const node = fragNodes[id];
+      node.style.transform = `translateY(${rank * ROW_H}px)`;
+      node.querySelector('.rank').textContent = String(rank + 1).padStart(2, '0');
+
+      node.classList.remove('hot', 'dim', 'lead');
+      if (pos.hot.includes(id)) node.classList.add('hot');
+      else if (pos.dim.includes(id)) node.classList.add('dim');
+      if (pos.lead === id) node.classList.add('lead');
+    });
+  }
+
+  /* ---------- controls ---------- */
+
+  slider.addEventListener('input', (e) => {
+    applyPosition(parseInt(e.target.value, 10));
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const cur = parseInt(slider.value, 10);
+    const next = Math.max(0, Math.min(4, cur + (e.key === 'ArrowRight' ? 1 : -1)));
+    if (next !== cur) {
+      slider.value = String(next);
+      applyPosition(next);
+    }
+  });
+
+  // Click a tick to jump
+  ticks.forEach((t, idx) => {
+    t.style.pointerEvents = 'auto';
+    t.style.cursor = 'pointer';
+    t.addEventListener('click', () => {
+      slider.value = String(idx);
+      applyPosition(idx);
+    });
+  });
+
+  // initial paint (no animation, so fragments snap into place)
+  applyPosition(parseInt(slider.value, 10), { animate: false });
+  // trigger transitions after first paint
+  requestAnimationFrame(() => {
+    Object.values(fragNodes).forEach((el) => {
+      el.style.transition =
+        'transform 700ms cubic-bezier(0.22, 1, 0.36, 1), background 600ms ease, border-color 600ms ease, color 600ms ease, opacity 500ms ease';
+    });
+  });
+
+</script>
+</body>
+</html>
