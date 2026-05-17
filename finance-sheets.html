@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance — Animated Sheets</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #f7f6f3;
+    --ink: #1a1a1a;
+    --muted: #888;
+    --accent: #e84c1e;
+    --accent2: #2563eb;
+    --accent3: #16a34a;
+    --warn: #d97706;
+    --border: #ddd;
+    --card: #fff;
+    --row-hover: #fff8e1;
+    --row-grabbed: #ffe9a8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--ink);
+    padding: 20px 20px 80px;
+    overflow-x: hidden;
+  }
+
+  header {
+    max-width: 1400px;
+    margin: 0 auto 24px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 14px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  header .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  header h1 {
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  header .sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+    max-width: 520px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  button.ctrl {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    padding: 9px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button.ctrl:hover { background: var(--accent); }
+  button.ctrl.ghost { background: #fff; color: var(--ink); border: 1px solid var(--border); }
+  button.ctrl.ghost:hover { background: var(--bg); border-color: var(--ink); }
+
+  .stage {
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr 1.2fr;
+    gap: 18px;
+    min-height: 640px;
+  }
+
+  .sheet {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .sheet-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: #fafafa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .sheet-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .sheet-tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .sheet-body {
+    padding: 14px 16px;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Balance sheet */
+  .balance-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 13px;
+  }
+  .balance-line.total {
+    border-bottom: 2px solid var(--ink);
+    border-top: 2px solid var(--ink);
+    padding: 10px 0;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+  .balance-line .v {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .balance-line .v.pulse {
+    animation: numPulse 0.7s ease-out;
+  }
+  @keyframes numPulse {
+    0%   { color: var(--accent3); transform: scale(1.06); }
+    100% { color: var(--ink);     transform: scale(1); }
+  }
+
+  .balance-group-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 14px 0 4px;
+  }
+  .balance-group-title:first-child { margin-top: 0; }
+
+  /* Bank statement rows */
+  .txn {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.12s;
+    position: relative;
+  }
+  .txn:hover { background: var(--row-hover); }
+  .txn.grabbed { background: var(--row-grabbed); opacity: 0.35; }
+  .txn.done { opacity: 0.25; cursor: default; }
+  .txn.done:hover { background: transparent; }
+  .txn .date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .txn .desc { font-weight: 400; }
+  .txn .amt {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .txn .amt.neg { color: var(--accent); }
+  .txn .amt.pos { color: var(--accent3); }
+  .txn .badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: #f3f4f6;
+    padding: 1px 5px;
+    border-radius: 2px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* Categories */
+  .cat {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+    position: relative;
+  }
+  .cat.drop-glow {
+    border-color: var(--accent);
+    background: #fff5f0;
+    transform: scale(1.02);
+    box-shadow: 0 0 0 3px rgba(232, 76, 30, 0.15);
+  }
+  .cat.dropped {
+    animation: catBounce 0.5s ease-out;
+  }
+  @keyframes catBounce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+  .cat-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .cat-name {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .cat-total {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .cat-items {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: 4px;
+  }
+  .cat-item {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+    animation: slideIn 0.35s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Flying transaction */
+  .flying {
+    position: fixed;
+    z-index: 1000;
+    background: #fff;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+    pointer-events: none;
+    transition: left 1.0s cubic-bezier(.6,.05,.3,1), top 1.0s cubic-bezier(.6,.05,.3,1), transform 0.3s ease, opacity 0.3s ease;
+    transform-origin: center;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    min-width: 180px;
+  }
+  .flying .amt {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .flying.land {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+
+  /* Clippy */
+  .clippy {
+    position: fixed;
+    z-index: 1100;
+    width: 70px;
+    height: 90px;
+    pointer-events: none;
+    transition: left 0.9s cubic-bezier(.6,.05,.3,1), top 0.9s cubic-bezier(.6,.05,.3,1);
+    transform-origin: center;
+  }
+  .clippy.bob { animation: bob 1.4s ease-in-out infinite; }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-6px) rotate(2deg); }
+  }
+  .clippy.cheer { animation: cheer 0.6s ease-out; }
+  @keyframes cheer {
+    0%   { transform: translateY(0) scale(1); }
+    40%  { transform: translateY(-16px) scale(1.08); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  .speech {
+    position: fixed;
+    z-index: 1101;
+    background: #fff8d6;
+    border: 1px solid #c9a83e;
+    color: #4a3608;
+    padding: 7px 12px;
+    border-radius: 14px;
+    font-size: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-width: 220px;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease, left 0.9s cubic-bezier(.6,.05,.3,1), top 0.9s cubic-bezier(.6,.05,.3,1);
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  .speech.show { opacity: 1; transform: translateY(0); }
+  .speech::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 18px;
+    width: 12px;
+    height: 12px;
+    background: #fff8d6;
+    border-right: 1px solid #c9a83e;
+    border-bottom: 1px solid #c9a83e;
+    transform: rotate(45deg);
+  }
+
+  /* Footer status */
+  .legend {
+    max-width: 1400px;
+    margin: 16px auto 0;
+    display: flex;
+    gap: 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    flex-wrap: wrap;
+  }
+  .legend b { color: var(--ink); font-weight: 600; margin-right: 4px; }
+
+  @media (max-width: 980px) {
+    .stage { grid-template-columns: 1fr; }
+    .clippy, .speech { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="label">Finance · Animated Sheets · Tap a transaction</div>
+    <h1>Watch it move.</h1>
+    <div class="sub">Click any transaction on the bank statement. Clippy walks over, picks it up, and carries it into a category. The balance updates when it lands.</div>
+  </div>
+  <div class="controls">
+    <button class="ctrl ghost" id="autoBtn">▶ Auto-sort all</button>
+    <button class="ctrl" id="resetBtn">↺ Reset</button>
+  </div>
+</header>
+
+<div class="stage">
+
+  <!-- SHEET 1: Balance -->
+  <div class="sheet" id="sheet-balance">
+    <div class="sheet-header">
+      <div class="sheet-title">Sheet 1 — Balance</div>
+      <div class="sheet-tab">/balance</div>
+    </div>
+    <div class="sheet-body" id="balance-body">
+      <div class="balance-group-title">Assets</div>
+      <div class="balance-line"><span>Checking</span><span class="v" id="bal-checking">$0.00</span></div>
+      <div class="balance-line"><span>Savings</span><span class="v" id="bal-savings">$4,200.00</span></div>
+      <div class="balance-group-title">This month</div>
+      <div class="balance-line"><span>Income</span><span class="v" id="bal-in">$0.00</span></div>
+      <div class="balance-line"><span>Spending</span><span class="v" id="bal-out">$0.00</span></div>
+      <div class="balance-line"><span>Uncategorized</span><span class="v" id="bal-uncat">$0.00</span></div>
+      <div class="balance-line total"><span>Net</span><span class="v" id="bal-net">$0.00</span></div>
+    </div>
+  </div>
+
+  <!-- SHEET 2: Bank statements -->
+  <div class="sheet" id="sheet-bank">
+    <div class="sheet-header">
+      <div class="sheet-title">Sheet 2 — Bank Statement</div>
+      <div class="sheet-tab">/transactions</div>
+    </div>
+    <div class="sheet-body" id="bank-body"></div>
+  </div>
+
+  <!-- SHEET 3: Categories -->
+  <div class="sheet" id="sheet-cats">
+    <div class="sheet-header">
+      <div class="sheet-title">Sheet 3 — Categories</div>
+      <div class="sheet-tab">/categories</div>
+    </div>
+    <div class="sheet-body" id="cats-body"></div>
+  </div>
+
+</div>
+
+<div class="legend">
+  <div><b>Sheet 1</b> Balance sheet (totals)</div>
+  <div><b>Sheet 2</b> Raw bank statement</div>
+  <div><b>Sheet 3</b> Categorized copies</div>
+  <div><b>Clippy</b> carries each transaction physically</div>
+</div>
+
+<!-- Clippy -->
+<div class="clippy bob" id="clippy">
+  <svg viewBox="0 0 70 90" width="70" height="90">
+    <!-- paperclip body -->
+    <path d="M 22 8
+             C 22 0, 48 0, 48 8
+             L 48 70
+             C 48 80, 32 80, 32 70
+             L 32 18
+             C 32 12, 40 12, 40 18
+             L 40 60"
+          stroke="#5b6470" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- eyes -->
+    <g id="clippy-eyes">
+      <ellipse cx="28" cy="26" rx="5.5" ry="6" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/>
+      <ellipse cx="44" cy="26" rx="5.5" ry="6" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/>
+      <circle cx="29" cy="27" r="2.2" fill="#1a1a1a"/>
+      <circle cx="45" cy="27" r="2.2" fill="#1a1a1a"/>
+    </g>
+    <!-- eyebrows -->
+    <path d="M 23 18 Q 28 16 33 18" stroke="#1a1a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M 39 18 Q 44 16 49 18" stroke="#1a1a1a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  </svg>
+</div>
+
+<div class="speech" id="speech">Hi! Tap a transaction and I'll file it for you.</div>
+
+<script>
+// ---------- DATA ----------
+const TRANSACTIONS = [
+  { id: 't1',  date: '05-02', desc: 'Salary — Acme Co',         amt:  3200.00 },
+  { id: 't2',  date: '05-03', desc: 'Tesco Express',            amt:   -42.18 },
+  { id: 't3',  date: '05-03', desc: 'TfL Travel',               amt:   -12.50 },
+  { id: 't4',  date: '05-04', desc: 'Spotify',                  amt:   -10.99 },
+  { id: 't5',  date: '05-05', desc: 'Pret a Manger',            amt:    -8.75 },
+  { id: 't6',  date: '05-06', desc: 'EDF Energy',               amt:   -86.40 },
+  { id: 't7',  date: '05-07', desc: 'Sainsburys',               amt:   -64.20 },
+  { id: 't8',  date: '05-09', desc: 'Uber',                     amt:   -18.30 },
+  { id: 't9',  date: '05-10', desc: 'Netflix',                  amt:   -15.99 },
+  { id: 't10', date: '05-12', desc: 'Pharmacy — Boots',         amt:   -22.10 },
+  { id: 't11', date: '05-13', desc: 'Refund — ASOS',            amt:    36.00 },
+  { id: 't12', date: '05-14', desc: 'Pub — The Eagle',          amt:   -28.40 },
+];
+
+// Map merchant keywords → category id
+const CATEGORIES = [
+  { id: 'income',    name: 'Income',         keys: ['salary', 'refund'] },
+  { id: 'groceries', name: 'Groceries',      keys: ['tesco', 'sainsburys', 'lidl', 'aldi', 'waitrose'] },
+  { id: 'transport', name: 'Transport',      keys: ['tfl', 'uber', 'train', 'taxi'] },
+  { id: 'eat-out',   name: 'Eating Out',     keys: ['pret', 'pub', 'restaurant', 'cafe', 'starbucks'] },
+  { id: 'subs',      name: 'Subscriptions',  keys: ['spotify', 'netflix', 'icloud', 'github'] },
+  { id: 'utilities', name: 'Utilities',      keys: ['edf', 'thames', 'bt ', 'vodafone', 'energy'] },
+  { id: 'health',    name: 'Health',         keys: ['pharmacy', 'boots', 'gym', 'dentist'] },
+  { id: 'other',     name: 'Other',          keys: [] },
+];
+
+// ---------- STATE ----------
+const state = {
+  txns: TRANSACTIONS.map(t => ({ ...t, categorized: false, categoryId: null })),
+  cats: Object.fromEntries(CATEGORIES.map(c => [c.id, { ...c, items: [], total: 0 }])),
+  busy: false,
+};
+
+// ---------- RENDER ----------
+function fmt(v) {
+  const s = Math.abs(v).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (v < 0 ? '-$' : '$') + s;
+}
+
+function renderBank() {
+  const body = document.getElementById('bank-body');
+  body.innerHTML = '';
+  for (const t of state.txns) {
+    const row = document.createElement('div');
+    row.className = 'txn' + (t.categorized ? ' done' : '');
+    row.dataset.id = t.id;
+    row.innerHTML = `
+      <span class="date">${t.date}</span>
+      <span class="desc">${t.desc}${t.categorized ? `<span class="badge">${state.cats[t.categoryId].name}</span>` : ''}</span>
+      <span class="amt ${t.amt < 0 ? 'neg' : 'pos'}">${fmt(t.amt)}</span>
+    `;
+    if (!t.categorized) {
+      row.addEventListener('click', () => handleTxnClick(t.id, row));
+    }
+    body.appendChild(row);
+  }
+}
+
+function renderCats() {
+  const body = document.getElementById('cats-body');
+  body.innerHTML = '';
+  for (const c of CATEGORIES) {
+    const cat = state.cats[c.id];
+    const div = document.createElement('div');
+    div.className = 'cat';
+    div.id = `cat-${c.id}`;
+    div.innerHTML = `
+      <div class="cat-head">
+        <span class="cat-name">${c.name}</span>
+        <span class="cat-total">${cat.total === 0 ? '—' : fmt(cat.total)}</span>
+      </div>
+      <div class="cat-items" id="items-${c.id}"></div>
+    `;
+    body.appendChild(div);
+    const items = div.querySelector('.cat-items');
+    for (const it of cat.items) {
+      const row = document.createElement('div');
+      row.className = 'cat-item';
+      row.innerHTML = `<span>${it.date} · ${it.desc}</span><span>${fmt(it.amt)}</span>`;
+      items.appendChild(row);
+    }
+  }
+}
+
+function renderBalance() {
+  const income = state.txns.filter(t => t.categorized && t.amt > 0).reduce((s, t) => s + t.amt, 0);
+  const spending = state.txns.filter(t => t.categorized && t.amt < 0).reduce((s, t) => s + Math.abs(t.amt), 0);
+  const uncat = state.txns.filter(t => !t.categorized).reduce((s, t) => s + t.amt, 0);
+  const checking = 1250 + income - spending;
+  const net = income - spending;
+  updateBal('bal-checking', checking);
+  updateBal('bal-in', income);
+  updateBal('bal-out', -spending);
+  updateBal('bal-uncat', uncat);
+  updateBal('bal-net', net);
+}
+
+function updateBal(id, v) {
+  const el = document.getElementById(id);
+  const newText = fmt(v);
+  if (el.textContent !== newText) {
+    el.textContent = newText;
+    el.classList.remove('pulse');
+    void el.offsetWidth;
+    el.classList.add('pulse');
+  }
+}
+
+// ---------- INTERACTION ----------
+function handleTxnClick(id, row) {
+  if (state.busy) return;
+  const t = state.txns.find(x => x.id === id);
+  if (!t || t.categorized) return;
+  const catId = guessCategory(t);
+  animateMove(t, row, catId);
+}
+
+function guessCategory(t) {
+  const d = t.desc.toLowerCase();
+  for (const c of CATEGORIES) {
+    if (c.keys.some(k => d.includes(k))) return c.id;
+  }
+  return 'other';
+}
+
+// ---------- CLIPPY ----------
+const clippy = document.getElementById('clippy');
+const speech = document.getElementById('speech');
+
+function clippyRest() {
+  // Park clippy at bottom-right corner of the bank sheet
+  const bank = document.getElementById('sheet-bank').getBoundingClientRect();
+  moveClippy(bank.right - 80, bank.bottom - 100);
+  setSpeech("Tap a transaction. I'll carry it over.", bank.right - 240, bank.bottom - 140);
+}
+
+function moveClippy(x, y) {
+  clippy.style.left = x + 'px';
+  clippy.style.top  = y + 'px';
+  speech.style.left = (x - 170) + 'px';
+  speech.style.top  = (y - 36) + 'px';
+}
+
+function setSpeech(text, x, y) {
+  speech.textContent = text;
+  if (x !== undefined) {
+    speech.style.left = x + 'px';
+    speech.style.top  = y + 'px';
+  }
+  speech.classList.add('show');
+}
+function hideSpeech() { speech.classList.remove('show'); }
+
+function cheer() {
+  clippy.classList.remove('bob');
+  clippy.classList.add('cheer');
+  setTimeout(() => {
+    clippy.classList.remove('cheer');
+    clippy.classList.add('bob');
+  }, 600);
+}
+
+// ---------- THE MAIN ANIMATION ----------
+async function animateMove(t, row, catId) {
+  state.busy = true;
+  row.classList.add('grabbed');
+
+  const rowRect = row.getBoundingClientRect();
+  const catEl = document.getElementById(`cat-${catId}`);
+  const catRect = catEl.getBoundingClientRect();
+
+  // 1. Clippy walks to the transaction
+  setSpeech(`Got it — "${t.desc.split('—')[0].trim()}".`, rowRect.left - 200, rowRect.top - 30);
+  moveClippy(rowRect.left - 80, rowRect.top - 20);
+  await wait(950);
+
+  // 2. Spawn a flying clone of the transaction
+  const flying = document.createElement('div');
+  flying.className = 'flying';
+  flying.innerHTML = `
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#888">${t.date}</span>
+    <span>${t.desc}</span>
+    <span class="amt">${fmt(t.amt)}</span>
+  `;
+  flying.style.left = rowRect.left + 'px';
+  flying.style.top  = rowRect.top + 'px';
+  document.body.appendChild(flying);
+  await wait(20);
+
+  // 3. Pull flying card up to Clippy
+  flying.style.left = (rowRect.left + 40) + 'px';
+  flying.style.top  = (rowRect.top - 16) + 'px';
+  await wait(300);
+
+  // 4. Highlight target category
+  catEl.classList.add('drop-glow');
+  setSpeech(`Filing into ${state.cats[catId].name}…`, catRect.left - 10, catRect.top - 40);
+
+  // 5. Clippy + card travel together to the category
+  const destX = catRect.left + 20;
+  const destY = catRect.top + 10;
+  moveClippy(destX - 70, destY - 20);
+  flying.style.left = destX + 'px';
+  flying.style.top  = destY + 'px';
+  await wait(1000);
+
+  // 6. Land — card shrinks into the category
+  flying.classList.add('land');
+  await wait(300);
+  flying.remove();
+  catEl.classList.remove('drop-glow');
+  catEl.classList.add('dropped');
+  setTimeout(() => catEl.classList.remove('dropped'), 500);
+
+  // 7. Commit to state, re-render, pulse balance
+  t.categorized = true;
+  t.categoryId = catId;
+  state.cats[catId].items.unshift({ date: t.date, desc: t.desc, amt: t.amt });
+  state.cats[catId].total += t.amt;
+  renderBank();
+  renderCats();
+  renderBalance();
+
+  cheer();
+  state.busy = false;
+
+  // 8. Clippy parks again
+  setTimeout(() => {
+    if (!state.busy) clippyRest();
+  }, 700);
+}
+
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ---------- AUTO-SORT ALL ----------
+async function autoSortAll() {
+  if (state.busy) return;
+  for (const t of state.txns) {
+    if (t.categorized) continue;
+    const row = document.querySelector(`.txn[data-id="${t.id}"]`);
+    if (!row) continue;
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    await wait(250);
+    await animateMove(t, row, guessCategory(t));
+    await wait(200);
+  }
+}
+
+// ---------- RESET ----------
+function reset() {
+  if (state.busy) return;
+  state.txns = TRANSACTIONS.map(t => ({ ...t, categorized: false, categoryId: null }));
+  state.cats = Object.fromEntries(CATEGORIES.map(c => [c.id, { ...c, items: [], total: 0 }]));
+  renderBank();
+  renderCats();
+  renderBalance();
+  setTimeout(clippyRest, 100);
+}
+
+// ---------- INIT ----------
+document.getElementById('autoBtn').addEventListener('click', autoSortAll);
+document.getElementById('resetBtn').addEventListener('click', reset);
+window.addEventListener('resize', () => { if (!state.busy) clippyRest(); });
+
+renderBank();
+renderCats();
+renderBalance();
+window.addEventListener('load', () => setTimeout(clippyRest, 200));
+</script>
+
+</body>
+</html>
