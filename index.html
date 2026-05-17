@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master — Tool Shell</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #f7f6f3;
+    --ink: #1a1a1a;
+    --muted: #888;
+    --accent: #e84c1e;
+    --accent2: #2563eb;
+    --accent3: #16a34a;
+    --warn: #d97706;
+    --border: #ddd;
+    --card: #fff;
+    --slot-bg: repeating-linear-gradient(
+      45deg,
+      #f0eee9 0 12px,
+      #f7f6f3 12px 24px
+    );
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  body {
+    background: var(--bg);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--ink);
+    padding: 18px 18px 28px;
+    overflow-x: hidden;
+  }
+
+  /* MASTER HEADER */
+  .master-bar {
+    max-width: 1500px;
+    margin: 0 auto 18px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 6px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .master-bar .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .master-bar .label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: #999;
+    text-transform: uppercase;
+  }
+  .master-bar h1 {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .master-bar .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: #999;
+    border: 1px solid #333;
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+
+  /* What the master "sees" — live readouts from the sandbox panels */
+  .observatory {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .obs {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 110px;
+  }
+  .obs .l {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #888;
+  }
+  .obs .v {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    transition: color 0.4s;
+  }
+  .obs .v.flash { color: var(--accent3); }
+  .obs .v.idle  { color: #555; }
+
+  /* GRID OF PANELS */
+  .grid {
+    max-width: 1500px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2.2fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 18px;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.04);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 360px;
+    position: relative;
+  }
+
+  .panel.live { grid-row: span 2; min-height: 760px; }
+
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: #fafafa;
+    flex-shrink: 0;
+  }
+  .panel-head .name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .panel-head .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent3);
+    margin-right: 6px;
+    box-shadow: 0 0 0 0 rgba(22,163,74,0.5);
+    animation: liveDot 1.6s ease-in-out infinite;
+  }
+  @keyframes liveDot {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(22,163,74,0.5); }
+    50%      { box-shadow: 0 0 0 6px rgba(22,163,74,0); }
+  }
+  .panel-head .meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* Live iframe panel */
+  .panel.live .body {
+    flex: 1;
+    padding: 0;
+  }
+  .panel.live iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  /* Empty slot panels */
+  .panel.slot .body {
+    flex: 1;
+    background: var(--slot-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    text-align: center;
+    gap: 10px;
+  }
+  .panel.slot .slot-icon {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 40px;
+    font-weight: 300;
+    color: #c4c0b3;
+    line-height: 1;
+  }
+  .panel.slot .slot-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6b6757;
+  }
+  .panel.slot .slot-hint {
+    font-size: 12px;
+    color: #8a8674;
+    max-width: 240px;
+    line-height: 1.5;
+  }
+  .panel.slot .slot-stage {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: #b5b09d;
+    margin-top: 8px;
+    text-transform: uppercase;
+  }
+
+  /* The roadmap strip */
+  .roadmap {
+    max-width: 1500px;
+    margin: 18px auto 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+  }
+  .roadmap .rm-label {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 6px;
+  }
+  .stage {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    background: #f3f4f6;
+    color: #555;
+  }
+  .stage.done { background: #dcfce7; color: #166534; }
+  .stage.now  { background: #fef3c7; color: #92400e; }
+  .stage.next { background: #e0e7ff; color: #3730a3; }
+  .stage .n {
+    font-weight: 600;
+    background: rgba(255,255,255,0.55);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  @media (max-width: 1100px) {
+    .grid { grid-template-columns: 1fr; }
+    .panel.live { grid-row: auto; min-height: 600px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="master-bar">
+  <div class="brand">
+    <div>
+      <div class="label">Master · Tool Shell</div>
+      <h1>One layer up.</h1>
+    </div>
+    <span class="tag">v0.1 · stage 1</span>
+  </div>
+
+  <div class="observatory">
+    <div class="obs">
+      <span class="l">Finance · net</span>
+      <span class="v idle" id="obs-net">—</span>
+    </div>
+    <div class="obs">
+      <span class="l">Finance · uncategorized</span>
+      <span class="v idle" id="obs-uncat">—</span>
+    </div>
+    <div class="obs">
+      <span class="l">Appointments</span>
+      <span class="v idle">offline</span>
+    </div>
+    <div class="obs">
+      <span class="l">Slot 3</span>
+      <span class="v idle">empty</span>
+    </div>
+  </div>
+</div>
+
+<div class="grid">
+
+  <!-- LIVE PANEL: finance sandbox -->
+  <div class="panel live">
+    <div class="panel-head">
+      <div class="name"><span class="dot"></span>Finance · animated sheets</div>
+      <div class="meta">sandbox · iframe · /finance-sheets.html</div>
+    </div>
+    <div class="body">
+      <iframe id="finance-frame" src="finance-sheets.html" title="Finance sandbox"></iframe>
+    </div>
+  </div>
+
+  <!-- SLOT: appointments -->
+  <div class="panel slot">
+    <div class="panel-head">
+      <div class="name">Slot 1 · Appointments</div>
+      <div class="meta">stage 2 · pending</div>
+    </div>
+    <div class="body">
+      <div class="slot-icon">+</div>
+      <div class="slot-name">Appointments</div>
+      <div class="slot-hint">Inbox → calendar → maps → reminders. Same shape as finance: real UIs you watch the system move through, not summaries.</div>
+      <div class="slot-stage">Stage 2</div>
+    </div>
+  </div>
+
+  <!-- SLOT: open -->
+  <div class="panel slot">
+    <div class="panel-head">
+      <div class="name">Slot 2 · Reserved</div>
+      <div class="meta">stage 3+ · open</div>
+    </div>
+    <div class="body">
+      <div class="slot-icon">+</div>
+      <div class="slot-name">Future tool</div>
+      <div class="slot-hint">Empty by design. The master is the layer that pulls data out of each sandbox; new tools dock here without knowing about each other.</div>
+      <div class="slot-stage">Stage 3+</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="roadmap">
+  <span class="rm-label">Roadmap</span>
+  <span class="stage done"><span class="n">1a</span> Finance sandbox (animated)</span>
+  <span class="stage now"><span class="n">1b</span> Master shell wraps the sandbox</span>
+  <span class="stage next"><span class="n">2</span> Appointments sandbox</span>
+  <span class="stage"><span class="n">3</span> Master ↔ sandbox wiring (cross-tool reads)</span>
+  <span class="stage"><span class="n">4</span> Nth tool drops into open slot</span>
+</div>
+
+<script>
+// The master observes the finance sandbox by reading from the iframe DOM.
+// Same-origin so this works without any postMessage wiring on the sandbox side —
+// the sandbox doesn't have to know the master exists. That's the whole point of
+// the shell: tools stay isolated; the master is the layer that reaches in.
+
+const frame = document.getElementById('finance-frame');
+const obsNet   = document.getElementById('obs-net');
+const obsUncat = document.getElementById('obs-uncat');
+
+let lastNet = null;
+let lastUncat = null;
+
+function flash(el) {
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+  el.classList.remove('idle');
+}
+
+function observe() {
+  try {
+    const doc = frame.contentDocument;
+    if (!doc) return;
+    const net   = doc.getElementById('bal-net');
+    const uncat = doc.getElementById('bal-uncat');
+    if (!net || !uncat) return;
+    if (net.textContent !== lastNet) {
+      obsNet.textContent = net.textContent;
+      if (lastNet !== null) flash(obsNet);
+      else obsNet.classList.remove('idle');
+      lastNet = net.textContent;
+    }
+    if (uncat.textContent !== lastUncat) {
+      obsUncat.textContent = uncat.textContent;
+      if (lastUncat !== null) flash(obsUncat);
+      else obsUncat.classList.remove('idle');
+      lastUncat = uncat.textContent;
+    }
+  } catch (e) {
+    // iframe not ready yet
+  }
+}
+
+frame.addEventListener('load', () => {
+  observe();
+  setInterval(observe, 600);
+});
+</script>
+
+</body>
+</html>
