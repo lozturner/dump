@@ -112,10 +112,10 @@ a:hover { text-decoration: underline; }
 .pill.active { background: var(--accent); color: white; border-color: var(--accent); }
 
 .list-pane { overflow-y: auto; background: var(--bg); min-height: 0; }
-/* When the gantt page is mounted, the pane needs to be a flex container with NO outer scroll
-   so the internal split layout (gantt scroll + reading pane) fills the available height. */
-.list-pane:has(.gantt-layout) { overflow: hidden; display: flex; flex-direction: column; }
-.list-pane:has(.gantt-layout) > .gantt-layout { flex: 1; min-height: 0; }
+/* When the gantt page is mounted, .list-pane is told it's in gantt mode by JS.
+   This avoids relying on the :has() selector (which is iffy in older viewers). */
+.list-pane.gantt-mode { overflow: hidden; display: flex; flex-direction: column; }
+.list-pane.gantt-mode > .gantt-layout { flex: 1 1 0; min-height: 0; }
 .list {
   background: var(--pane); margin: 12px 16px; border: 1px solid var(--border); border-radius: 10px;
   box-shadow: var(--shadow-sm); overflow: hidden;
@@ -410,16 +410,33 @@ a:hover { text-decoration: underline; }
 .gantt-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 460px;
+  grid-template-rows: 1fr;
   height: 100%;
   min-height: 0;
+  position: relative;
 }
+.gantt-layout.pane-hidden { grid-template-columns: minmax(0, 1fr) 0; }
+.gantt-layout.pane-hidden .reading-pane { display: none; }
 .gantt-scroll { overflow: auto; min-width: 0; min-height: 0; }
 .reading-pane {
   border-left: 1px solid var(--border);
   background: var(--pane);
   display: flex; flex-direction: column;
-  min-height: 0; overflow: hidden;
+  min-height: 0; min-width: 0; overflow: hidden;
   box-shadow: -8px 0 24px rgba(0,0,0,.04);
+}
+.pane-toggle {
+  position: absolute; top: 50%; right: 460px; transform: translateY(-50%) translateX(50%);
+  width: 22px; height: 60px; border-radius: 6px 0 0 6px;
+  background: var(--pane); border: 1px solid var(--border); border-right: none;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--muted); z-index: 5; box-shadow: -2px 0 6px rgba(0,0,0,.04);
+  font-size: 14px; padding: 0;
+}
+.pane-toggle:hover { color: var(--accent); border-color: var(--accent); }
+.gantt-layout.pane-hidden .pane-toggle {
+  right: 0; transform: translateY(-50%);
+  border-radius: 6px 0 0 6px;
 }
 .reading-pane-empty {
   flex: 1; display: flex; flex-direction: column;
@@ -432,13 +449,15 @@ a:hover { text-decoration: underline; }
 .reading-pane-empty .hint { font-size: 11px; color: var(--soft); margin-top: 10px; }
 @media (max-width: 1100px) {
   .gantt-layout { grid-template-columns: minmax(0, 1fr) 380px; }
+  .pane-toggle { right: 380px; }
 }
 @media (max-width: 900px) {
   .gantt-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto; }
   .reading-pane { border-left: none; border-top: 1px solid var(--border); max-height: 55vh; }
+  .pane-toggle { display: none; }
 }
 .pane-header {
-  height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 12px;
+  flex: 0 0 64px; display: flex; align-items: center; gap: 12px;
   padding: 0 18px; background: #fafbf9; border-bottom: 1px solid var(--border);
 }
 .pane-header .icon-tile {
@@ -462,7 +481,7 @@ a:hover { text-decoration: underline; }
 .pane-back:hover, .pane-close:hover { background: var(--border-soft); color: var(--text); }
 .pane-back { margin-right: 4px; }
 
-.pane-body { flex: 1; overflow-y: auto; background: var(--pane); }
+.pane-body { flex: 1 1 0; overflow-y: auto; background: var(--pane); min-height: 0; }
 
 /* List view rows — Gmail mobile style */
 .cell-list-empty { padding: 40px 20px; text-align: center; color: var(--muted); }
@@ -911,11 +930,15 @@ let selectedGanttCell = null;
 function renderGantt(pane) {
   document.getElementById("viewTitle").textContent = "Visual timeline";
   document.getElementById("viewMeta").textContent = "👆 Tap a green cell — the email list appears on the right";
+  // .list-pane needs flex-column mode so the internal split layout fills height.
+  pane.classList.add("gantt-mode");
+  // Remove the class on any other view by listening to the sidebar nav (handled elsewhere)
   const tpl = document.getElementById("ganttTemplate");
   // Build the embedded split-pane layout: gantt on the left, reading pane on the right.
   pane.innerHTML = `
-    <div class="gantt-layout">
+    <div class="gantt-layout" id="ganttLayout">
       <div class="gantt-scroll" id="ganttScroll"></div>
+      <button class="pane-toggle" id="paneToggle" title="Hide/show reading pane" type="button">›</button>
       <aside class="reading-pane" id="embeddedPane">
         <div class="reading-pane-empty">
           <div class="empty-icon">📨</div>
@@ -929,6 +952,13 @@ function renderGantt(pane) {
   const ganttScroll = pane.querySelector("#ganttScroll");
   ganttScroll.appendChild(tpl.content.cloneNode(true));
   const embeddedPane = pane.querySelector("#embeddedPane");
+  const layoutEl = pane.querySelector("#ganttLayout");
+  const toggleBtn = pane.querySelector("#paneToggle");
+  toggleBtn.addEventListener("click", () => {
+    const hidden = layoutEl.classList.toggle("pane-hidden");
+    toggleBtn.textContent = hidden ? "‹" : "›";
+    toggleBtn.title = hidden ? "Show reading pane" : "Hide reading pane";
+  });
   selectedGanttCell = null;
   ganttScroll.querySelectorAll(".g-cell.on").forEach(c => {
     c.setAttribute("role", "button");
@@ -1424,6 +1454,8 @@ document.getElementById("sidebar").addEventListener("click", e => {
   state.category = btn.dataset.cat || null;
   state.quick = null;
   document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+  // Clean up gantt-mode class when leaving the Visual Timeline page
+  if (state.view !== "gantt") document.getElementById("listPane").classList.remove("gantt-mode");
   renderList();
 });
 
