@@ -111,7 +111,11 @@ a:hover { text-decoration: underline; }
 .pill:hover { border-color: var(--muted); color: var(--text); }
 .pill.active { background: var(--accent); color: white; border-color: var(--accent); }
 
-.list-pane { overflow-y: auto; background: var(--bg); }
+.list-pane { overflow-y: auto; background: var(--bg); min-height: 0; }
+/* When the gantt page is mounted, the pane needs to be a flex container with NO outer scroll
+   so the internal split layout (gantt scroll + reading pane) fills the available height. */
+.list-pane:has(.gantt-layout) { overflow: hidden; display: flex; flex-direction: column; }
+.list-pane:has(.gantt-layout) > .gantt-layout { flex: 1; min-height: 0; }
 .list {
   background: var(--pane); margin: 12px 16px; border: 1px solid var(--border); border-radius: 10px;
   box-shadow: var(--shadow-sm); overflow: hidden;
@@ -402,7 +406,37 @@ a:hover { text-decoration: underline; }
 .my-chron-item .item-actions button.remove { color: var(--flag); border-color: #fecaca; }
 .my-chron-item .item-actions button.remove:hover { background: var(--flag-soft); }
 
-/* ─── Cell reading pane: two states, list + detail ─── */
+/* ─── Visual timeline split-pane layout (gantt + reading pane side-by-side) ─── */
+.gantt-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 460px;
+  height: 100%;
+  min-height: 0;
+}
+.gantt-scroll { overflow: auto; min-width: 0; min-height: 0; }
+.reading-pane {
+  border-left: 1px solid var(--border);
+  background: var(--pane);
+  display: flex; flex-direction: column;
+  min-height: 0; overflow: hidden;
+  box-shadow: -8px 0 24px rgba(0,0,0,.04);
+}
+.reading-pane-empty {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  padding: 40px 24px; text-align: center; color: var(--muted);
+}
+.reading-pane-empty .empty-icon { font-size: 38px; opacity: .4; margin-bottom: 4px; }
+.reading-pane-empty h3 { margin: 0; color: var(--text); font-size: 15px; font-weight: 600; }
+.reading-pane-empty p { margin: 0; font-size: 12px; }
+.reading-pane-empty .hint { font-size: 11px; color: var(--soft); margin-top: 10px; }
+@media (max-width: 1100px) {
+  .gantt-layout { grid-template-columns: minmax(0, 1fr) 380px; }
+}
+@media (max-width: 900px) {
+  .gantt-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto; }
+  .reading-pane { border-left: none; border-top: 1px solid var(--border); max-height: 55vh; }
+}
 .pane-header {
   height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 12px;
   padding: 0 18px; background: #fafbf9; border-bottom: 1px solid var(--border);
@@ -876,26 +910,162 @@ function renderTimeline(pane) {
 let selectedGanttCell = null;
 function renderGantt(pane) {
   document.getElementById("viewTitle").textContent = "Visual timeline";
-  document.getElementById("viewMeta").textContent = "👆 Tap a green cell — the reading pane slides in from the right";
+  document.getElementById("viewMeta").textContent = "👆 Tap a green cell — the email list appears on the right";
   const tpl = document.getElementById("ganttTemplate");
-  pane.innerHTML = "";
-  pane.appendChild(tpl.content.cloneNode(true));
-  pane.querySelectorAll(".g-cell.on").forEach(c => {
+  // Build the embedded split-pane layout: gantt on the left, reading pane on the right.
+  pane.innerHTML = `
+    <div class="gantt-layout">
+      <div class="gantt-scroll" id="ganttScroll"></div>
+      <aside class="reading-pane" id="embeddedPane">
+        <div class="reading-pane-empty">
+          <div class="empty-icon">📨</div>
+          <h3>Select a cell on the left</h3>
+          <p>Click any green cell in the timeline grid to see the emails for that month × category here.</p>
+          <p class="hint">The numbers on each cell tell you how many emails are inside.</p>
+        </div>
+      </aside>
+    </div>
+  `;
+  const ganttScroll = pane.querySelector("#ganttScroll");
+  ganttScroll.appendChild(tpl.content.cloneNode(true));
+  const embeddedPane = pane.querySelector("#embeddedPane");
+  selectedGanttCell = null;
+  ganttScroll.querySelectorAll(".g-cell.on").forEach(c => {
     c.setAttribute("role", "button");
     c.setAttribute("tabindex", "0");
     const open = () => {
-      // Toggle: clicking the same cell closes
-      if (selectedGanttCell === c) { closeCellDrawer(); return; }
-      // Move highlight
+      if (selectedGanttCell === c) {
+        // toggle off
+        selectedGanttCell.classList.remove("selected");
+        selectedGanttCell = null;
+        renderEmbeddedEmpty(embeddedPane);
+        return;
+      }
       if (selectedGanttCell) selectedGanttCell.classList.remove("selected");
       c.classList.add("selected");
       selectedGanttCell = c;
-      openCellDrawer(c.dataset.cat, c.dataset.month);
+      renderEmbeddedList(embeddedPane, c.dataset.cat, c.dataset.month);
     };
     c.addEventListener("click", open);
     c.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
     });
+  });
+}
+
+function renderEmbeddedEmpty(paneEl) {
+  paneEl.innerHTML = `
+    <div class="reading-pane-empty">
+      <div class="empty-icon">📨</div>
+      <h3>Select a cell on the left</h3>
+      <p>Click any green cell in the timeline grid to see the emails for that month × category here.</p>
+      <p class="hint">The numbers on each cell tell you how many emails are inside.</p>
+    </div>
+  `;
+}
+
+function renderEmbeddedList(paneEl, cat, month) {
+  const monthLabel = new Date(month + "-01").toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const emails = DATA.filter(r => r.category === cat && r.date.slice(0,7) === month)
+                     .sort((a,b) => b.date.localeCompare(a.date));
+  paneEl.innerHTML = `
+    <div class="pane-header">
+      <div class="icon-tile">${categoryIcon(cat)}</div>
+      <div class="ph-text">
+        <h2>${esc(cat)}</h2>
+        <p>${esc(monthLabel)} · ${emails.length} ${emails.length === 1 ? "email" : "emails"}</p>
+      </div>
+    </div>
+    <div class="pane-body pane-fade-in" id="embeddedPaneBody"></div>
+  `;
+  const body = paneEl.querySelector("#embeddedPaneBody");
+  if (!emails.length) {
+    body.innerHTML = '<div class="cell-list-empty">No emails in this cell.</div>';
+    return;
+  }
+  body.innerHTML = emails.map(r => {
+    const hasBody = !!(BODIES[r.id] && BODIES[r.id].body);
+    const classes = ["cell-list-row"];
+    if (r.direction === "Outbound") classes.push("outbound");
+    if (hasBody) classes.push("has-body");
+    return `<div class="${classes.join(" ")}" data-row-id="${esc(r.id)}">
+      <div class="unread-dot" title="${hasBody ? "Full body available" : r.direction === "Outbound" ? "Sent by you" : ""}"></div>
+      <div class="row-content">
+        <div class="row-top">
+          <span class="row-sender">${esc(r.from)}</span>
+          <span class="row-date">${esc(new Date(r.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}</span>
+        </div>
+        <div class="row-subj">${esc(r.subject)}</div>
+        <div class="row-snip">${esc(r.summary)}</div>
+      </div>
+      <div class="row-chev">›</div>
+    </div>`;
+  }).join("");
+  body.querySelectorAll("[data-row-id]").forEach(row => {
+    row.addEventListener("click", () => renderEmbeddedDetail(paneEl, row.dataset.rowId, { cat, month, monthLabel }));
+  });
+}
+
+function renderEmbeddedDetail(paneEl, id, returnTo) {
+  const r = BY_ID[id]; if (!r) return;
+  const bodyInfo = BODIES[r.id];
+  const hasBody = !!(bodyInfo && bodyInfo.body);
+  const pinned = isInChronology(r.id);
+  const avatar = (r.from || "?").charAt(0).toUpperCase();
+  const avatarClass = r.direction === "Outbound" ? "outbound" : "inbound";
+  const dirShort = r.direction === "Inbound" ? "IN" : "OUT";
+  const noteVal = state.notes[r.id] || "";
+  paneEl.innerHTML = `
+    <div class="pane-header">
+      <button class="pane-back" id="embeddedBackBtn" title="Back to list">←</button>
+      <div class="icon-tile">${categoryIcon(r.category)}</div>
+      <div class="ph-text">
+        <h2>${esc(returnTo.cat)}</h2>
+        <p>${esc(returnTo.monthLabel)} · email detail</p>
+      </div>
+    </div>
+    <div class="pane-body pane-fade-in">
+      <div class="cell-detail">
+        <h1 class="cd-title">${esc(r.subject)}</h1>
+        <div class="cd-sender-row">
+          <div class="cd-avatar ${avatarClass}">${esc(avatar)}</div>
+          <div>
+            <div class="cd-sender">${esc(r.from)}</div>
+            <div class="cd-meta">to ${esc(r.to)} · ${esc(fmtDate(r.date))}</div>
+          </div>
+        </div>
+        <div class="cd-cat-row">
+          <span class="dir ${r.direction}">${dirShort}</span>
+          <span class="tag ${categoryClass(r.category)}" style="margin-left:6px">${esc(r.category)}</span>
+          <span class="muted small" style="margin-left:6px">Msg ID: <code>${esc(r.id)}</code></span>
+        </div>
+        <div class="cd-section-label">Summary (auto-generated)</div>
+        <div class="cd-summary">${esc(r.summary)}</div>
+        <div class="cd-section-label">Full email body</div>
+        ${hasBody
+          ? `<div class="cd-body">${esc(bodyInfo.body)}</div>`
+          : `<div class="cd-no-body">Only the Gmail snippet was indexed — open in Gmail for the full original.</div>`
+        }
+        <div class="cd-section-label">Your notes <span class="muted small" style="text-transform:none;letter-spacing:0">(saved locally)</span></div>
+        <textarea class="note-area" id="embeddedNoteArea" data-id="${esc(r.id)}" placeholder="Add a private note…">${esc(noteVal)}</textarea>
+        <div class="cd-footer">
+          <a class="gm-link" href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
+          <button class="pin-btn ${pinned ? "pinned" : ""}" data-pin-id="${esc(r.id)}" type="button">
+            ${pinned ? "✓ In my chronology" : "📌 Add to my chronology"}
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  wirePinButtons(paneEl);
+  paneEl.querySelector("#embeddedBackBtn").addEventListener("click", () => {
+    renderEmbeddedList(paneEl, returnTo.cat, returnTo.month);
+  });
+  const ta = paneEl.querySelector("#embeddedNoteArea");
+  ta.addEventListener("input", (e) => {
+    const v = e.target.value.trim();
+    if (v) state.notes[r.id] = v; else delete state.notes[r.id];
+    saveState(); updateSidebarCounts();
   });
 }
 
