@@ -207,8 +207,13 @@ a:hover { text-decoration: underline; }
   background: var(--pane); border-left: 1px solid var(--border); box-shadow: var(--shadow-lg);
   transform: translateX(100%); transition: transform .22s ease; z-index: 50;
   display: flex; flex-direction: column;
+  overflow: hidden;
 }
 .drawer.open { transform: translateX(0); }
+#drawerContent {
+  flex: 1; display: flex; flex-direction: column;
+  min-height: 0; overflow: hidden;
+}
 .drawer-header {
   padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
   background: var(--pane); position: sticky; top: 0; z-index: 1;
@@ -244,8 +249,9 @@ a:hover { text-decoration: underline; }
   pointer-events: none; transition: opacity .2s; }
 .scrim.show { opacity: 1; pointer-events: auto; }
 /* When the cell drawer is open we keep the Gantt visible underneath:
-   no dimming, but the empty page area still closes the drawer on click. */
-.scrim.show.no-dim { background: transparent; opacity: 1; }
+   no dimming, AND pointer events pass through so you can still click
+   other green cells (or anything else) without the scrim swallowing them. */
+.scrim.show.no-dim { background: transparent; opacity: 0; pointer-events: none; }
 
 /* PAGES: stats, timeline */
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 12px; padding: 16px; }
@@ -18740,7 +18746,7 @@ Patient Support Coordinator</pre></div>
 <div class="meth">
   <div class="meth-card">
     <h2>How this report was built</h2>
-    <p class="muted">Generated 19 May 2026, 21:36 UTC from the lozturner@gmail.com inbox.</p>
+    <p class="muted">Generated 19 May 2026, 21:42 UTC from the lozturner@gmail.com inbox.</p>
     <ol>
       <li>Gmail was searched for every thread mentioning <code>Releaf</code> (and <code>releaf.co.uk</code>) using the Gmail API
         via the Claude MCP <code>search_threads</code> tool. All result pages were paginated.</li>
@@ -24205,10 +24211,12 @@ function renderPaneDetail(r, returnTo) {
   const pinned = isInChronology(r.id);
   const avatar = (r.from || "?").charAt(0).toUpperCase();
   const avatarClass = r.direction === "Outbound" ? "outbound" : "inbound";
+  const dirShort = r.direction === "Inbound" ? "IN" : "OUT";
   const headerTitle = returnTo ? esc(returnTo.cat) : esc(r.subject);
   const headerSub = returnTo
-    ? `${esc(returnTo.monthLabel)} · viewing 1 of N`
+    ? `${esc(returnTo.monthLabel)} · email detail`
     : esc(fmtDate(r.date));
+  const noteVal = state.notes[r.id] || "";
   root.innerHTML = `
     <div class="pane-header">
       ${returnTo ? `<button class="pane-back" id="paneBackBtn" title="Back to list">←</button>` : ""}
@@ -24231,7 +24239,11 @@ function renderPaneDetail(r, returnTo) {
             <div class="cd-meta">to ${esc(r.to)} · ${esc(fmtDate(r.date))}</div>
           </div>
         </div>
-        <div class="cd-cat-row"><span class="tag ${categoryClass(r.category)}">${esc(r.category)}</span></div>
+        <div class="cd-cat-row">
+          <span class="dir ${r.direction}">${dirShort}</span>
+          <span class="tag ${categoryClass(r.category)}" style="margin-left:6px">${esc(r.category)}</span>
+          <span class="muted small" style="margin-left:6px">Msg ID: <code>${esc(r.id)}</code></span>
+        </div>
         <div class="cd-section-label">Summary (auto-generated)</div>
         <div class="cd-summary">${esc(r.summary)}</div>
         <div class="cd-section-label">Full email body</div>
@@ -24239,6 +24251,8 @@ function renderPaneDetail(r, returnTo) {
           ? `<div class="cd-body">${esc(bodyInfo.body)}</div>`
           : `<div class="cd-no-body">Only the Gmail snippet was indexed for this message — manually-written replies and your outbound emails have full bodies; automated notifications (delivery, payment receipts, calendar invites) keep only the snippet. Click "Open in Gmail" below for the original.</div>`
         }
+        <div class="cd-section-label">Your notes <span class="muted small" style="text-transform:none;letter-spacing:0">(saved locally in this browser)</span></div>
+        <textarea class="note-area" id="paneNoteArea" data-id="${esc(r.id)}" placeholder="Add a private note for this email…">${esc(noteVal)}</textarea>
         <div class="cd-footer">
           <a class="gm-link" href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
           <button class="pin-btn ${pinned ? "pinned" : ""}" data-pin-id="${esc(r.id)}" type="button">
@@ -24250,9 +24264,22 @@ function renderPaneDetail(r, returnTo) {
   `;
   wirePinButtons(root);
   root.querySelector("#paneCloseBtn").addEventListener("click", closeCellDrawer);
+  // Wire the notes textarea to persist state
+  const ta = root.querySelector("#paneNoteArea");
+  if (ta) {
+    ta.addEventListener("input", (e) => {
+      const v = e.target.value.trim();
+      if (v) state.notes[r.id] = v; else delete state.notes[r.id];
+      saveState(); updateSidebarCounts();
+      // Also reflect on the matching inline row in the inbox view
+      const inlineRow = document.querySelector(`#listInner .row[data-id="${r.id}"]`);
+      if (inlineRow) inlineRow.classList.toggle("has-note", !!state.notes[r.id]);
+      const inlineTa = document.querySelector(`#listInner .row[data-id="${r.id}"] textarea.note-inline`);
+      if (inlineTa) inlineTa.value = v;
+    });
+  }
   if (returnTo) {
     root.querySelector("#paneBackBtn").addEventListener("click", () => {
-      // Recompute list and go back
       const emails = DATA.filter(rr => rr.category === returnTo.cat && rr.date.slice(0,7) === returnTo.month)
                          .sort((a,b) => b.date.localeCompare(a.date));
       paneContext = { mode: "cell", cat: returnTo.cat, month: returnTo.month };
