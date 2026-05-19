@@ -216,6 +216,23 @@ a:hover { text-decoration: underline; }
 .empty { text-align: center; color: var(--muted); padding: 60px 20px; }
 .empty .ic { font-size: 36px; opacity: .4; }
 
+/* GANTT */
+.gantt { padding: 16px; overflow-x: auto; }
+.g-grid { display: grid; gap: 2px; align-items: center; min-width: 720px; }
+.g-year { font-size: 12px; color: var(--muted); text-align: center; padding: 4px 0; font-weight: 600;
+  border-bottom: 1px solid var(--border); background: var(--bg); }
+.g-month { font-size: 10px; text-align: center; color: var(--soft); padding: 2px 0;
+  background: var(--bg); border-bottom: 1px solid var(--border); text-transform: uppercase; }
+.g-rowlabel { padding: 4px 8px; font-size: 12px; background: var(--pane); border-radius: 4px;
+  display: flex; align-items: center; gap: 6px; min-width: 0; }
+.g-count { color: var(--muted); font-size: 11px; margin-left: auto; }
+.g-cell { background: #eef2ee; height: 24px; border-radius: 3px; font-size: 10px;
+  display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; }
+.g-cell.on { cursor: pointer; }
+.g-cell.on:hover { outline: 2px solid var(--accent); outline-offset: -1px; }
+.g-legend { display: flex; gap: 14px; align-items: center; margin-top: 16px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+.g-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
   :root { --sidebar-w: 56px; --drawer-w: 100vw; }
@@ -248,7 +265,8 @@ a:hover { text-decoration: underline; }
     <button class="sb-item" data-view="outbound"><span class="ic">📤</span><span>Sent by you</span><span class="count" id="c-outbound"></span></button>
 
     <div class="sb-section">Pages</div>
-    <button class="sb-item" data-view="timeline"><span class="ic">📅</span><span>Timeline</span></button>
+    <button class="sb-item" data-view="gantt"><span class="ic">📈</span><span>Visual timeline</span></button>
+    <button class="sb-item" data-view="timeline"><span class="ic">📅</span><span>Chronology</span></button>
     <button class="sb-item" data-view="stats"><span class="ic">📊</span><span>Overview</span></button>
 
     <div class="sb-section">Categories</div>
@@ -266,9 +284,19 @@ a:hover { text-decoration: underline; }
         <button class="pill" data-quick="recent">Last 30 days</button>
       </div>
     </div>
-    <div class="list-pane" id="listPane"></div>
+    <div class="list-pane" id="listPane">
+      <noscript>
+        <div style="padding: 12px 16px; background: #fef3c7; color: #92400e; border-bottom: 1px solid var(--border); font-size: 13px;">
+          JavaScript is disabled — showing static list. Filtering, search, the side drawer, and the visual timeline need JS to work.
+        </div>
+      </noscript>
+      __INITIAL_LIST__
+    </div>
   </main>
 </div>
+
+<!-- pre-rendered visual timeline (initially hidden; shown by JS when Gantt view selected; visible as standalone via #gantt anchor) -->
+<template id="ganttTemplate">__GANTT_HTML__</template>
 
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-hidden="true">
@@ -397,6 +425,7 @@ function renderList() {
   const pane = document.getElementById("listPane");
   if (state.view === "timeline") return renderTimeline(pane);
   if (state.view === "stats") return renderStats(pane);
+  if (state.view === "gantt") return renderGantt(pane);
 
   const rows = currentRows();
   const title = ({
@@ -565,6 +594,27 @@ function renderTimeline(pane) {
   pane.querySelectorAll(".tl-card").forEach(c => c.addEventListener("click", () => openDrawer(c.dataset.id)));
 }
 
+// ── GANTT PAGE ──
+function renderGantt(pane) {
+  document.getElementById("viewTitle").textContent = "Visual timeline";
+  document.getElementById("viewMeta").textContent = "Top categories by month — click a cell to filter";
+  const tpl = document.getElementById("ganttTemplate");
+  pane.innerHTML = "";
+  pane.appendChild(tpl.content.cloneNode(true));
+  pane.querySelectorAll(".g-cell.on").forEach(c => {
+    c.addEventListener("click", () => {
+      // Switch to inbox view filtered by that category + that month
+      state.view = "cat";
+      state.category = c.dataset.cat;
+      state.quick = null;
+      state.search = c.dataset.month;  // YYYY-MM matches our date prefix in search
+      document.getElementById("searchInput").value = c.dataset.month;
+      document.querySelectorAll("#sidebar .sb-item").forEach(b => b.classList.remove("active"));
+      renderList();
+    });
+  });
+}
+
 // ── STATS PAGE ──
 function renderStats(pane) {
   document.getElementById("viewTitle").textContent = "Overview";
@@ -698,7 +748,38 @@ document.getElementById("exportBtn").addEventListener("click", () => {
 // ── INIT ──
 buildCategoryList();
 updateSidebarCounts();
-renderList();
+
+// Hook click handlers onto the pre-rendered rows (they already exist in the DOM)
+// and apply persisted star/flag/note state to them.
+function wireExistingRows() {
+  const pane = document.getElementById("listPane");
+  pane.querySelectorAll(".row").forEach(row => {
+    const id = row.dataset.id;
+    if (state.starred.has(id)) {
+      const s = row.querySelector(".star"); if (s) { s.classList.add("on"); s.textContent = "★"; }
+    }
+    if (state.flagged.has(id)) {
+      const f = row.querySelector(".flag"); if (f) f.classList.add("on");
+    }
+    if (state.notes[id]) row.classList.add("has-note");
+    row.addEventListener("click", (e) => {
+      const act = e.target.closest("[data-act]");
+      if (act) {
+        e.stopPropagation();
+        const aid = act.dataset.id;
+        if (act.dataset.act === "star") toggleStar(aid);
+        if (act.dataset.act === "flag") toggleFlag(aid);
+        return;
+      }
+      // Don't hijack the ↗ link in the chevron column
+      if (e.target.closest("a")) return;
+      openDrawer(row.dataset.id);
+    });
+  });
+  // Update the view meta
+  document.getElementById("viewMeta").textContent = pane.querySelectorAll(".row").length + " emails";
+}
+wireExistingRows();
 </script>
 </body>
 </html>
