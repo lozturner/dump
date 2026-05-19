@@ -436,8 +436,12 @@ methodology_html = f'''
   </div>
 </div>
 '''
+# Strip bodies down to just the body text — that's all the JS render needs.
+bodies_for_js = {mid: {"body": b["body"]} for mid, b in BODIES.items() if b.get("body")}
+
 out = (tpl
     .replace("__DATA_JSON__", json.dumps(records, ensure_ascii=False))
+    .replace("__BODIES_JSON__", json.dumps(bodies_for_js, ensure_ascii=False))
     .replace("__INITIAL_LIST__", initial_list)
     .replace("__GANTT_HTML__", gantt_html)
     .replace("__METHODOLOGY_HTML__", methodology_html)

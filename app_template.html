@@ -740,6 +740,10 @@ a:hover { text-decoration: underline; }
 const DATA = __DATA_JSON__;
 DATA.sort((a,b) => a.date.localeCompare(b.date));
 const BY_ID = Object.fromEntries(DATA.map(r => [r.id, r]));
+// Full email bodies for the substantive threads — used by the cell-drawer
+// row renderer to embed the full body inline (same as the server-rendered
+// inbox rows). Keys = message id, values = { body }.
+const BODIES = __BODIES_JSON__;
 
 // ── STATE ──
 const LS = "releaf.app.v1";
