@@ -25,6 +25,49 @@ if bodies_path.exists():
     except Exception as e:
         print(f"WARN: could not parse {bodies_path}: {e}")
 
+# Merge in any bodies that don't have a corresponding row in the curated
+# records list. These are typically replies inside multi-message threads
+# that the original snippet-based pass collapsed into a single row.
+GMAIL = "https://mail.google.com/mail/u/0/#all/{}"
+existing_ids = {r["id"] for r in records}
+
+def guess_category(b):
+    sender = (b.get("from", "") or "").lower()
+    subj = (b.get("subject", "") or "").lower()
+    is_out = sender.startswith("lozturner@")
+    if "bignarstiemedical" in sender or "bignarstiemedical" in subj or "new customer message" in subj:
+        return "External/Switch" if not is_out else "Outbound/Switch"
+    if is_out and subj.startswith("fwd"):
+        return "Outbound/Forward"
+    if is_out:
+        return "Outbound/Support"
+    return "Support"
+
+for mid, b in BODIES.items():
+    if mid in existing_ids:
+        continue
+    sender = b.get("from", "") or ""
+    direction = "Outbound" if sender.lower().startswith("lozturner@") else "Inbound"
+    body_text = (b.get("body") or "").strip()
+    # First non-empty sentence-ish chunk as summary
+    summary = (body_text.split("\n\n")[0] or body_text)[:240].replace("\n", " ").strip()
+    if len(body_text) > 240:
+        summary += "…"
+    records.append({
+        "id": mid,
+        "url": GMAIL.format(mid),
+        "date": b.get("date", ""),
+        "from": sender,
+        "to": b.get("to", "") or "",
+        "direction": direction,
+        "subject": b.get("subject", "") or "(no subject)",
+        "category": guess_category(b),
+        "summary": summary or "(body-only message — see expanded view)",
+    })
+# Re-sort after merging
+records.sort(key=lambda r: r["date"])
+print(f"Merged {len(records) - len(existing_ids)} orphan-body messages; total records: {len(records)}")
+
 def esc(s):
     return _html.escape(str(s), quote=True)
 
