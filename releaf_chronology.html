@@ -31,7 +31,7 @@
   --shadow-md: 0 4px 12px rgba(0,0,0,.06);
   --shadow-lg: 0 20px 50px rgba(0,0,0,.18);
   --sidebar-w: 232px;
-  --drawer-w: 460px;
+  --drawer-w: 560px;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text);
@@ -210,10 +210,11 @@ a:hover { text-decoration: underline; }
 }
 .drawer.open { transform: translateX(0); }
 .drawer-header {
-  padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
+  background: var(--pane); position: sticky; top: 0; z-index: 1;
 }
 .drawer-header .actions { margin-left: auto; display: flex; gap: 4px; }
-.drawer-body { padding: 16px; overflow-y: auto; flex: 1; }
+.drawer-body { padding: 0; overflow-y: auto; flex: 1; background: var(--bg); }
 .drawer-body h3 { margin: 0 0 4px; font-size: 18px; }
 .drawer-body .meta-grid { display: grid; grid-template-columns: 60px 1fr; gap: 6px 12px; font-size: 13px;
   padding: 12px 0; border-bottom: 1px solid var(--border-soft); margin-bottom: 12px; }
@@ -389,30 +390,65 @@ a:hover { text-decoration: underline; }
 .my-chron-item .item-actions button.remove { color: var(--flag); border-color: #fecaca; }
 .my-chron-item .item-actions button.remove:hover { background: var(--flag-soft); }
 
-/* Gantt-cell drawer: lists emails in a clicked cell */
-.cell-drawer-content { padding: 14px 16px; }
-.cell-drawer-content .cell-email {
-  border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px;
-  margin-bottom: 10px; background: var(--pane);
+/* Cell drawer — Gmail-like reading pane (list rows that expand on click) */
+.cell-drawer-content { padding: 0; background: var(--bg); }
+.cell-drawer-banner {
+  padding: 12px 16px; background: var(--accent-soft); color: var(--accent-text);
+  font-size: 13px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1;
 }
-.cell-drawer-content .cell-email .head {
-  display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 6px;
-  font-size: 12px; color: var(--muted);
+.cell-drawer-banner strong { font-weight: 600; }
+.cell-list { background: var(--pane); }
+details.cell-email {
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--pane);
+  transition: background .1s;
 }
-.cell-drawer-content .cell-email .subj { font-weight: 600; margin: 4px 0; }
-.cell-drawer-content .cell-email .body-snip {
-  background: var(--bg); padding: 8px 10px; border-radius: 6px; max-height: 200px;
-  overflow-y: auto; font-size: 12px; white-space: pre-wrap; margin-top: 8px;
-  border: 1px solid var(--border-soft);
+details.cell-email:last-child { border-bottom: none; }
+details.cell-email[open] { background: #fafbf9; box-shadow: inset 3px 0 0 var(--accent); }
+details.cell-email > summary {
+  list-style: none; cursor: pointer; padding: 12px 16px;
+  display: grid; grid-template-columns: 30px 60px 1fr 16px; gap: 8px;
+  align-items: center;
 }
-.cell-drawer-content .cell-email .actions { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
-.cell-drawer-content .cell-email .actions a, .cell-drawer-content .cell-email .actions button {
-  padding: 5px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border);
+details.cell-email > summary::-webkit-details-marker { display: none; }
+details.cell-email > summary::marker { display: none; }
+details.cell-email > summary:hover { background: var(--hover); }
+details.cell-email .ce-dir {
+  font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;
+  text-align: center; letter-spacing: .02em;
+}
+details.cell-email .ce-dir.Inbound { background: var(--purple-soft); color: var(--purple); }
+details.cell-email .ce-dir.Outbound { background: var(--star-soft); color: #92400e; }
+details.cell-email .ce-when { font-size: 11px; color: var(--muted); white-space: nowrap; }
+details.cell-email .ce-text { min-width: 0; }
+details.cell-email .ce-subj {
+  font-weight: 500; font-size: 13px; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; margin-bottom: 2px;
+}
+details.cell-email .ce-snip {
+  font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap;
+}
+details.cell-email .ce-chevron { color: var(--soft); transition: transform .15s; }
+details.cell-email[open] .ce-chevron { transform: rotate(90deg); color: var(--accent); }
+.ce-expanded { padding: 4px 16px 16px; }
+.ce-expanded dl.meta-grid { margin: 0 0 12px; }
+.ce-expanded .body-snip {
+  background: var(--bg); padding: 12px 14px; border-radius: 8px;
+  max-height: 320px; overflow-y: auto; font-size: 13px; line-height: 1.5;
+  white-space: pre-wrap; margin: 8px 0; border: 1px solid var(--border-soft);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+.ce-expanded .ce-summary-text { font-size: 13px; color: var(--text); margin: 4px 0 8px; line-height: 1.5; }
+.ce-expanded .ce-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.ce-expanded .ce-actions a, .ce-expanded .ce-actions button {
+  padding: 6px 12px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border);
   background: white; cursor: pointer; text-decoration: none; color: var(--text);
+  display: inline-flex; align-items: center; gap: 6px;
 }
-.cell-drawer-content .cell-email .actions .pin-btn {
-  font-size: 12px; padding: 5px 10px;
-}
+.ce-expanded .ce-actions a.gm-link { background: var(--accent); color: white; border-color: var(--accent); }
+.ce-expanded .ce-actions a.gm-link:hover { background: #115e59; text-decoration: none; }
+.ce-no-body { color: var(--muted); font-size: 12px; font-style: italic; padding: 8px 0; }
 
 /* RESPONSIVE */
 @media (max-width: 900px) {
@@ -18635,7 +18671,7 @@ Patient Support Coordinator</pre></div>
 <div class="meth">
   <div class="meth-card">
     <h2>How this report was built</h2>
-    <p class="muted">Generated 19 May 2026, 18:41 UTC from the lozturner@gmail.com inbox.</p>
+    <p class="muted">Generated 19 May 2026, 19:50 UTC from the lozturner@gmail.com inbox.</p>
     <ol>
       <li>Gmail was searched for every thread mentioning <code>Releaf</code> (and <code>releaf.co.uk</code>) using the Gmail API
         via the Claude MCP <code>search_threads</code> tool. All result pages were paginated.</li>
@@ -24076,37 +24112,57 @@ function openCellDrawer(cat, month) {
   // Find all emails for this cell
   const emails = DATA.filter(r => r.category === cat && r.date.slice(0,7) === month)
                      .sort((a,b) => a.date.localeCompare(b.date));
+  const monthLabel = new Date(month + "-01").toLocaleDateString("en-GB", { month:"long", year:"numeric" });
   dCat.textContent = cat;
   dCat.className = "tag " + categoryClass(cat);
-  dDir.textContent = month;
+  dDir.textContent = monthLabel;
   dDir.className = "tag muted";
   document.getElementById("dStar").style.display = "none";
   document.getElementById("dFlag").style.display = "none";
+
   body.innerHTML = `<div class="cell-drawer-content">
-    <p class="muted small">${emails.length} email${emails.length !== 1 ? "s" : ""} in ${esc(cat)} during ${esc(new Date(month + "-01").toLocaleDateString("en-GB", { month:"long", year:"numeric" }))}</p>
-    ${emails.map(r => {
-      const bodyInfo = BODIES[r.id];
-      const bodyHtml = bodyInfo && bodyInfo.body
-        ? `<div class="body-snip">${esc(bodyInfo.body)}</div>`
-        : `<p class="muted small" style="margin-top:8px">No full body fetched for this message — open in Gmail for the full content.</p>`;
-      const pinned = isInChronology(r.id);
-      return `<div class="cell-email" data-id="${r.id}">
-        <div class="head">
-          <span>${fmtDate(r.date)}</span>
-          <span class="dir ${r.direction}">${r.direction === "Inbound" ? "IN" : "OUT"}</span>
-          <span class="muted small">${esc(r.from)} → ${esc(r.to)}</span>
-        </div>
-        <div class="subj">${esc(r.subject)}</div>
-        <div class="muted small">${esc(r.summary)}</div>
-        ${bodyHtml}
-        <div class="actions">
-          <a href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
-          <button class="pin-btn ${pinned ? "pinned" : ""}" data-pin-id="${r.id}" type="button">
-            ${pinned ? "✓ In my chronology" : "📌 Add to my chronology"}
-          </button>
-        </div>
-      </div>`;
-    }).join("")}
+    <div class="cell-drawer-banner">
+      <strong>${emails.length} email${emails.length !== 1 ? "s" : ""}</strong> in
+      <strong>${esc(cat)}</strong> during <strong>${esc(monthLabel)}</strong>.
+      Click any row to preview, then open in Gmail or add to your chronology.
+    </div>
+    <div class="cell-list">
+      ${emails.map(r => {
+        const bodyInfo = BODIES[r.id];
+        const bodyHtml = bodyInfo && bodyInfo.body
+          ? `<div class="body-snip">${esc(bodyInfo.body)}</div>`
+          : `<div class="ce-no-body">No full body fetched — only the Gmail snippet. Click "Open in Gmail" below to read the original.</div>`;
+        const pinned = isInChronology(r.id);
+        return `<details class="cell-email" data-id="${r.id}">
+          <summary>
+            <span class="ce-dir ${r.direction}">${r.direction === "Inbound" ? "IN" : "OUT"}</span>
+            <span class="ce-when">${fmtShortDate(r.date)}</span>
+            <div class="ce-text">
+              <div class="ce-subj">${esc(r.subject)}</div>
+              <div class="ce-snip">${esc(r.summary)}</div>
+            </div>
+            <span class="ce-chevron">▸</span>
+          </summary>
+          <div class="ce-expanded">
+            <dl class="meta-grid">
+              <dt>From</dt><dd>${esc(r.from)}</dd>
+              <dt>To</dt><dd>${esc(r.to)}</dd>
+              <dt>Date</dt><dd>${esc(fmtDate(r.date))}</dd>
+            </dl>
+            <div class="block-label">Summary</div>
+            <p class="ce-summary-text">${esc(r.summary)}</p>
+            <div class="block-label">Full email body</div>
+            ${bodyHtml}
+            <div class="ce-actions">
+              <a class="gm-link" href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
+              <button class="pin-btn ${pinned ? "pinned" : ""}" data-pin-id="${r.id}" type="button">
+                ${pinned ? "✓ In my chronology" : "📌 Add to my chronology"}
+              </button>
+            </div>
+          </div>
+        </details>`;
+      }).join("")}
+    </div>
   </div>`;
   wirePinButtons(body);
   drawer.classList.add("open");
