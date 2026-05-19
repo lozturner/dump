@@ -447,6 +447,29 @@ a:hover { text-decoration: underline; }
 .reading-pane-empty h3 { margin: 0; color: var(--text); font-size: 15px; font-weight: 600; }
 .reading-pane-empty p { margin: 0; font-size: 12px; }
 .reading-pane-empty .hint { font-size: 11px; color: var(--soft); margin-top: 10px; }
+
+/* Rows inside the reading pane use the compact two-row layout regardless of viewport width */
+.pane-rows .row > summary {
+  grid-template-columns: 28px 28px 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 4px 10px;
+}
+.pane-rows .row > summary > .star { grid-column: 1; grid-row: 1; }
+.pane-rows .row > summary > .flag { grid-column: 2; grid-row: 1; }
+.pane-rows .row > summary > .meta {
+  grid-column: 3; grid-row: 1;
+  flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px;
+}
+.pane-rows .row > summary > .meta .cat-tag { font-size: 10px; padding: 1px 6px; }
+.pane-rows .row > summary > .chev-marker { grid-column: 4; grid-row: 1; }
+.pane-rows .row > summary > .sub { grid-column: 1 / -1; grid-row: 2; min-width: 0; }
+.pane-rows .row > summary > .sub .subj { white-space: normal; font-size: 14px; line-height: 1.35; font-weight: 600; }
+.pane-rows .row > summary > .sub .snip {
+  white-space: normal;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+  line-height: 1.4;
+}
 @media (max-width: 1100px) {
   .gantt-layout { grid-template-columns: minmax(0, 1fr) 380px; }
   .pane-toggle { right: 380px; }
@@ -18799,7 +18822,7 @@ Patient Support Coordinator</pre></div>
 <div class="meth">
   <div class="meth-card">
     <h2>How this report was built</h2>
-    <p class="muted">Generated 19 May 2026, 22:14 UTC from the lozturner@gmail.com inbox.</p>
+    <p class="muted">Generated 19 May 2026, 22:20 UTC from the lozturner@gmail.com inbox.</p>
     <ol>
       <li>Gmail was searched for every thread mentioning <code>Releaf</code> (and <code>releaf.co.uk</code>) using the Gmail API
         via the Claude MCP <code>search_threads</code> tool. All result pages were paginated.</li>
@@ -24087,20 +24110,19 @@ function renderList() {
 function toggleStar(id) {
   if (state.starred.has(id)) state.starred.delete(id); else state.starred.add(id);
   saveState(); updateSidebarCounts();
-  // Update the specific button in place
-  const btn = document.querySelector(`#listInner .row[data-id="${id}"] .star`);
-  if (btn) {
+  // Update all matching star buttons (inbox AND pane)
+  document.querySelectorAll(`.row[data-id="${id}"] .star`).forEach(btn => {
     btn.classList.toggle("on", state.starred.has(id));
     btn.textContent = state.starred.has(id) ? "★" : "☆";
-  }
-  // If currently filtered to starred-only, re-apply the filter
+  });
   if (state.view === "starred") renderList();
 }
 function toggleFlag(id) {
   if (state.flagged.has(id)) state.flagged.delete(id); else state.flagged.add(id);
   saveState(); updateSidebarCounts();
-  const btn = document.querySelector(`#listInner .row[data-id="${id}"] .flag`);
-  if (btn) btn.classList.toggle("on", state.flagged.has(id));
+  document.querySelectorAll(`.row[data-id="${id}"] .flag`).forEach(btn => {
+    btn.classList.toggle("on", state.flagged.has(id));
+  });
   if (state.view === "flagged") renderList();
 }
 
@@ -24200,6 +24222,89 @@ function renderEmbeddedEmpty(paneEl) {
   `;
 }
 
+// Render a single email as the SAME <details class="row"> structure used
+// by the inbox view. Click-to-expand inline behavior, all the same fields
+// (meta-grid, summary, full body, notes, Add-to-chronology + Open in Gmail).
+function renderInboxRowHtml(r) {
+  const bodyInfo = BODIES[r.id];
+  const hasBody = !!(bodyInfo && bodyInfo.body);
+  const pinned = isInChronology(r.id);
+  const starOn = state.starred.has(r.id);
+  const flagOn = state.flagged.has(r.id);
+  const noteVal = state.notes[r.id] || "";
+  const dirShort = r.direction === "Inbound" ? "IN" : "OUT";
+  const bodyBlock = hasBody
+    ? `<div class="body-block"><div class="block-label">Full email body</div><pre class="body-text">${esc(bodyInfo.body)}</pre></div>`
+    : `<div class="body-block muted-block"><div class="block-label">Full email body</div><p class="muted small">Only the Gmail snippet is available for this message — open it in Gmail (button below) to read the full content.</p></div>`;
+  const hasNoteCls = state.notes[r.id] ? " has-note" : "";
+  return `<details class="row${hasNoteCls}" data-id="${esc(r.id)}" data-cat="${esc(r.category)}" data-dir="${esc(r.direction)}" data-date="${esc(r.date)}">
+    <summary class="row-summary">
+      <button class="star ${starOn ? "on" : ""}" data-act="star" data-id="${esc(r.id)}" title="Star" type="button">${starOn ? "★" : "☆"}</button>
+      <button class="flag ${flagOn ? "on" : ""}" data-act="flag" data-id="${esc(r.id)}" title="Flag" type="button">🚩</button>
+      <div class="meta">
+        <span class="when">${esc(fmtShortDate(r.date))}</span>
+        <span class="dir ${esc(r.direction)}">${dirShort}</span>
+        <span class="tag ${categoryClass(r.category)} cat-tag">${esc(r.category)}</span>
+        ${hasBody ? '<span class="has-body" title="Full body available">●</span>' : ""}
+      </div>
+      <div class="sub">
+        <div class="subj">${esc(r.subject)}</div>
+        <div class="snip">${esc(r.summary)}</div>
+      </div>
+      <span class="chev-marker">▸</span>
+    </summary>
+    <div class="row-expanded">
+      <dl class="meta-grid">
+        <dt>From</dt><dd>${esc(r.from)}</dd>
+        <dt>To</dt><dd>${esc(r.to)}</dd>
+        <dt>Date</dt><dd>${esc(fmtDate(r.date))}</dd>
+        <dt>Direction</dt><dd>${esc(r.direction)}</dd>
+        <dt>Category</dt><dd><span class="tag ${categoryClass(r.category)}">${esc(r.category)}</span></dd>
+        <dt>Msg ID</dt><dd><code>${esc(r.id)}</code></dd>
+      </dl>
+      <div class="block-label">Summary (auto-generated)</div>
+      <p class="summary-text">${esc(r.summary)}</p>
+      ${bodyBlock}
+      <div class="row-notes" data-notes-for="${esc(r.id)}">
+        <div class="block-label">Your notes <span class="muted small">(saved locally when JS is on)</span></div>
+        <textarea class="note-inline" data-id="${esc(r.id)}" placeholder="Add a private note…">${esc(noteVal)}</textarea>
+      </div>
+      <div class="row-actions">
+        <button class="pin-btn ${pinned ? "pinned" : ""}" data-pin-id="${esc(r.id)}" type="button">${pinned ? "✓ In my chronology" : "📌 Add to my chronology"}</button>
+        <a class="gm-btn" href="${esc(r.url)}" target="_blank" rel="noopener">↗ Open in Gmail</a>
+      </div>
+    </div>
+  </details>`;
+}
+
+// Wire up a single row (star/flag/notes/pin) — extracted from wireExistingRows
+function wireRow(row) {
+  const id = row.dataset.id;
+  row.querySelectorAll("[data-act]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const aid = btn.dataset.id;
+      if (btn.dataset.act === "star") toggleStar(aid);
+      if (btn.dataset.act === "flag") toggleFlag(aid);
+    });
+  });
+  const ta = row.querySelector("textarea.note-inline");
+  if (ta) {
+    ta.addEventListener("input", (e) => {
+      const v = e.target.value.trim();
+      if (v) state.notes[id] = v; else delete state.notes[id];
+      // Sync has-note across all rows with the same id (inbox + pane)
+      document.querySelectorAll(`.row[data-id="${id}"]`).forEach(rr => {
+        rr.classList.toggle("has-note", !!state.notes[id]);
+        const t2 = rr.querySelector("textarea.note-inline");
+        if (t2 && t2 !== e.target) t2.value = v;
+      });
+      saveState(); updateSidebarCounts();
+    });
+  }
+  wirePinButtons(row);
+}
+
 function renderEmbeddedList(paneEl, cat, month) {
   const monthLabel = new Date(month + "-01").toLocaleDateString("en-GB", { month: "long", year: "numeric" });
   const emails = DATA.filter(r => r.category === cat && r.date.slice(0,7) === month)
@@ -24219,90 +24324,9 @@ function renderEmbeddedList(paneEl, cat, month) {
     body.innerHTML = '<div class="cell-list-empty">No emails in this cell.</div>';
     return;
   }
-  body.innerHTML = emails.map(r => {
-    const hasBody = !!(BODIES[r.id] && BODIES[r.id].body);
-    const classes = ["cell-list-row"];
-    if (r.direction === "Outbound") classes.push("outbound");
-    if (hasBody) classes.push("has-body");
-    return `<div class="${classes.join(" ")}" data-row-id="${esc(r.id)}">
-      <div class="unread-dot" title="${hasBody ? "Full body available" : r.direction === "Outbound" ? "Sent by you" : ""}"></div>
-      <div class="row-content">
-        <div class="row-top">
-          <span class="row-sender">${esc(r.from)}</span>
-          <span class="row-date">${esc(new Date(r.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}</span>
-        </div>
-        <div class="row-subj">${esc(r.subject)}</div>
-        <div class="row-snip">${esc(r.summary)}</div>
-      </div>
-      <div class="row-chev">›</div>
-    </div>`;
-  }).join("");
-  body.querySelectorAll("[data-row-id]").forEach(row => {
-    row.addEventListener("click", () => renderEmbeddedDetail(paneEl, row.dataset.rowId, { cat, month, monthLabel }));
-  });
-}
-
-function renderEmbeddedDetail(paneEl, id, returnTo) {
-  const r = BY_ID[id]; if (!r) return;
-  const bodyInfo = BODIES[r.id];
-  const hasBody = !!(bodyInfo && bodyInfo.body);
-  const pinned = isInChronology(r.id);
-  const avatar = (r.from || "?").charAt(0).toUpperCase();
-  const avatarClass = r.direction === "Outbound" ? "outbound" : "inbound";
-  const dirShort = r.direction === "Inbound" ? "IN" : "OUT";
-  const noteVal = state.notes[r.id] || "";
-  paneEl.innerHTML = `
-    <div class="pane-header">
-      <button class="pane-back" id="embeddedBackBtn" title="Back to list">←</button>
-      <div class="icon-tile">${categoryIcon(r.category)}</div>
-      <div class="ph-text">
-        <h2>${esc(returnTo.cat)}</h2>
-        <p>${esc(returnTo.monthLabel)} · email detail</p>
-      </div>
-    </div>
-    <div class="pane-body pane-fade-in">
-      <div class="cell-detail">
-        <h1 class="cd-title">${esc(r.subject)}</h1>
-        <div class="cd-sender-row">
-          <div class="cd-avatar ${avatarClass}">${esc(avatar)}</div>
-          <div>
-            <div class="cd-sender">${esc(r.from)}</div>
-            <div class="cd-meta">to ${esc(r.to)} · ${esc(fmtDate(r.date))}</div>
-          </div>
-        </div>
-        <div class="cd-cat-row">
-          <span class="dir ${r.direction}">${dirShort}</span>
-          <span class="tag ${categoryClass(r.category)}" style="margin-left:6px">${esc(r.category)}</span>
-          <span class="muted small" style="margin-left:6px">Msg ID: <code>${esc(r.id)}</code></span>
-        </div>
-        <div class="cd-section-label">Summary (auto-generated)</div>
-        <div class="cd-summary">${esc(r.summary)}</div>
-        <div class="cd-section-label">Full email body</div>
-        ${hasBody
-          ? `<div class="cd-body">${esc(bodyInfo.body)}</div>`
-          : `<div class="cd-no-body">Only the Gmail snippet was indexed — open in Gmail for the full original.</div>`
-        }
-        <div class="cd-section-label">Your notes <span class="muted small" style="text-transform:none;letter-spacing:0">(saved locally)</span></div>
-        <textarea class="note-area" id="embeddedNoteArea" data-id="${esc(r.id)}" placeholder="Add a private note…">${esc(noteVal)}</textarea>
-        <div class="cd-footer">
-          <a class="gm-link" href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
-          <button class="pin-btn ${pinned ? "pinned" : ""}" data-pin-id="${esc(r.id)}" type="button">
-            ${pinned ? "✓ In my chronology" : "📌 Add to my chronology"}
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-  wirePinButtons(paneEl);
-  paneEl.querySelector("#embeddedBackBtn").addEventListener("click", () => {
-    renderEmbeddedList(paneEl, returnTo.cat, returnTo.month);
-  });
-  const ta = paneEl.querySelector("#embeddedNoteArea");
-  ta.addEventListener("input", (e) => {
-    const v = e.target.value.trim();
-    if (v) state.notes[r.id] = v; else delete state.notes[r.id];
-    saveState(); updateSidebarCounts();
-  });
+  // Render rows using the EXACT same HTML structure as the inbox view.
+  body.innerHTML = `<div class="pane-rows list" id="paneRows">${emails.map(renderInboxRowHtml).join("")}</div>`;
+  body.querySelectorAll(".row").forEach(wireRow);
 }
 
 // ─── READING PANE (right-side drawer) ──
