@@ -396,65 +396,128 @@ a:hover { text-decoration: underline; }
 .my-chron-item .item-actions button.remove { color: var(--flag); border-color: #fecaca; }
 .my-chron-item .item-actions button.remove:hover { background: var(--flag-soft); }
 
-/* Cell drawer — Gmail-like reading pane (list rows that expand on click) */
-.cell-drawer-content { padding: 0; background: var(--bg); }
-.cell-drawer-banner {
-  padding: 12px 16px; background: var(--accent-soft); color: var(--accent-text);
-  font-size: 13px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1;
+/* ─── Cell reading pane: two states, list + detail ─── */
+.pane-header {
+  height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 12px;
+  padding: 0 18px; background: #fafbf9; border-bottom: 1px solid var(--border);
 }
-.cell-drawer-banner strong { font-weight: 600; }
-.cell-list { background: var(--pane); }
-details.cell-email {
+.pane-header .icon-tile {
+  width: 36px; height: 36px; flex-shrink: 0;
+  background: var(--accent-soft); color: var(--accent-text);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.pane-header .ph-text { flex: 1; min-width: 0; }
+.pane-header .ph-text h2 {
+  margin: 0; font-size: 15px; font-weight: 600; line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pane-header .ph-text p { margin: 2px 0 0; font-size: 11px; color: var(--muted); font-weight: 500; }
+.pane-header .ph-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.pane-back, .pane-close {
+  width: 32px; height: 32px; border-radius: 50%; border: none; background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); cursor: pointer; font-size: 16px;
+}
+.pane-back:hover, .pane-close:hover { background: var(--border-soft); color: var(--text); }
+.pane-back { margin-right: 4px; }
+
+.pane-body { flex: 1; overflow-y: auto; background: var(--pane); }
+
+/* List view rows — Gmail mobile style */
+.cell-list-empty { padding: 40px 20px; text-align: center; color: var(--muted); }
+.cell-list-row {
+  padding: 14px 16px;
+  display: flex; gap: 12px;
   border-bottom: 1px solid var(--border-soft);
-  background: var(--pane);
-  transition: background .1s;
+  cursor: pointer;
+  transition: background .08s;
 }
-details.cell-email:last-child { border-bottom: none; }
-details.cell-email[open] { background: #fafbf9; box-shadow: inset 3px 0 0 var(--accent); }
-details.cell-email > summary {
-  list-style: none; cursor: pointer; padding: 12px 16px;
-  display: grid; grid-template-columns: 30px 60px 1fr 16px; gap: 8px;
-  align-items: center;
+.cell-list-row:hover { background: var(--hover); }
+.cell-list-row .unread-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  margin-top: 6px; flex-shrink: 0; background: transparent;
 }
-details.cell-email > summary::-webkit-details-marker { display: none; }
-details.cell-email > summary::marker { display: none; }
-details.cell-email > summary:hover { background: var(--hover); }
-details.cell-email .ce-dir {
-  font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600;
-  text-align: center; letter-spacing: .02em;
+.cell-list-row.outbound .unread-dot { background: var(--star); }
+.cell-list-row.has-body .unread-dot { background: var(--accent); }
+.cell-list-row .row-content { flex: 1; min-width: 0; }
+.cell-list-row .row-top {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  margin-bottom: 3px;
 }
-details.cell-email .ce-dir.Inbound { background: var(--purple-soft); color: var(--purple); }
-details.cell-email .ce-dir.Outbound { background: var(--star-soft); color: #92400e; }
-details.cell-email .ce-when { font-size: 11px; color: var(--muted); white-space: nowrap; }
-details.cell-email .ce-text { min-width: 0; }
-details.cell-email .ce-subj {
-  font-weight: 500; font-size: 13px; overflow: hidden; text-overflow: ellipsis;
-  white-space: nowrap; margin-bottom: 2px;
+.cell-list-row .row-sender {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-details.cell-email .ce-snip {
-  font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis;
-  white-space: nowrap;
+.cell-list-row .row-date { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+.cell-list-row .row-subj {
+  font-size: 13px; color: var(--text); font-weight: 500; margin-bottom: 3px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-details.cell-email .ce-chevron { color: var(--soft); transition: transform .15s; }
-details.cell-email[open] .ce-chevron { transform: rotate(90deg); color: var(--accent); }
-.ce-expanded { padding: 4px 16px 16px; }
-.ce-expanded dl.meta-grid { margin: 0 0 12px; }
-.ce-expanded .body-snip {
-  background: var(--bg); padding: 12px 14px; border-radius: 8px;
-  max-height: 320px; overflow-y: auto; font-size: 13px; line-height: 1.5;
-  white-space: pre-wrap; margin: 8px 0; border: 1px solid var(--border-soft);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+.cell-list-row .row-snip {
+  font-size: 12px; color: var(--muted); line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
 }
-.ce-expanded .ce-summary-text { font-size: 13px; color: var(--text); margin: 4px 0 8px; line-height: 1.5; }
-.ce-expanded .ce-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-.ce-expanded .ce-actions a, .ce-expanded .ce-actions button {
-  padding: 6px 12px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border);
-  background: white; cursor: pointer; text-decoration: none; color: var(--text);
-  display: inline-flex; align-items: center; gap: 6px;
+.cell-list-row .row-chev {
+  align-self: center; flex-shrink: 0; color: var(--soft); font-size: 18px;
+  opacity: 0; transition: opacity .08s;
 }
-.ce-expanded .ce-actions a.gm-link { background: var(--accent); color: white; border-color: var(--accent); }
-.ce-expanded .ce-actions a.gm-link:hover { background: #115e59; text-decoration: none; }
-.ce-no-body { color: var(--muted); font-size: 12px; font-style: italic; padding: 8px 0; }
+.cell-list-row:hover .row-chev { opacity: 1; }
+
+/* Detail view */
+.cell-detail { padding: 22px 24px; }
+.cell-detail .cd-title {
+  font-size: 20px; line-height: 1.3; font-weight: 700;
+  margin: 0 0 18px; word-break: break-word;
+}
+.cell-detail .cd-sender-row {
+  display: flex; gap: 12px; align-items: center;
+  padding-bottom: 18px; margin-bottom: 18px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.cell-detail .cd-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 17px; flex-shrink: 0; text-transform: uppercase;
+}
+.cell-detail .cd-avatar.inbound { background: var(--purple-soft); color: var(--purple); }
+.cell-detail .cd-avatar.outbound { background: var(--star-soft); color: #92400e; }
+.cell-detail .cd-sender { font-weight: 600; word-break: break-word; font-size: 14px; }
+.cell-detail .cd-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.cell-detail .cd-section-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--muted); margin: 18px 0 6px;
+}
+.cell-detail .cd-summary {
+  font-size: 13px; line-height: 1.55; padding: 12px 14px;
+  background: var(--bg); border-radius: 8px;
+  border-left: 3px solid var(--accent);
+}
+.cell-detail .cd-body {
+  font-size: 13.5px; line-height: 1.65; white-space: pre-wrap;
+  padding: 14px 16px; background: var(--bg); border-radius: 8px;
+  border: 1px solid var(--border-soft); margin-top: 4px;
+}
+.cell-detail .cd-no-body {
+  padding: 12px 14px; background: #fef9e7; border: 1px solid #fde68a;
+  border-radius: 8px; color: #92400e; font-size: 13px;
+}
+.cell-detail .cd-footer {
+  margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border-soft);
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.cell-detail .cd-footer .gm-link {
+  padding: 8px 14px; background: var(--accent); color: white; border-radius: 8px;
+  border: none; text-decoration: none; font-weight: 500; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+}
+.cell-detail .cd-footer .gm-link:hover { background: #115e59; }
+.cell-detail .cd-footer .pin-btn { font-size: 13px; padding: 8px 14px; }
+.cell-detail .cd-cat-row { margin-top: 6px; }
+
+.pane-fade-in { animation: paneFadeIn .18s ease; }
+@keyframes paneFadeIn { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
 
 /* RESPONSIVE */
 @media (max-width: 900px) {
@@ -573,16 +636,7 @@ details.cell-email[open] .ce-chevron { transform: rotate(90deg); color: var(--ac
 
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-hidden="true">
-  <div class="drawer-header">
-    <span class="tag" id="dCat"></span>
-    <span class="dir" id="dDir"></span>
-    <div class="actions">
-      <button class="icon-btn" id="dStar" title="Star (s)">☆</button>
-      <button class="icon-btn" id="dFlag" title="Flag (f)">🚩</button>
-      <button class="icon-btn" id="dClose" title="Close (Esc)">✕</button>
-    </div>
-  </div>
-  <div class="drawer-body" id="dBody"></div>
+  <div id="drawerContent"></div>
 </aside>
 
 <script>
@@ -764,83 +818,6 @@ function renderList() {
   document.getElementById("viewMeta").textContent = shown + (shown === 1 ? " email" : " emails");
 }
 
-// ── DRAWER ──
-function openDrawer(id) {
-  state.selectedId = id;
-  const r = BY_ID[id]; if (!r) return;
-  document.getElementById("dCat").textContent = r.category;
-  document.getElementById("dCat").className = "tag " + categoryClass(r.category);
-  document.getElementById("dDir").textContent = r.direction;
-  document.getElementById("dDir").className = "dir " + r.direction;
-  document.getElementById("dStar").textContent = state.starred.has(id) ? "★" : "☆";
-  document.getElementById("dStar").style.color = state.starred.has(id) ? "var(--star)" : "var(--muted)";
-  document.getElementById("dFlag").style.color = state.flagged.has(id) ? "var(--flag)" : "var(--muted)";
-
-  const tagList = state.tags[id] || [];
-  document.getElementById("dBody").innerHTML = `
-    <h3>${esc(r.subject)}</h3>
-    <div class="meta-grid">
-      <dt>From</dt><dd>${esc(r.from)}</dd>
-      <dt>To</dt><dd>${esc(r.to)}</dd>
-      <dt>Date</dt><dd>${fmtDate(r.date)}</dd>
-      <dt>Gmail</dt><dd><a href="${r.url}" target="_blank" rel="noopener">↗ open this message in Gmail</a></dd>
-    </div>
-    <div class="section-title">What happened</div>
-    <div class="summary-box">${esc(r.summary)}</div>
-
-    <div class="section-title">Your notes</div>
-    <textarea class="note-area" id="dNote" placeholder="Add private notes — saved locally in this browser…">${esc(state.notes[id] || "")}</textarea>
-
-    <div class="section-title">Tags</div>
-    <div class="tag-input-wrap" id="dTagWrap">
-      ${tagList.map(t => `<span class="tag-chip">${esc(t)}<button data-rm="${esc(t)}">×</button></span>`).join("")}
-      <input id="dTagInput" placeholder="${tagList.length ? '' : 'Type a tag and press Enter…'}">
-    </div>
-
-    <div class="section-title">Open</div>
-    <a class="gm-btn" href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
-  `;
-
-  // wire up
-  document.getElementById("dNote").addEventListener("input", e => {
-    state.notes[id] = e.target.value.trim();
-    if (!state.notes[id]) delete state.notes[id];
-    saveState(); updateSidebarCounts();
-    // mark row visually
-    const row = document.querySelector(`.row[data-id="${id}"]`);
-    if (row) row.classList.toggle("has-note", !!state.notes[id]);
-  });
-  document.getElementById("dTagInput").addEventListener("keydown", e => {
-    if (e.key === "Enter" && e.target.value.trim()) {
-      e.preventDefault();
-      const t = e.target.value.trim();
-      const list = state.tags[id] = state.tags[id] || [];
-      if (!list.includes(t)) list.push(t);
-      saveState(); openDrawer(id);
-    }
-  });
-  document.querySelectorAll("#dTagWrap [data-rm]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const t = btn.dataset.rm;
-      state.tags[id] = (state.tags[id]||[]).filter(x => x !== t);
-      if (!state.tags[id].length) delete state.tags[id];
-      saveState(); openDrawer(id);
-    });
-  });
-
-  document.getElementById("drawer").classList.add("open");
-  document.getElementById("drawer").setAttribute("aria-hidden", "false");
-  document.getElementById("scrim").classList.add("show");
-  // refresh row selection
-  document.querySelectorAll(".row").forEach(el => el.classList.toggle("selected", el.dataset.id === id));
-}
-function closeDrawer() {
-  state.selectedId = null;
-  document.getElementById("drawer").classList.remove("open");
-  document.getElementById("drawer").setAttribute("aria-hidden", "true");
-  document.getElementById("scrim").classList.remove("show");
-  document.querySelectorAll(".row").forEach(el => el.classList.remove("selected"));
-}
 
 function toggleStar(id) {
   if (state.starred.has(id)) state.starred.delete(id); else state.starred.add(id);
@@ -916,116 +893,30 @@ function renderGantt(pane) {
   });
 }
 
-// ─── DRAWER (right-side panel) ──
-function openCellDrawer(cat, month) {
-  const drawer = document.getElementById("drawer");
-  const body = document.getElementById("dBody");
-  const dCat = document.getElementById("dCat");
-  const dDir = document.getElementById("dDir");
-  // Find all emails for this cell
-  const emails = DATA.filter(r => r.category === cat && r.date.slice(0,7) === month)
-                     .sort((a,b) => a.date.localeCompare(b.date));
-  const monthLabel = new Date(month + "-01").toLocaleDateString("en-GB", { month:"long", year:"numeric" });
-  dCat.textContent = cat;
-  dCat.className = "tag " + categoryClass(cat);
-  dDir.textContent = monthLabel;
-  dDir.className = "tag muted";
-  document.getElementById("dStar").style.display = "none";
-  document.getElementById("dFlag").style.display = "none";
+// ─── READING PANE (right-side drawer) ──
+// Two states: list view (click cell) and detail view (click row).
+// Back arrow returns from detail → list. X closes the pane entirely.
+let paneContext = null;   // { mode: "cell" | "single", cat?, month?, returnTo? }
 
-  body.innerHTML = `<div class="cell-drawer-content">
-    <div class="cell-drawer-banner">
-      <strong>${emails.length} email${emails.length !== 1 ? "s" : ""}</strong> in
-      <strong>${esc(cat)}</strong> during <strong>${esc(monthLabel)}</strong>.
-      Click any row to preview, then open in Gmail or add to your chronology.
-    </div>
-    <div class="cell-list">
-      ${emails.map(r => {
-        const bodyInfo = BODIES[r.id];
-        const bodyHtml = bodyInfo && bodyInfo.body
-          ? `<div class="body-snip">${esc(bodyInfo.body)}</div>`
-          : `<div class="ce-no-body">No full body fetched — only the Gmail snippet. Click "Open in Gmail" below to read the original.</div>`;
-        const pinned = isInChronology(r.id);
-        return `<details class="cell-email" data-id="${r.id}">
-          <summary>
-            <span class="ce-dir ${r.direction}">${r.direction === "Inbound" ? "IN" : "OUT"}</span>
-            <span class="ce-when">${fmtShortDate(r.date)}</span>
-            <div class="ce-text">
-              <div class="ce-subj">${esc(r.subject)}</div>
-              <div class="ce-snip">${esc(r.summary)}</div>
-            </div>
-            <span class="ce-chevron">▸</span>
-          </summary>
-          <div class="ce-expanded">
-            <dl class="meta-grid">
-              <dt>From</dt><dd>${esc(r.from)}</dd>
-              <dt>To</dt><dd>${esc(r.to)}</dd>
-              <dt>Date</dt><dd>${esc(fmtDate(r.date))}</dd>
-            </dl>
-            <div class="block-label">Summary</div>
-            <p class="ce-summary-text">${esc(r.summary)}</p>
-            <div class="block-label">Full email body</div>
-            ${bodyHtml}
-            <div class="ce-actions">
-              <a class="gm-link" href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
-              <button class="pin-btn ${pinned ? "pinned" : ""}" data-pin-id="${r.id}" type="button">
-                ${pinned ? "✓ In my chronology" : "📌 Add to my chronology"}
-              </button>
-            </div>
-          </div>
-        </details>`;
-      }).join("")}
-    </div>
-  </div>`;
-  wirePinButtons(body);
-  drawer.classList.add("open");
-  // Cell drawer keeps the Gantt visible — no dimming.
-  const scrim = document.getElementById("scrim");
-  scrim.classList.add("show", "no-dim");
+function categoryIcon(cat) {
+  const lc = cat.toLowerCase();
+  if (/delivery|dpd|shipped/i.test(cat)) return "📦";
+  if (/payment|invoice|refund/i.test(cat)) return "💳";
+  if (/prescription|allowance/i.test(cat)) return "💊";
+  if (/appointment|consultation|calendar/i.test(cat)) return "📅";
+  if (/support|escalat|complaint/i.test(cat)) return "💬";
+  if (/clinical|gp/i.test(cat)) return "🩺";
+  if (/marketing|notice/i.test(cat)) return "📣";
+  if (/outbound/i.test(cat)) return "✉️";
+  if (/external|switch/i.test(cat)) return "🌐";
+  if (/bounce|fail/i.test(cat)) return "⚠️";
+  return "📧";
 }
 
-function openSingleEmailDrawer(id) {
-  const r = BY_ID[id];
-  if (!r) return;
-  const drawer = document.getElementById("drawer");
-  const body = document.getElementById("dBody");
-  document.getElementById("dCat").textContent = r.category;
-  document.getElementById("dCat").className = "tag " + categoryClass(r.category);
-  document.getElementById("dDir").textContent = r.direction;
-  document.getElementById("dDir").className = "dir " + r.direction;
-  document.getElementById("dStar").style.display = "";
-  document.getElementById("dFlag").style.display = "";
-  document.getElementById("dStar").textContent = state.starred.has(id) ? "★" : "☆";
-  document.getElementById("dStar").style.color = state.starred.has(id) ? "var(--star)" : "var(--muted)";
-  document.getElementById("dStar").dataset.id = id;
-  document.getElementById("dFlag").style.color = state.flagged.has(id) ? "var(--flag)" : "var(--muted)";
-  document.getElementById("dFlag").dataset.id = id;
-  const bodyInfo = BODIES[id];
-  const bodyHtml = bodyInfo && bodyInfo.body
-    ? `<div class="body-block"><div class="block-label">Full email body</div><pre class="body-text">${esc(bodyInfo.body)}</pre></div>`
-    : `<div class="body-block muted-block"><div class="block-label">Full email body</div><p class="muted small">No full body fetched for this message — open in Gmail (button below).</p></div>`;
-  const pinned = isInChronology(id);
-  body.innerHTML = `<div style="padding:14px 16px">
-    <h3 style="margin:0 0 8px">${esc(r.subject)}</h3>
-    <dl class="meta-grid">
-      <dt>From</dt><dd>${esc(r.from)}</dd>
-      <dt>To</dt><dd>${esc(r.to)}</dd>
-      <dt>Date</dt><dd>${esc(fmtDate(r.date))}</dd>
-      <dt>Msg ID</dt><dd><code>${esc(r.id)}</code></dd>
-    </dl>
-    <div class="block-label">Summary</div>
-    <p class="summary-text">${esc(r.summary)}</p>
-    ${bodyHtml}
-    <div style="margin-top:14px; display: flex; gap:8px; flex-wrap:wrap">
-      <a class="gm-btn" href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
-      <button class="pin-btn ${pinned ? "pinned" : ""}" data-pin-id="${id}" type="button">
-        ${pinned ? "✓ In my chronology" : "📌 Add to my chronology"}
-      </button>
-    </div>
-  </div>`;
-  wirePinButtons(body);
-  drawer.classList.add("open");
-  document.getElementById("scrim").classList.add("show");
+function openPane() {
+  document.getElementById("drawer").classList.add("open");
+  const scrim = document.getElementById("scrim");
+  scrim.classList.add("show", "no-dim");
 }
 
 function closeCellDrawer() {
@@ -1035,10 +926,138 @@ function closeCellDrawer() {
     selectedGanttCell.classList.remove("selected");
     selectedGanttCell = null;
   }
+  paneContext = null;
 }
 
-// Replace the legacy openDrawer/closeDrawer with single-email opener.
-function openDrawer(id) { openSingleEmailDrawer(id); }
+// --- CELL LIST VIEW ---
+function openCellDrawer(cat, month) {
+  const monthLabel = new Date(month + "-01").toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+  const emails = DATA.filter(r => r.category === cat && r.date.slice(0,7) === month)
+                     .sort((a,b) => b.date.localeCompare(a.date));
+  paneContext = { mode: "cell", cat, month };
+  renderPaneList(cat, month, monthLabel, emails);
+  openPane();
+}
+
+function renderPaneList(cat, month, monthLabel, emails) {
+  const root = document.getElementById("drawerContent");
+  root.innerHTML = `
+    <div class="pane-header">
+      <div class="icon-tile">${categoryIcon(cat)}</div>
+      <div class="ph-text">
+        <h2>${esc(cat)}</h2>
+        <p>${esc(monthLabel)} · ${emails.length} ${emails.length === 1 ? "email" : "emails"}</p>
+      </div>
+      <div class="ph-actions">
+        <button class="pane-close" id="paneCloseBtn" title="Close (Esc)">✕</button>
+      </div>
+    </div>
+    <div class="pane-body pane-fade-in" id="paneBody"></div>
+  `;
+  const body = root.querySelector("#paneBody");
+  if (!emails.length) {
+    body.innerHTML = '<div class="cell-list-empty">No emails in this cell.</div>';
+  } else {
+    body.innerHTML = emails.map(r => {
+      const hasBody = !!(BODIES[r.id] && BODIES[r.id].body);
+      const classes = ["cell-list-row"];
+      if (r.direction === "Outbound") classes.push("outbound");
+      if (hasBody) classes.push("has-body");
+      return `<div class="${classes.join(" ")}" data-row-id="${esc(r.id)}">
+        <div class="unread-dot" title="${hasBody ? "Full body available" : r.direction === "Outbound" ? "Sent by you" : ""}"></div>
+        <div class="row-content">
+          <div class="row-top">
+            <span class="row-sender">${esc(r.from)}</span>
+            <span class="row-date">${esc(new Date(r.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }))}</span>
+          </div>
+          <div class="row-subj">${esc(r.subject)}</div>
+          <div class="row-snip">${esc(r.summary)}</div>
+        </div>
+        <div class="row-chev">›</div>
+      </div>`;
+    }).join("");
+    body.querySelectorAll("[data-row-id]").forEach(row => {
+      row.addEventListener("click", () => showEmailDetail(row.dataset.rowId, { cat, month, monthLabel }));
+    });
+  }
+  root.querySelector("#paneCloseBtn").addEventListener("click", closeCellDrawer);
+}
+
+// --- DETAIL VIEW ---
+function showEmailDetail(id, returnTo) {
+  const r = BY_ID[id];
+  if (!r) return;
+  paneContext = { mode: "single", emailId: id, returnTo };
+  renderPaneDetail(r, returnTo);
+  openPane();
+}
+
+function renderPaneDetail(r, returnTo) {
+  const root = document.getElementById("drawerContent");
+  const bodyInfo = BODIES[r.id];
+  const hasBody = !!(bodyInfo && bodyInfo.body);
+  const pinned = isInChronology(r.id);
+  const avatar = (r.from || "?").charAt(0).toUpperCase();
+  const avatarClass = r.direction === "Outbound" ? "outbound" : "inbound";
+  const headerTitle = returnTo ? esc(returnTo.cat) : esc(r.subject);
+  const headerSub = returnTo
+    ? `${esc(returnTo.monthLabel)} · viewing 1 of N`
+    : esc(fmtDate(r.date));
+  root.innerHTML = `
+    <div class="pane-header">
+      ${returnTo ? `<button class="pane-back" id="paneBackBtn" title="Back to list">←</button>` : ""}
+      <div class="icon-tile">${categoryIcon(r.category)}</div>
+      <div class="ph-text">
+        <h2>${headerTitle}</h2>
+        <p>${headerSub}</p>
+      </div>
+      <div class="ph-actions">
+        <button class="pane-close" id="paneCloseBtn" title="Close (Esc)">✕</button>
+      </div>
+    </div>
+    <div class="pane-body pane-fade-in">
+      <div class="cell-detail">
+        <h1 class="cd-title">${esc(r.subject)}</h1>
+        <div class="cd-sender-row">
+          <div class="cd-avatar ${avatarClass}">${esc(avatar)}</div>
+          <div>
+            <div class="cd-sender">${esc(r.from)}</div>
+            <div class="cd-meta">to ${esc(r.to)} · ${esc(fmtDate(r.date))}</div>
+          </div>
+        </div>
+        <div class="cd-cat-row"><span class="tag ${categoryClass(r.category)}">${esc(r.category)}</span></div>
+        <div class="cd-section-label">Summary (auto-generated)</div>
+        <div class="cd-summary">${esc(r.summary)}</div>
+        <div class="cd-section-label">Full email body</div>
+        ${hasBody
+          ? `<div class="cd-body">${esc(bodyInfo.body)}</div>`
+          : `<div class="cd-no-body">Only the Gmail snippet was indexed for this message — manually-written replies and your outbound emails have full bodies; automated notifications (delivery, payment receipts, calendar invites) keep only the snippet. Click "Open in Gmail" below for the original.</div>`
+        }
+        <div class="cd-footer">
+          <a class="gm-link" href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
+          <button class="pin-btn ${pinned ? "pinned" : ""}" data-pin-id="${esc(r.id)}" type="button">
+            ${pinned ? "✓ In my chronology" : "📌 Add to my chronology"}
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  wirePinButtons(root);
+  root.querySelector("#paneCloseBtn").addEventListener("click", closeCellDrawer);
+  if (returnTo) {
+    root.querySelector("#paneBackBtn").addEventListener("click", () => {
+      // Recompute list and go back
+      const emails = DATA.filter(rr => rr.category === returnTo.cat && rr.date.slice(0,7) === returnTo.month)
+                         .sort((a,b) => b.date.localeCompare(a.date));
+      paneContext = { mode: "cell", cat: returnTo.cat, month: returnTo.month };
+      renderPaneList(returnTo.cat, returnTo.month, returnTo.monthLabel, emails);
+    });
+  }
+}
+
+// Used by chron-refs in System story and chev clicks elsewhere
+function openSingleEmailDrawer(id) { showEmailDetail(id, null); }
+function openDrawer(id) { showEmailDetail(id, null); }
 function closeDrawer() { closeCellDrawer(); }
 
 // ── MY CHRONOLOGY ──
@@ -1313,15 +1332,8 @@ function showPinNoteForm(btn, id) {
   form.querySelector(".cancel").addEventListener("click", () => form.remove());
 }
 
-// Close-drawer wiring (drawer is reused for cell view & single-email view)
-document.getElementById("dClose").addEventListener("click", closeCellDrawer);
+// Click the (invisible) scrim to close the reading pane
 document.getElementById("scrim").addEventListener("click", closeCellDrawer);
-document.getElementById("dStar").addEventListener("click", (e) => {
-  const id = e.currentTarget.dataset.id; if (id) toggleStar(id);
-});
-document.getElementById("dFlag").addEventListener("click", (e) => {
-  const id = e.currentTarget.dataset.id; if (id) toggleFlag(id);
-});
 
 // ── INIT ──
 buildCategoryList();
