@@ -50,16 +50,16 @@ for r in rows:
 <div class="row" data-id="{esc(r['id'])}" data-cat="{esc(r['category'])}" data-dir="{esc(r['direction'])}" data-date="{esc(r['date'])}">
   <button class="star" data-act="star" data-id="{esc(r['id'])}" title="Star">☆</button>
   <button class="flag" data-act="flag" data-id="{esc(r['id'])}" title="Flag">🚩</button>
-  <div>
-    <div class="when">{esc(fmt_short(r['date']))}</div>
+  <div class="meta">
+    <span class="when">{esc(fmt_short(r['date']))}</span>
     <span class="dir {esc(r['direction'])}">{dir_short}</span>
+    <span class="tag {cat_class(r['category'])} cat-tag">{esc(r['category'])}</span>
   </div>
   <div class="sub">
     <div class="subj">{esc(r['subject'])}</div>
     <div class="snip">{esc(r['summary'])}</div>
   </div>
-  <div class="cat"><span class="tag {cat_class(r['category'])}">{esc(r['category'])}</span></div>
-  <div class="chev"><a href="{esc(r['url'])}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none" title="Open in Gmail">↗</a></div>
+  <a class="chev" href="{esc(r['url'])}" target="_blank" rel="noopener" title="Open in Gmail">↗</a>
 </div>''')
 initial_list = '<div class="list" id="listInner">' + "".join(row_html_parts) + "</div>"
 
