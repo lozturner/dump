@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Releaf — Email Chronology</title>
+<style>
+:root {
+  --bg: #f3f4f1;
+  --pane: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --soft: #9ca3af;
+  --border: #e5e7eb;
+  --border-soft: #f1f5f4;
+  --hover: #f8fafc;
+  --accent: #0f766e;
+  --accent-soft: #ccfbf1;
+  --accent-text: #134e4a;
+  --star: #f59e0b;
+  --star-soft: #fef3c7;
+  --flag: #b91c1c;
+  --flag-soft: #fee2e2;
+  --ok: #166534;
+  --ok-soft: #dcfce7;
+  --info: #1d4ed8;
+  --info-soft: #dbeafe;
+  --purple: #6d28d9;
+  --purple-soft: #ede9fe;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.06);
+  --shadow-lg: 0 20px 50px rgba(0,0,0,.18);
+  --sidebar-w: 232px;
+  --drawer-w: 460px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+button { font: inherit; cursor: pointer; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-rows: 56px 1fr;
+  grid-template-areas: "header header" "sidebar main";
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* HEADER */
+.header {
+  grid-area: header;
+  background: var(--pane);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  z-index: 30;
+}
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.brand .dot { width: 10px; height: 10px; background: var(--accent); border-radius: 3px; }
+.search { flex: 1; max-width: 540px; position: relative; }
+.search input {
+  width: 100%; padding: 8px 12px 8px 34px; border: 1px solid var(--border);
+  border-radius: 8px; background: var(--bg); font: inherit; transition: all .15s;
+}
+.search input:focus { outline: none; background: white; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search::before { content: "⌕"; position: absolute; left: 11px; top: 6px; font-size: 16px; color: var(--soft); }
+.search kbd { position: absolute; right: 8px; top: 7px; padding: 2px 6px; background: white;
+  border: 1px solid var(--border); border-radius: 4px; font-size: 11px; color: var(--muted); }
+.header .meta { color: var(--muted); font-size: 12px; margin-left: auto; }
+.icon-btn { width: 32px; height: 32px; border-radius: 6px; background: transparent; border: 1px solid transparent; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); }
+.icon-btn:hover { background: var(--hover); color: var(--text); }
+
+/* SIDEBAR */
+.sidebar {
+  grid-area: sidebar;
+  background: var(--pane);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 12px 8px;
+}
+.sb-section { font-size: 11px; color: var(--soft); text-transform: uppercase; letter-spacing: .06em;
+  padding: 12px 12px 6px; }
+.sb-item {
+  display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 6px;
+  color: var(--text); width: 100%; border: none; background: transparent; text-align: left;
+}
+.sb-item:hover { background: var(--hover); }
+.sb-item.active { background: var(--accent-soft); color: var(--accent-text); font-weight: 500; }
+.sb-item .ic { width: 18px; text-align: center; }
+.sb-item .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+.sb-item.active .count { color: var(--accent-text); }
+
+/* MAIN */
+.main { grid-area: main; overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+.toolbar {
+  background: var(--pane); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px; padding: 8px 16px; flex-wrap: wrap;
+}
+.toolbar h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.toolbar .toolbar-meta { color: var(--muted); font-size: 12px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.pill {
+  padding: 4px 10px; font-size: 12px; border-radius: 999px; background: transparent;
+  border: 1px solid var(--border); color: var(--muted);
+}
+.pill:hover { border-color: var(--muted); color: var(--text); }
+.pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.list-pane { overflow-y: auto; background: var(--bg); }
+.list {
+  background: var(--pane); margin: 12px 16px; border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.row {
+  display: grid; grid-template-columns: 28px 28px 140px 1fr 110px 24px;
+  gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border-soft);
+  cursor: pointer; transition: background .08s;
+}
+.row:last-child { border-bottom: none; }
+.row:hover { background: var(--hover); }
+.row.selected { background: var(--accent-soft); }
+.row.has-note { box-shadow: inset 3px 0 0 var(--star); }
+.row .star, .row .flag {
+  background: transparent; border: none; padding: 0; color: var(--soft); font-size: 16px; line-height: 1;
+}
+.row .star.on { color: var(--star); }
+.row .flag.on { color: var(--flag); }
+.row .when { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.row .sub { min-width: 0; }
+.row .sub .subj { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .sub .snip { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row .cat { text-align: right; }
+.row .chev { color: var(--soft); text-align: right; }
+
+.tag {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 500; background: var(--accent-soft); color: var(--accent-text);
+  white-space: nowrap;
+}
+.tag.warn { background: var(--flag-soft); color: var(--flag); }
+.tag.ok { background: var(--ok-soft); color: var(--ok); }
+.tag.info { background: var(--info-soft); color: var(--info); }
+.tag.purple { background: var(--purple-soft); color: var(--purple); }
+.tag.muted { background: #f1f5f9; color: var(--muted); }
+.dir { font-size: 10px; padding: 1px 5px; border-radius: 3px; font-weight: 600; letter-spacing: .03em; }
+.dir.Inbound { background: var(--purple-soft); color: var(--purple); }
+.dir.Outbound { background: var(--star-soft); color: #92400e; }
+
+/* DRAWER */
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; width: var(--drawer-w); max-width: 100vw;
+  background: var(--pane); border-left: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  transform: translateX(100%); transition: transform .22s ease; z-index: 50;
+  display: flex; flex-direction: column;
+}
+.drawer.open { transform: translateX(0); }
+.drawer-header {
+  padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
+}
+.drawer-header .actions { margin-left: auto; display: flex; gap: 4px; }
+.drawer-body { padding: 16px; overflow-y: auto; flex: 1; }
+.drawer-body h3 { margin: 0 0 4px; font-size: 18px; }
+.drawer-body .meta-grid { display: grid; grid-template-columns: 60px 1fr; gap: 6px 12px; font-size: 13px;
+  padding: 12px 0; border-bottom: 1px solid var(--border-soft); margin-bottom: 12px; }
+.drawer-body .meta-grid dt { color: var(--muted); }
+.drawer-body .meta-grid dd { margin: 0; word-break: break-word; }
+.section-title { font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--muted); margin: 16px 0 6px; }
+.summary-box { background: var(--bg); padding: 12px; border-radius: 8px; font-size: 13.5px; line-height: 1.55; }
+.note-area {
+  width: 100%; min-height: 80px; padding: 10px; border: 1px solid var(--border);
+  border-radius: 8px; font: inherit; resize: vertical; background: #fffbe7;
+}
+.note-area:focus { outline: 2px solid var(--star); border-color: var(--star); background: white; }
+.tag-input-wrap { display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+  padding: 6px; border: 1px solid var(--border); border-radius: 8px; min-height: 38px; }
+.tag-input-wrap input { border: none; flex: 1; min-width: 100px; padding: 4px; font: inherit; outline: none; background: transparent; }
+.tag-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px;
+  background: var(--accent-soft); color: var(--accent-text); border-radius: 999px; font-size: 12px; }
+.tag-chip button { background: transparent; border: none; padding: 0; color: var(--accent-text); font-weight: bold; line-height: 1; }
+.gm-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--accent);
+  color: white; border: none; border-radius: 8px; font-weight: 500;
+}
+.gm-btn:hover { background: #115e59; }
+
+.scrim { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 40; opacity: 0;
+  pointer-events: none; transition: opacity .2s; }
+.scrim.show { opacity: 1; pointer-events: auto; }
+
+/* PAGES: stats, timeline */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 12px; padding: 16px; }
+.stat-card { background: var(--pane); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: var(--shadow-sm); }
+.stat-card .n { font-size: 28px; font-weight: 600; }
+.stat-card .l { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.cat-list { padding: 0 16px 16px; }
+.cat-list .cat-card { background: var(--pane); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: var(--shadow-sm); margin-bottom: 12px; }
+.cat-list h3 { margin: 0 0 12px; font-size: 15px; }
+.bar-row { display: grid; grid-template-columns: 150px 1fr 40px; gap: 10px; align-items: center; font-size: 12px; padding: 4px 0; }
+.bar { background: var(--bg); border-radius: 4px; height: 14px; overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+
+.tl { padding: 16px; }
+.tl-month-h { font-weight: 600; color: var(--muted); margin: 18px 0 10px; padding-bottom: 4px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg); padding-top: 8px; z-index: 1; }
+.tl-card { background: var(--pane); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; cursor: pointer; box-shadow: var(--shadow-sm); }
+.tl-card:hover { border-color: var(--accent); }
+.tl-card .head { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--muted); }
+.tl-card .subj { font-weight: 500; margin: 4px 0 2px; }
+.tl-card .summary { font-size: 13px; color: var(--muted); }
+
+.empty { text-align: center; color: var(--muted); padding: 60px 20px; }
+.empty .ic { font-size: 36px; opacity: .4; }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  :root { --sidebar-w: 56px; --drawer-w: 100vw; }
+  .sb-item span:not(.ic):not(.count) { display: none; }
+  .sb-section { display: none; }
+  .row { grid-template-columns: 24px 24px 1fr 24px; }
+  .row .when, .row .cat { display: none; }
+  .header .meta { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="brand"><span class="dot"></span> Releaf Chronology</div>
+    <div class="search">
+      <input id="searchInput" type="search" placeholder="Search subject, summary, sender…" autocomplete="off">
+      <kbd>/</kbd>
+    </div>
+    <div class="meta" id="metaTotal"></div>
+    <button class="icon-btn" id="exportBtn" title="Export notes &amp; tags">⤓</button>
+  </div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-section">Views</div>
+    <button class="sb-item active" data-view="inbox"><span class="ic">📥</span><span>All emails</span><span class="count" id="c-inbox"></span></button>
+    <button class="sb-item" data-view="starred"><span class="ic">⭐</span><span>Starred</span><span class="count" id="c-starred"></span></button>
+    <button class="sb-item" data-view="flagged"><span class="ic">🚩</span><span>Flagged</span><span class="count" id="c-flagged"></span></button>
+    <button class="sb-item" data-view="noted"><span class="ic">📝</span><span>With notes</span><span class="count" id="c-noted"></span></button>
+    <button class="sb-item" data-view="outbound"><span class="ic">📤</span><span>Sent by you</span><span class="count" id="c-outbound"></span></button>
+
+    <div class="sb-section">Pages</div>
+    <button class="sb-item" data-view="timeline"><span class="ic">📅</span><span>Timeline</span></button>
+    <button class="sb-item" data-view="stats"><span class="ic">📊</span><span>Overview</span></button>
+
+    <div class="sb-section">Categories</div>
+    <div id="categoryList"></div>
+  </aside>
+
+  <main class="main">
+    <div class="toolbar">
+      <h2 id="viewTitle">All emails</h2>
+      <span class="toolbar-meta" id="viewMeta"></span>
+      <div class="pills" id="quickFilters">
+        <button class="pill" data-quick="complaints">Complaints &amp; refunds</button>
+        <button class="pill" data-quick="appointments">Appointments</button>
+        <button class="pill" data-quick="failed">Payment failures</button>
+        <button class="pill" data-quick="recent">Last 30 days</button>
+      </div>
+    </div>
+    <div class="list-pane" id="listPane"></div>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-header">
+    <span class="tag" id="dCat"></span>
+    <span class="dir" id="dDir"></span>
+    <div class="actions">
+      <button class="icon-btn" id="dStar" title="Star (s)">☆</button>
+      <button class="icon-btn" id="dFlag" title="Flag (f)">🚩</button>
+      <button class="icon-btn" id="dClose" title="Close (Esc)">✕</button>
+    </div>
+  </div>
+  <div class="drawer-body" id="dBody"></div>
+</aside>
+
+<script>
+// ── DATA ──
+const DATA = __DATA_JSON__;
+DATA.sort((a,b) => a.date.localeCompare(b.date));
+const BY_ID = Object.fromEntries(DATA.map(r => [r.id, r]));
+
+// ── STATE ──
+const LS = "releaf.app.v1";
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(LS) || "{}"); } catch(e) { return {}; }
+}
+function saveState() {
+  localStorage.setItem(LS, JSON.stringify({
+    notes: state.notes,
+    starred: [...state.starred],
+    flagged: [...state.flagged],
+    tags: state.tags,
+  }));
+}
+const persisted = loadState();
+const state = {
+  view: "inbox",
+  search: "",
+  selectedId: null,
+  quick: null,
+  notes: persisted.notes || {},
+  starred: new Set(persisted.starred || []),
+  flagged: new Set(persisted.flagged || []),
+  tags: persisted.tags || {},
+};
+
+// ── HELPERS ──
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const fmtDate = iso => new Date(iso).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const fmtShortDate = iso => {
+  const d = new Date(iso); const now = new Date();
+  const sameYear = d.getFullYear() === now.getFullYear();
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", ...(sameYear ? {} : { year: "2-digit" }) });
+};
+const fmtMonth = iso => new Date(iso).toLocaleString("en-GB", { year: "numeric", month: "long" });
+
+function categoryClass(cat) {
+  if (/fail|bounce|missed|cancelled|complaint/i.test(cat)) return "warn";
+  if (/shipped|paid|approved|ready|allowance|delivered/i.test(cat)) return "ok";
+  if (/marketing|notice|external|calendar/i.test(cat)) return "muted";
+  if (/support|escalat|outbound|address|gp|clinical/i.test(cat)) return "info";
+  if (/booked|amended|reminder|today|imminent|rebook/i.test(cat)) return "purple";
+  return "";
+}
+
+// ── CATEGORIES list (sidebar) ──
+function buildCategoryList() {
+  const counts = {};
+  for (const r of DATA) counts[r.category] = (counts[r.category]||0) + 1;
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const html = sorted.map(([c,n]) => `
+    <button class="sb-item" data-view="cat" data-cat="${esc(c)}" title="${esc(c)}">
+      <span class="ic">•</span><span>${esc(c)}</span><span class="count">${n}</span>
+    </button>
+  `).join("");
+  document.getElementById("categoryList").innerHTML = html;
+}
+
+function updateSidebarCounts() {
+  document.getElementById("c-inbox").textContent = DATA.length;
+  document.getElementById("c-starred").textContent = state.starred.size;
+  document.getElementById("c-flagged").textContent = state.flagged.size;
+  document.getElementById("c-noted").textContent = Object.values(state.notes).filter(Boolean).length;
+  document.getElementById("c-outbound").textContent = DATA.filter(r => r.direction === "Outbound").length;
+}
+
+document.getElementById("metaTotal").textContent =
+  DATA.length + " emails · " + fmtMonth(DATA[0].date) + " → " + fmtMonth(DATA[DATA.length-1].date);
+
+// ── FILTERING ──
+function currentRows() {
+  let rows = DATA.slice();
+  // View filter
+  if (state.view === "starred") rows = rows.filter(r => state.starred.has(r.id));
+  else if (state.view === "flagged") rows = rows.filter(r => state.flagged.has(r.id));
+  else if (state.view === "noted") rows = rows.filter(r => state.notes[r.id]);
+  else if (state.view === "outbound") rows = rows.filter(r => r.direction === "Outbound");
+  else if (state.view === "cat" && state.category) rows = rows.filter(r => r.category === state.category);
+
+  // Quick filter
+  if (state.quick === "complaints") rows = rows.filter(r => /complaint|refund|escalat/i.test(r.category + " " + r.subject + " " + r.summary));
+  else if (state.quick === "appointments") rows = rows.filter(r => /appointment|consultation/i.test(r.category + " " + r.subject));
+  else if (state.quick === "failed") rows = rows.filter(r => /fail|unsuccess|bounce/i.test(r.category + " " + r.subject));
+  else if (state.quick === "recent") {
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+    const iso = cutoff.toISOString();
+    rows = rows.filter(r => r.date >= iso);
+  }
+
+  // Search
+  if (state.search) {
+    const q = state.search.toLowerCase();
+    rows = rows.filter(r =>
+      (r.subject + " " + r.summary + " " + r.from + " " + r.to + " " + r.category + " " + (state.notes[r.id] || "") + " " + (state.tags[r.id]||[]).join(" "))
+        .toLowerCase().includes(q)
+    );
+  }
+
+  // Default: newest first
+  rows.sort((a,b) => b.date.localeCompare(a.date));
+  return rows;
+}
+
+// ── RENDER LIST ──
+function renderList() {
+  const pane = document.getElementById("listPane");
+  if (state.view === "timeline") return renderTimeline(pane);
+  if (state.view === "stats") return renderStats(pane);
+
+  const rows = currentRows();
+  const title = ({
+    inbox: "All emails", starred: "Starred", flagged: "Flagged",
+    noted: "With notes", outbound: "Sent by you", cat: state.category || "Category",
+  })[state.view] || state.view;
+  document.getElementById("viewTitle").textContent = title;
+  document.getElementById("viewMeta").textContent = rows.length + (rows.length === 1 ? " email" : " emails");
+
+  if (!rows.length) {
+    pane.innerHTML = `<div class="empty"><div class="ic">📭</div><p>No emails match this view.</p></div>`;
+    return;
+  }
+  pane.innerHTML = `<div class="list" id="listInner">
+    ${rows.map(r => `
+      <div class="row ${state.selectedId === r.id ? 'selected' : ''} ${state.notes[r.id] ? 'has-note' : ''}" data-id="${r.id}">
+        <button class="star ${state.starred.has(r.id) ? 'on' : ''}" data-act="star" data-id="${r.id}" title="Star">${state.starred.has(r.id) ? '★' : '☆'}</button>
+        <button class="flag ${state.flagged.has(r.id) ? 'on' : ''}" data-act="flag" data-id="${r.id}" title="Flag">🚩</button>
+        <div>
+          <div class="when">${fmtShortDate(r.date)}</div>
+          <span class="dir ${r.direction}">${r.direction === "Inbound" ? "IN" : "OUT"}</span>
+        </div>
+        <div class="sub">
+          <div class="subj">${esc(r.subject)}</div>
+          <div class="snip">${esc(r.summary)}</div>
+        </div>
+        <div class="cat"><span class="tag ${categoryClass(r.category)}">${esc(r.category)}</span></div>
+        <div class="chev">›</div>
+      </div>
+    `).join("")}
+  </div>`;
+
+  pane.querySelectorAll(".row").forEach(row => {
+    row.addEventListener("click", (e) => {
+      const act = e.target.closest("[data-act]");
+      if (act) {
+        e.stopPropagation();
+        const id = act.dataset.id;
+        if (act.dataset.act === "star") toggleStar(id);
+        if (act.dataset.act === "flag") toggleFlag(id);
+        return;
+      }
+      openDrawer(row.dataset.id);
+    });
+  });
+}
+
+// ── DRAWER ──
+function openDrawer(id) {
+  state.selectedId = id;
+  const r = BY_ID[id]; if (!r) return;
+  document.getElementById("dCat").textContent = r.category;
+  document.getElementById("dCat").className = "tag " + categoryClass(r.category);
+  document.getElementById("dDir").textContent = r.direction;
+  document.getElementById("dDir").className = "dir " + r.direction;
+  document.getElementById("dStar").textContent = state.starred.has(id) ? "★" : "☆";
+  document.getElementById("dStar").style.color = state.starred.has(id) ? "var(--star)" : "var(--muted)";
+  document.getElementById("dFlag").style.color = state.flagged.has(id) ? "var(--flag)" : "var(--muted)";
+
+  const tagList = state.tags[id] || [];
+  document.getElementById("dBody").innerHTML = `
+    <h3>${esc(r.subject)}</h3>
+    <div class="meta-grid">
+      <dt>From</dt><dd>${esc(r.from)}</dd>
+      <dt>To</dt><dd>${esc(r.to)}</dd>
+      <dt>Date</dt><dd>${fmtDate(r.date)}</dd>
+      <dt>Gmail</dt><dd><a href="${r.url}" target="_blank" rel="noopener">↗ open this message in Gmail</a></dd>
+    </div>
+    <div class="section-title">What happened</div>
+    <div class="summary-box">${esc(r.summary)}</div>
+
+    <div class="section-title">Your notes</div>
+    <textarea class="note-area" id="dNote" placeholder="Add private notes — saved locally in this browser…">${esc(state.notes[id] || "")}</textarea>
+
+    <div class="section-title">Tags</div>
+    <div class="tag-input-wrap" id="dTagWrap">
+      ${tagList.map(t => `<span class="tag-chip">${esc(t)}<button data-rm="${esc(t)}">×</button></span>`).join("")}
+      <input id="dTagInput" placeholder="${tagList.length ? '' : 'Type a tag and press Enter…'}">
+    </div>
+
+    <div class="section-title">Open</div>
+    <a class="gm-btn" href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
+  `;
+
+  // wire up
+  document.getElementById("dNote").addEventListener("input", e => {
+    state.notes[id] = e.target.value.trim();
+    if (!state.notes[id]) delete state.notes[id];
+    saveState(); updateSidebarCounts();
+    // mark row visually
+    const row = document.querySelector(`.row[data-id="${id}"]`);
+    if (row) row.classList.toggle("has-note", !!state.notes[id]);
+  });
+  document.getElementById("dTagInput").addEventListener("keydown", e => {
+    if (e.key === "Enter" && e.target.value.trim()) {
+      e.preventDefault();
+      const t = e.target.value.trim();
+      const list = state.tags[id] = state.tags[id] || [];
+      if (!list.includes(t)) list.push(t);
+      saveState(); openDrawer(id);
+    }
+  });
+  document.querySelectorAll("#dTagWrap [data-rm]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const t = btn.dataset.rm;
+      state.tags[id] = (state.tags[id]||[]).filter(x => x !== t);
+      if (!state.tags[id].length) delete state.tags[id];
+      saveState(); openDrawer(id);
+    });
+  });
+
+  document.getElementById("drawer").classList.add("open");
+  document.getElementById("drawer").setAttribute("aria-hidden", "false");
+  document.getElementById("scrim").classList.add("show");
+  // refresh row selection
+  document.querySelectorAll(".row").forEach(el => el.classList.toggle("selected", el.dataset.id === id));
+}
+function closeDrawer() {
+  state.selectedId = null;
+  document.getElementById("drawer").classList.remove("open");
+  document.getElementById("drawer").setAttribute("aria-hidden", "true");
+  document.getElementById("scrim").classList.remove("show");
+  document.querySelectorAll(".row").forEach(el => el.classList.remove("selected"));
+}
+
+function toggleStar(id) {
+  if (state.starred.has(id)) state.starred.delete(id); else state.starred.add(id);
+  saveState(); updateSidebarCounts(); renderList();
+  if (state.selectedId === id) openDrawer(id);
+}
+function toggleFlag(id) {
+  if (state.flagged.has(id)) state.flagged.delete(id); else state.flagged.add(id);
+  saveState(); updateSidebarCounts(); renderList();
+  if (state.selectedId === id) openDrawer(id);
+}
+
+document.getElementById("dStar").addEventListener("click", () => state.selectedId && toggleStar(state.selectedId));
+document.getElementById("dFlag").addEventListener("click", () => state.selectedId && toggleFlag(state.selectedId));
+document.getElementById("dClose").addEventListener("click", closeDrawer);
+document.getElementById("scrim").addEventListener("click", closeDrawer);
+
+// ── TIMELINE PAGE ──
+function renderTimeline(pane) {
+  document.getElementById("viewTitle").textContent = "Timeline";
+  const rows = currentRows().slice().reverse(); // chronological
+  document.getElementById("viewMeta").textContent = rows.length + " emails";
+  let html = '<div class="tl">';
+  let lastMonth = "";
+  for (const r of rows) {
+    const m = fmtMonth(r.date);
+    if (m !== lastMonth) { html += `<div class="tl-month-h">${esc(m)}</div>`; lastMonth = m; }
+    html += `<div class="tl-card" data-id="${r.id}">
+      <div class="head">
+        <span>${fmtDate(r.date)}</span>
+        <span class="dir ${r.direction}">${r.direction === "Inbound" ? "IN" : "OUT"}</span>
+        <span class="tag ${categoryClass(r.category)}">${esc(r.category)}</span>
+        ${state.starred.has(r.id) ? '<span style="color:var(--star)">★</span>' : ''}
+        ${state.flagged.has(r.id) ? '<span style="color:var(--flag)">🚩</span>' : ''}
+      </div>
+      <div class="subj">${esc(r.subject)}</div>
+      <div class="summary">${esc(r.summary)}</div>
+    </div>`;
+  }
+  html += '</div>';
+  pane.innerHTML = html;
+  pane.querySelectorAll(".tl-card").forEach(c => c.addEventListener("click", () => openDrawer(c.dataset.id)));
+}
+
+// ── STATS PAGE ──
+function renderStats(pane) {
+  document.getElementById("viewTitle").textContent = "Overview";
+  document.getElementById("viewMeta").textContent = "";
+  const byCat = {}, byDir = {Inbound: 0, Outbound: 0}, byYear = {};
+  let firstD = DATA[0].date, lastD = DATA[0].date;
+  for (const r of DATA) {
+    byCat[r.category] = (byCat[r.category]||0) + 1;
+    byDir[r.direction]++;
+    const y = r.date.slice(0,4);
+    byYear[y] = (byYear[y]||0) + 1;
+    if (r.date < firstD) firstD = r.date;
+    if (r.date > lastD) lastD = r.date;
+  }
+  const cats = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  const max = cats[0][1];
+  pane.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="n">${DATA.length}</div><div class="l">Total emails</div></div>
+      <div class="stat-card"><div class="n">${byDir.Inbound}</div><div class="l">Received</div></div>
+      <div class="stat-card"><div class="n">${byDir.Outbound}</div><div class="l">Sent by you</div></div>
+      <div class="stat-card"><div class="n">${cats.length}</div><div class="l">Categories</div></div>
+      <div class="stat-card"><div class="n">${state.starred.size}</div><div class="l">Starred</div></div>
+      <div class="stat-card"><div class="n">${state.flagged.size}</div><div class="l">Flagged</div></div>
+    </div>
+    <div class="cat-list">
+      <div class="cat-card">
+        <h3>Emails by category</h3>
+        ${cats.map(([c,n]) => `
+          <div class="bar-row">
+            <span>${esc(c)}</span>
+            <div class="bar"><span style="width:${(n/max)*100}%"></span></div>
+            <span style="text-align:right;color:var(--muted)">${n}</span>
+          </div>`).join("")}
+      </div>
+      <div class="cat-card">
+        <h3>By year</h3>
+        ${Object.entries(byYear).sort().map(([y,n]) => `
+          <div class="bar-row">
+            <span>${y}</span>
+            <div class="bar"><span style="width:${(n/Math.max(...Object.values(byYear)))*100}%"></span></div>
+            <span style="text-align:right;color:var(--muted)">${n}</span>
+          </div>`).join("")}
+      </div>
+      <div class="cat-card">
+        <h3>Key flashpoints</h3>
+        <ul style="margin:0;padding-left:18px;line-height:1.7">
+          <li><strong>Nov–Dec 2024</strong> · GP registration issues (AILSA, then phl adhd not recognised), multiple missed initial consultations.</li>
+          <li><strong>Jan 2025</strong> · Proof of address required; first prescription begins shipping.</li>
+          <li><strong>Jul 2025</strong> · Urgent address confirmation; vape battery confusion.</li>
+          <li><strong>Oct 2025</strong> · Order not dispatched; you chased; refund issued (#3202-8689); Emily/Liberty resolved.</li>
+          <li><strong>Dec 2025</strong> · Tech-failed consultation 18 Dec; appointment moved without notice; complaint drafts.</li>
+          <li><strong>Jan 2026</strong> · Formal complaint about 3 Jan consultation notes; subscription dispute; many Stripe failures.</li>
+          <li><strong>Feb 2026</strong> · GP letter returned again — "no longer registered".</li>
+          <li><strong>May 2026</strong> · You're exploring Big Narstie Medical; Releaf escalated and issued 20% refund (£30.99); new appointment with Renae Carney on 21 May.</li>
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+// ── SIDEBAR NAV ──
+document.getElementById("sidebar").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-view]"); if (!btn) return;
+  document.querySelectorAll("#sidebar .sb-item").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  state.view = btn.dataset.view;
+  state.category = btn.dataset.cat || null;
+  state.quick = null;
+  document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+  renderList();
+});
+
+// ── QUICK FILTERS ──
+document.getElementById("quickFilters").addEventListener("click", e => {
+  const p = e.target.closest(".pill"); if (!p) return;
+  if (state.quick === p.dataset.quick) { state.quick = null; p.classList.remove("active"); }
+  else {
+    state.quick = p.dataset.quick;
+    document.querySelectorAll(".pill").forEach(x => x.classList.remove("active"));
+    p.classList.add("active");
+  }
+  renderList();
+});
+
+// ── SEARCH ──
+let searchT;
+document.getElementById("searchInput").addEventListener("input", e => {
+  clearTimeout(searchT);
+  searchT = setTimeout(() => { state.search = e.target.value.trim(); renderList(); }, 120);
+});
+
+// ── KEYBOARD ──
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input, textarea")) {
+    if (e.key === "Escape" && e.target.id === "searchInput") e.target.blur();
+    return;
+  }
+  if (e.key === "/") { e.preventDefault(); document.getElementById("searchInput").focus(); }
+  else if (e.key === "Escape") closeDrawer();
+  else if (e.key === "s" && state.selectedId) toggleStar(state.selectedId);
+  else if (e.key === "f" && state.selectedId) toggleFlag(state.selectedId);
+  else if (e.key === "j" || e.key === "ArrowDown") moveSelection(1);
+  else if (e.key === "k" || e.key === "ArrowUp") moveSelection(-1);
+  else if (e.key === "Enter" && state.selectedId) openDrawer(state.selectedId);
+});
+function moveSelection(d) {
+  const rows = [...document.querySelectorAll(".row")];
+  if (!rows.length) return;
+  const idx = rows.findIndex(r => r.dataset.id === state.selectedId);
+  const next = rows[Math.max(0, Math.min(rows.length-1, (idx<0?0:idx) + d))];
+  if (next) { state.selectedId = next.dataset.id; openDrawer(state.selectedId); next.scrollIntoView({ block: "nearest" }); }
+}
+
+// ── EXPORT ──
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const out = {
+    exportedAt: new Date().toISOString(),
+    notes: state.notes,
+    starred: [...state.starred],
+    flagged: [...state.flagged],
+    tags: state.tags,
+  };
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "releaf-notes-" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+});
+
+// ── INIT ──
+buildCategoryList();
+updateSidebarCounts();
+renderList();
+</script>
+</body>
+</html>
