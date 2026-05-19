@@ -116,20 +116,29 @@ a:hover { text-decoration: underline; }
   background: var(--pane); margin: 12px 16px; border: 1px solid var(--border); border-radius: 10px;
   box-shadow: var(--shadow-sm); overflow: hidden;
 }
-.row {
+/* Rows are <details> elements — they expand inline on click, no JS needed. */
+.row { border-bottom: 1px solid var(--border-soft); background: var(--pane); }
+.row:last-child { border-bottom: none; }
+.row[open] { background: var(--hover); box-shadow: inset 3px 0 0 var(--accent); }
+.row.has-note { box-shadow: inset 3px 0 0 var(--star); }
+.row.selected { background: var(--accent-soft); }
+.row > summary {
+  list-style: none;
+  cursor: pointer;
   display: grid;
   grid-template-columns: 28px 28px 220px 1fr 28px;
   gap: 10px;
   align-items: center;
   padding: 10px 14px;
-  border-bottom: 1px solid var(--border-soft);
-  cursor: pointer;
   transition: background .08s;
 }
-.row:last-child { border-bottom: none; }
-.row:hover { background: var(--hover); }
-.row.selected { background: var(--accent-soft); }
-.row.has-note { box-shadow: inset 3px 0 0 var(--star); }
+.row > summary::-webkit-details-marker { display: none; }
+.row > summary::marker { display: none; }
+.row > summary:hover { background: var(--hover); }
+.row[open] > summary { border-bottom: 1px solid var(--border-soft); }
+.row[open] > summary .chev-marker { transform: rotate(90deg); }
+.row .chev-marker { color: var(--soft); text-align: center; transition: transform .15s; display: inline-block; }
+.row .has-body { color: var(--accent); font-size: 10px; margin-left: 4px; vertical-align: middle; }
 .row .star, .row .flag {
   background: transparent; border: none; padding: 0; color: var(--soft); font-size: 16px; line-height: 1;
   display: flex; align-items: center; justify-content: center; height: 28px;
@@ -149,11 +158,34 @@ a:hover { text-decoration: underline; }
   font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   margin-top: 2px;
 }
-.row .chev {
-  color: var(--soft); text-align: right; font-size: 16px; text-decoration: none;
-  display: flex; align-items: center; justify-content: center;
+/* Expanded body — visible when <details> is open */
+.row-expanded { padding: 14px 18px 18px; background: white; }
+.meta-grid {
+  display: grid; grid-template-columns: 90px 1fr; gap: 4px 14px;
+  font-size: 13px; margin: 0 0 14px;
+  padding: 10px 12px; background: var(--bg); border-radius: 6px;
 }
-.row .chev:hover { color: var(--accent); }
+.meta-grid dt { color: var(--muted); }
+.meta-grid dd { margin: 0; word-break: break-word; }
+.meta-grid code { font-size: 11px; color: var(--muted); }
+.block-label { font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--muted); margin: 14px 0 4px; }
+.summary-text { font-size: 13.5px; line-height: 1.55; margin: 4px 0 8px; }
+.body-block { margin: 8px 0; }
+.body-text {
+  background: var(--bg); padding: 12px 14px; border-radius: 8px;
+  font: 13px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  white-space: pre-wrap; word-wrap: break-word; margin: 0;
+  max-height: 480px; overflow-y: auto;
+  border: 1px solid var(--border-soft);
+}
+.muted-block { background: #fef9e7; padding: 12px 14px; border-radius: 8px; border: 1px solid #fde68a; }
+.row-notes { margin: 14px 0; }
+.note-inline { width: 100%; min-height: 60px; padding: 8px 10px;
+  border: 1px solid var(--border); border-radius: 6px; font: inherit; resize: vertical;
+  background: #fffbe7; }
+.note-inline:focus { outline: 2px solid var(--star); border-color: var(--star); background: white; }
+.row-actions { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
 
 .tag {
   display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px;
@@ -251,6 +283,28 @@ a:hover { text-decoration: underline; }
 .g-legend { display: flex; gap: 14px; align-items: center; margin-top: 16px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
 .g-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
 
+/* METHODOLOGY PAGE */
+.meth { padding: 16px; display: grid; gap: 12px; }
+.meth-card { background: var(--pane); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; box-shadow: var(--shadow-sm); }
+.meth-card h2 { margin: 0 0 8px; font-size: 18px; }
+.meth-card h3 { margin: 0 0 10px; font-size: 15px; }
+.meth-card ol { padding-left: 22px; margin: 10px 0; line-height: 1.6; }
+.meth-card ol li { margin-bottom: 8px; }
+.meth-card code { background: var(--bg); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+.meth-card ul.kv { list-style: none; padding: 0; margin: 6px 0; }
+.meth-card ul.kv li { padding: 4px 0; border-bottom: 1px dashed var(--border-soft); }
+.meth-card ul.kv li:last-child { border-bottom: none; }
+.meth-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.meth-tbl th, .meth-tbl td { padding: 6px 8px; border-bottom: 1px solid var(--border-soft); text-align: left; }
+.meth-tbl thead th { font-size: 11px; text-transform: uppercase; color: var(--muted); }
+.raw-json { background: var(--bg); padding: 12px; border-radius: 6px; font-size: 11px;
+  max-height: 420px; overflow: auto; line-height: 1.4; white-space: pre; }
+
+/* No-JS notice banner */
+.no-js-notice { display: none; }
+.no-js .no-js-notice { display: block; padding: 10px 16px; background: #fef3c7;
+  border-bottom: 1px solid #fde68a; font-size: 12px; color: #92400e; }
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
   :root { --sidebar-w: 56px; --drawer-w: 100vw; }
@@ -332,6 +386,7 @@ a:hover { text-decoration: underline; }
     <button class="sb-item" data-view="gantt"><span class="ic">📈</span><span>Visual timeline</span></button>
     <button class="sb-item" data-view="timeline"><span class="ic">📅</span><span>Chronology</span></button>
     <button class="sb-item" data-view="stats"><span class="ic">📊</span><span>Overview</span></button>
+    <button class="sb-item" data-view="methodology"><span class="ic">🔍</span><span>Methodology</span></button>
 
     <div class="sb-section">Categories</div>
     <div id="categoryList"></div>
@@ -359,8 +414,9 @@ a:hover { text-decoration: underline; }
   </main>
 </div>
 
-<!-- pre-rendered visual timeline (initially hidden; shown by JS when Gantt view selected; visible as standalone via #gantt anchor) -->
+<!-- pre-rendered pages cached in <template> elements; JS swaps them into #listPane when a sidebar tab is clicked. -->
 <template id="ganttTemplate">__GANTT_HTML__</template>
+<template id="methodologyTemplate">__METHODOLOGY_HTML__</template>
 
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-hidden="true">
@@ -485,56 +541,39 @@ function currentRows() {
 }
 
 // ── RENDER LIST ──
+// We never rebuild the row HTML — it's already pre-rendered as <details>
+// elements in the page. Filtering just toggles display on each row.
+let cachedListNode = null;
+function ensureListMounted() {
+  const pane = document.getElementById("listPane");
+  if (!document.querySelector("#listInner") && cachedListNode) {
+    pane.innerHTML = "";
+    pane.appendChild(cachedListNode);
+  }
+}
 function renderList() {
   const pane = document.getElementById("listPane");
   if (state.view === "timeline") return renderTimeline(pane);
   if (state.view === "stats") return renderStats(pane);
   if (state.view === "gantt") return renderGantt(pane);
+  if (state.view === "methodology") return renderMethodology(pane);
 
+  ensureListMounted();
   const rows = currentRows();
+  const visibleIds = new Set(rows.map(r => r.id));
+  let shown = 0;
+  document.querySelectorAll("#listInner > .row").forEach(row => {
+    const show = visibleIds.has(row.dataset.id);
+    row.style.display = show ? "" : "none";
+    if (show) shown++;
+  });
+
   const title = ({
     inbox: "All emails", starred: "Starred", flagged: "Flagged",
     noted: "With notes", outbound: "Sent by you", cat: state.category || "Category",
   })[state.view] || state.view;
   document.getElementById("viewTitle").textContent = title;
-  document.getElementById("viewMeta").textContent = rows.length + (rows.length === 1 ? " email" : " emails");
-
-  if (!rows.length) {
-    pane.innerHTML = `<div class="empty"><div class="ic">📭</div><p>No emails match this view.</p></div>`;
-    return;
-  }
-  pane.innerHTML = `<div class="list" id="listInner">
-    ${rows.map(r => `
-      <div class="row ${state.selectedId === r.id ? 'selected' : ''} ${state.notes[r.id] ? 'has-note' : ''}" data-id="${r.id}">
-        <button class="star ${state.starred.has(r.id) ? 'on' : ''}" data-act="star" data-id="${r.id}" title="Star">${state.starred.has(r.id) ? '★' : '☆'}</button>
-        <button class="flag ${state.flagged.has(r.id) ? 'on' : ''}" data-act="flag" data-id="${r.id}" title="Flag">🚩</button>
-        <div>
-          <div class="when">${fmtShortDate(r.date)}</div>
-          <span class="dir ${r.direction}">${r.direction === "Inbound" ? "IN" : "OUT"}</span>
-        </div>
-        <div class="sub">
-          <div class="subj">${esc(r.subject)}</div>
-          <div class="snip">${esc(r.summary)}</div>
-        </div>
-        <div class="cat"><span class="tag ${categoryClass(r.category)}">${esc(r.category)}</span></div>
-        <div class="chev">›</div>
-      </div>
-    `).join("")}
-  </div>`;
-
-  pane.querySelectorAll(".row").forEach(row => {
-    row.addEventListener("click", (e) => {
-      const act = e.target.closest("[data-act]");
-      if (act) {
-        e.stopPropagation();
-        const id = act.dataset.id;
-        if (act.dataset.act === "star") toggleStar(id);
-        if (act.dataset.act === "flag") toggleFlag(id);
-        return;
-      }
-      openDrawer(row.dataset.id);
-    });
-  });
+  document.getElementById("viewMeta").textContent = shown + (shown === 1 ? " email" : " emails");
 }
 
 // ── DRAWER ──
@@ -617,19 +656,23 @@ function closeDrawer() {
 
 function toggleStar(id) {
   if (state.starred.has(id)) state.starred.delete(id); else state.starred.add(id);
-  saveState(); updateSidebarCounts(); renderList();
-  if (state.selectedId === id) openDrawer(id);
+  saveState(); updateSidebarCounts();
+  // Update the specific button in place
+  const btn = document.querySelector(`#listInner .row[data-id="${id}"] .star`);
+  if (btn) {
+    btn.classList.toggle("on", state.starred.has(id));
+    btn.textContent = state.starred.has(id) ? "★" : "☆";
+  }
+  // If currently filtered to starred-only, re-apply the filter
+  if (state.view === "starred") renderList();
 }
 function toggleFlag(id) {
   if (state.flagged.has(id)) state.flagged.delete(id); else state.flagged.add(id);
-  saveState(); updateSidebarCounts(); renderList();
-  if (state.selectedId === id) openDrawer(id);
+  saveState(); updateSidebarCounts();
+  const btn = document.querySelector(`#listInner .row[data-id="${id}"] .flag`);
+  if (btn) btn.classList.toggle("on", state.flagged.has(id));
+  if (state.view === "flagged") renderList();
 }
-
-document.getElementById("dStar").addEventListener("click", () => state.selectedId && toggleStar(state.selectedId));
-document.getElementById("dFlag").addEventListener("click", () => state.selectedId && toggleFlag(state.selectedId));
-document.getElementById("dClose").addEventListener("click", closeDrawer);
-document.getElementById("scrim").addEventListener("click", closeDrawer);
 
 // ── TIMELINE PAGE ──
 function renderTimeline(pane) {
@@ -677,6 +720,15 @@ function renderGantt(pane) {
       renderList();
     });
   });
+}
+
+// ── METHODOLOGY PAGE ──
+function renderMethodology(pane) {
+  document.getElementById("viewTitle").textContent = "Methodology";
+  document.getElementById("viewMeta").textContent = "How this report was built";
+  const tpl = document.getElementById("methodologyTemplate");
+  pane.innerHTML = "";
+  pane.appendChild(tpl.content.cloneNode(true));
 }
 
 // ── STATS PAGE ──
@@ -813,10 +865,15 @@ document.getElementById("exportBtn").addEventListener("click", () => {
 buildCategoryList();
 updateSidebarCounts();
 
-// Hook click handlers onto the pre-rendered rows (they already exist in the DOM)
-// and apply persisted star/flag/note state to them.
+// Hook handlers onto the pre-rendered <details> rows. Rows expand inline
+// via the native <details>/<summary> behavior — no JS needed for that.
+// JS adds star/flag toggling and saves note text to localStorage.
 function wireExistingRows() {
   const pane = document.getElementById("listPane");
+  // Cache the list node so we can re-mount it after switching to special pages
+  const inner = document.querySelector("#listInner");
+  if (inner) cachedListNode = inner;
+
   pane.querySelectorAll(".row").forEach(row => {
     const id = row.dataset.id;
     if (state.starred.has(id)) {
@@ -825,22 +882,33 @@ function wireExistingRows() {
     if (state.flagged.has(id)) {
       const f = row.querySelector(".flag"); if (f) f.classList.add("on");
     }
-    if (state.notes[id]) row.classList.add("has-note");
-    row.addEventListener("click", (e) => {
-      const act = e.target.closest("[data-act]");
-      if (act) {
+    if (state.notes[id]) {
+      row.classList.add("has-note");
+      const ta = row.querySelector("textarea.note-inline");
+      if (ta) ta.value = state.notes[id];
+    }
+    // Star/flag buttons inside the <summary>: prevent the click from
+    // triggering the details toggle, then handle the action.
+    row.querySelectorAll("[data-act]").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
         e.stopPropagation();
-        const aid = act.dataset.id;
-        if (act.dataset.act === "star") toggleStar(aid);
-        if (act.dataset.act === "flag") toggleFlag(aid);
-        return;
-      }
-      // Don't hijack the ↗ link in the chevron column
-      if (e.target.closest("a")) return;
-      openDrawer(row.dataset.id);
+        const aid = btn.dataset.id;
+        if (btn.dataset.act === "star") toggleStar(aid);
+        if (btn.dataset.act === "flag") toggleFlag(aid);
+      });
     });
+    // Persist note edits
+    const ta = row.querySelector("textarea.note-inline");
+    if (ta) {
+      ta.addEventListener("input", (e) => {
+        const v = e.target.value.trim();
+        if (v) state.notes[id] = v; else delete state.notes[id];
+        row.classList.toggle("has-note", !!state.notes[id]);
+        saveState(); updateSidebarCounts();
+      });
+    }
   });
-  // Update the view meta
   document.getElementById("viewMeta").textContent = pane.querySelectorAll(".row").length + " emails";
 }
 wireExistingRows();

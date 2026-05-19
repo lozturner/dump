@@ -16,6 +16,15 @@ from build_releaf_csv import records  # noqa: E402
 HERE = Path(__file__).parent
 tpl = (HERE / "app_template.html").read_text(encoding="utf-8")
 
+# Load full email bodies if the fetcher subagent has produced them.
+bodies_path = HERE / "email_bodies.json"
+BODIES = {}
+if bodies_path.exists():
+    try:
+        BODIES = json.loads(bodies_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        print(f"WARN: could not parse {bodies_path}: {e}")
+
 def esc(s):
     return _html.escape(str(s), quote=True)
 
@@ -43,24 +52,70 @@ def fmt_full(iso: str) -> str:
 
 # ─── Pre-render list (newest first) ───
 rows = sorted(records, key=lambda r: r["date"], reverse=True)
+
+def render_body(r):
+    """Return the expanded-detail HTML for a single record."""
+    body_info = BODIES.get(r["id"])
+    if body_info and body_info.get("body"):
+        # Preserve line breaks but escape HTML
+        body_html = (
+            '<div class="body-block"><div class="block-label">Full email body</div>'
+            f'<pre class="body-text">{esc(body_info["body"])}</pre></div>'
+        )
+    else:
+        body_html = (
+            '<div class="body-block muted-block">'
+            '<div class="block-label">Full email body</div>'
+            '<p class="muted small">Only the Gmail snippet is available for this message — '
+            'open it in Gmail (button below) to read the full content. Manually-written '
+            "support replies and Loz's outbound emails have full bodies; automated "
+            'notifications (prescription paid, DPD updates, payment receipts) do not.</p>'
+            '</div>'
+        )
+    return f'''
+  <div class="row-expanded">
+    <dl class="meta-grid">
+      <dt>From</dt><dd>{esc(r['from'])}</dd>
+      <dt>To</dt><dd>{esc(r['to'])}</dd>
+      <dt>Date</dt><dd>{esc(fmt_full(r['date']))}</dd>
+      <dt>Direction</dt><dd>{esc(r['direction'])}</dd>
+      <dt>Category</dt><dd><span class="tag {cat_class(r['category'])}">{esc(r['category'])}</span></dd>
+      <dt>Msg ID</dt><dd><code>{esc(r['id'])}</code></dd>
+    </dl>
+    <div class="block-label">Summary (auto-generated)</div>
+    <p class="summary-text">{esc(r['summary'])}</p>
+    {body_html}
+    <div class="row-notes" data-notes-for="{esc(r['id'])}">
+      <div class="block-label">Your notes <span class="muted small">(saved locally when JS is on)</span></div>
+      <textarea class="note-inline" data-id="{esc(r['id'])}" placeholder="Add a private note…"></textarea>
+    </div>
+    <div class="row-actions">
+      <a class="gm-btn" href="{esc(r['url'])}" target="_blank" rel="noopener">↗ Open this email in Gmail</a>
+    </div>
+  </div>
+'''
+
 row_html_parts = []
 for r in rows:
     dir_short = "IN" if r["direction"] == "Inbound" else "OUT"
+    has_body_dot = '<span class="has-body" title="Full body available">●</span>' if BODIES.get(r["id"]) else ""
     row_html_parts.append(f'''
-<div class="row" data-id="{esc(r['id'])}" data-cat="{esc(r['category'])}" data-dir="{esc(r['direction'])}" data-date="{esc(r['date'])}">
-  <button class="star" data-act="star" data-id="{esc(r['id'])}" title="Star">☆</button>
-  <button class="flag" data-act="flag" data-id="{esc(r['id'])}" title="Flag">🚩</button>
-  <div class="meta">
-    <span class="when">{esc(fmt_short(r['date']))}</span>
-    <span class="dir {esc(r['direction'])}">{dir_short}</span>
-    <span class="tag {cat_class(r['category'])} cat-tag">{esc(r['category'])}</span>
-  </div>
-  <div class="sub">
-    <div class="subj">{esc(r['subject'])}</div>
-    <div class="snip">{esc(r['summary'])}</div>
-  </div>
-  <a class="chev" href="{esc(r['url'])}" target="_blank" rel="noopener" title="Open in Gmail">↗</a>
-</div>''')
+<details class="row" data-id="{esc(r['id'])}" data-cat="{esc(r['category'])}" data-dir="{esc(r['direction'])}" data-date="{esc(r['date'])}">
+  <summary class="row-summary">
+    <button class="star" data-act="star" data-id="{esc(r['id'])}" title="Star" type="button">☆</button>
+    <button class="flag" data-act="flag" data-id="{esc(r['id'])}" title="Flag" type="button">🚩</button>
+    <div class="meta">
+      <span class="when">{esc(fmt_short(r['date']))}</span>
+      <span class="dir {esc(r['direction'])}">{dir_short}</span>
+      <span class="tag {cat_class(r['category'])} cat-tag">{esc(r['category'])}</span>
+      {has_body_dot}
+    </div>
+    <div class="sub">
+      <div class="subj">{esc(r['subject'])}</div>
+      <div class="snip">{esc(r['summary'])}</div>
+    </div>
+    <span class="chev-marker">▸</span>
+  </summary>{render_body(r)}</details>''')
 initial_list = '<div class="list" id="listInner">' + "".join(row_html_parts) + "</div>"
 
 # ─── Pre-render Gantt-style visual timeline ───
@@ -156,11 +211,96 @@ gantt_html = f'''
 </div>
 '''
 
-# ─── Stitch ───
+# ─── Methodology / backend transparency page ───
+generated_at = datetime.utcnow().strftime("%d %b %Y, %H:%M UTC")
+bodies_count = len(BODIES)
+by_cat_sorted = sorted(cat_count.items(), key=lambda kv: -kv[1])
+by_sender = Counter(r["from"] for r in records).most_common(15)
+
+methodology_html = f'''
+<div class="meth">
+  <div class="meth-card">
+    <h2>How this report was built</h2>
+    <p class="muted">Generated {esc(generated_at)} from the lozturner@gmail.com inbox.</p>
+    <ol>
+      <li>Gmail was searched for every thread mentioning <code>Releaf</code> (and <code>releaf.co.uk</code>) using the Gmail API
+        via the Claude MCP <code>search_threads</code> tool. All result pages were paginated.</li>
+      <li>Each matching thread was inspected; every individual message was extracted to a row in this report.
+        Surrounding emails — DPD delivery notifications, Stripe payment-failure alerts,
+        PayPal/Curve receipts, Google Calendar invites, and Loz's own outbound replies —
+        were included so the relationship is visible in context.</li>
+      <li>{bodies_count} of the more substantive threads were re-fetched with <code>get_thread</code> in
+        <code>FULL_CONTENT</code> mode to capture the full body text (manually-written support
+        replies, complaints, GP correspondence, Loz's outbound emails). Automated emails
+        kept only their Gmail snippet because the snippet is essentially the whole template.</li>
+      <li>Categories were assigned heuristically from subject lines and senders. Summaries
+        were written from the Gmail snippet plus any full body that was fetched.</li>
+      <li>The whole dataset is embedded in this single HTML file as a JSON literal — see
+        the <em>Raw data</em> block at the bottom of this page. The same data is exported
+        as <code>releaf_emails_chronology.csv</code> alongside this file.</li>
+    </ol>
+  </div>
+
+  <div class="meth-card">
+    <h3>Numbers</h3>
+    <ul class="kv">
+      <li><strong>Total messages indexed:</strong> {len(records)}</li>
+      <li><strong>Distinct categories:</strong> {len(by_cat_sorted)}</li>
+      <li><strong>Full bodies fetched:</strong> {bodies_count}</li>
+      <li><strong>Date range:</strong> {esc(records[0]['date'][:10]) if records else '—'} → {esc(records[-1]['date'][:10]) if records else '—'}</li>
+      <li><strong>Inbound:</strong> {sum(1 for r in records if r['direction']=='Inbound')}</li>
+      <li><strong>Outbound from Loz:</strong> {sum(1 for r in records if r['direction']=='Outbound')}</li>
+    </ul>
+  </div>
+
+  <div class="meth-card">
+    <h3>Top senders</h3>
+    <table class="meth-tbl">
+      <thead><tr><th>Sender</th><th style="text-align:right">Emails</th></tr></thead>
+      <tbody>
+        {"".join(f'<tr><td><code>{esc(s)}</code></td><td style="text-align:right">{n}</td></tr>' for s, n in by_sender)}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="meth-card">
+    <h3>All categories</h3>
+    <table class="meth-tbl">
+      <thead><tr><th>Category</th><th style="text-align:right">Count</th></tr></thead>
+      <tbody>
+        {"".join(f'<tr><td><span class="tag {cat_class(c)}">{esc(c)}</span></td><td style="text-align:right">{n}</td></tr>' for c, n in by_cat_sorted)}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="meth-card">
+    <h3>Source code</h3>
+    <p>The pipeline that built this report is in the repo on branch
+    <code>claude/email-chronology-report-fqunL</code>:</p>
+    <ul class="kv">
+      <li><code>build_releaf_csv.py</code> — defines the 429-row dataset and writes the CSV</li>
+      <li><code>build_app.py</code> — stitches the data + bodies into this HTML</li>
+      <li><code>app_template.html</code> — the page template (CSS + JS)</li>
+      <li><code>email_bodies.json</code> — full body text for fetched messages</li>
+    </ul>
+  </div>
+
+  <div class="meth-card">
+    <h3>Raw data (JSON)</h3>
+    <p class="muted small">All {len(records)} records as embedded in this page. Click to expand.</p>
+    <details>
+      <summary class="small muted">Show raw JSON ({len(json.dumps(records, ensure_ascii=False)):,} chars)</summary>
+      <pre class="raw-json">{esc(json.dumps(records, ensure_ascii=False, indent=2))}</pre>
+    </details>
+  </div>
+</div>
+'''
 out = (tpl
     .replace("__DATA_JSON__", json.dumps(records, ensure_ascii=False))
     .replace("__INITIAL_LIST__", initial_list)
     .replace("__GANTT_HTML__", gantt_html)
+    .replace("__METHODOLOGY_HTML__", methodology_html)
+    .replace("__BODIES_COUNT__", str(bodies_count))
     .replace("__TOTAL__", str(len(records)))
     .replace("__FIRST_MONTH__", month_label(months_set[0]))
     .replace("__LAST_MONTH__", month_label(months_set[-1]))
