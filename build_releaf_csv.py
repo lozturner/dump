@@ -1383,12 +1383,17 @@ HTML = """<!doctype html>
 <head>
 <meta charset=\"utf-8\">
 <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
-<title>Releaf Chronology — Loz</title>
+<title>Releaf — Email Chronology</title>
 <style>
 :root {
-  --bg: #f7f7f5; --card: #ffffff; --text: #1a1a1a; --muted: #6b7280;
-  --border: #e5e7eb; --accent: #0f766e; --accent-soft: #ccfbf1;
-  --warn: #b91c1c; --warn-soft: #fee2e2; --ok: #166534; --ok-soft: #dcfce7;
+  --bg: #f4f4f1; --pane: #ffffff; --text: #111827; --muted: #6b7280;
+  --border: #e5e7eb; --border-soft: #f1f5f9;
+  --accent: #0f766e; --accent-soft: #ccfbf1; --accent-text: #134e4a;
+  --star: #f59e0b; --star-soft: #fef3c7;
+  --warn: #b91c1c; --warn-soft: #fee2e2;
+  --ok: #166534; --ok-soft: #dcfce7;
+  --purple: #6d28d9; --purple-soft: #ede9fe;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 1px 3px rgba(0,0,0,.06);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
