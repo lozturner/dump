@@ -305,6 +305,115 @@ a:hover { text-decoration: underline; }
 .no-js .no-js-notice { display: block; padding: 10px 16px; background: #fef3c7;
   border-bottom: 1px solid #fde68a; font-size: 12px; color: #92400e; }
 
+/* Pin / Add-to-chronology */
+.pin-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px;
+  border: 1px solid var(--accent); background: white; color: var(--accent-text);
+  border-radius: 8px; cursor: pointer; font-weight: 500;
+}
+.pin-btn:hover { background: var(--accent-soft); }
+.pin-btn.pinned { background: var(--accent); color: white; border-color: var(--accent); }
+.pin-note-form {
+  margin-top: 8px; padding: 12px; background: #fffbe7; border: 1px solid var(--star);
+  border-radius: 8px;
+}
+.pin-note-form textarea {
+  width: 100%; min-height: 60px; padding: 8px; border: 1px solid var(--border);
+  border-radius: 6px; font: inherit; resize: vertical; margin-bottom: 8px;
+}
+.pin-note-form .actions { display: flex; gap: 8px; }
+.pin-note-form button {
+  padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
+  background: white; cursor: pointer;
+}
+.pin-note-form button.save { background: var(--accent); color: white; border-color: var(--accent); }
+.pin-note-form button.save:hover { background: #115e59; }
+
+/* System chronology narrative */
+.chron-narrative { padding: 20px; max-width: 820px; margin: 0 auto; }
+.chron-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.chron-header h2 { margin: 0 0 6px; font-size: 22px; }
+.chron-phase {
+  background: var(--pane); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px 22px; margin-bottom: 14px; box-shadow: var(--shadow-sm);
+}
+.chron-phase header { margin-bottom: 8px; }
+.chron-phase header h3 { margin: 4px 0 0; font-size: 17px; }
+.chron-when {
+  display: inline-block; padding: 2px 10px; background: var(--accent-soft);
+  color: var(--accent-text); border-radius: 999px; font-size: 12px; font-weight: 600;
+}
+.chron-phase p { line-height: 1.6; margin: 8px 0; }
+.chron-ref {
+  display: inline-block; padding: 0 4px; margin-left: 1px; background: var(--bg);
+  border-radius: 3px; font-size: 11px; color: var(--accent); cursor: pointer;
+  text-decoration: none; border: 1px solid var(--border-soft);
+}
+.chron-ref:hover { background: var(--accent-soft); border-color: var(--accent); }
+.chron-summary { background: var(--accent-soft); border-color: var(--accent); }
+.chron-summary h3 { color: var(--accent-text); }
+
+/* My chronology */
+.my-chron { padding: 16px; max-width: 820px; margin: 0 auto; }
+.my-chron-empty {
+  text-align: center; padding: 60px 20px; background: var(--pane);
+  border: 2px dashed var(--border); border-radius: 12px;
+}
+.my-chron-empty .ic { font-size: 40px; opacity: .4; margin-bottom: 12px; }
+.my-chron-empty h3 { margin: 0 0 6px; }
+.my-chron-empty p { color: var(--muted); margin: 6px 0; }
+.my-chron-actions { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+.my-chron-item {
+  background: var(--pane); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; margin-bottom: 10px; box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--accent);
+}
+.my-chron-item .head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+.my-chron-item .head .when { color: var(--muted); font-size: 12px; }
+.my-chron-item .subj { font-weight: 600; margin: 4px 0; }
+.my-chron-item .summary { color: var(--muted); font-size: 13px; margin: 4px 0; }
+.my-chron-item .my-note {
+  background: #fffbe7; padding: 10px 12px; border-radius: 6px; margin-top: 10px;
+  font-size: 13px; line-height: 1.5; border-left: 3px solid var(--star);
+}
+.my-chron-item .my-note-label {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--muted);
+  letter-spacing: .04em; margin-bottom: 4px;
+}
+.my-chron-item .item-actions { margin-top: 10px; display: flex; gap: 8px; }
+.my-chron-item .item-actions button, .my-chron-item .item-actions a {
+  padding: 5px 10px; font-size: 12px; border-radius: 6px;
+  border: 1px solid var(--border); background: white; cursor: pointer; color: var(--text);
+  text-decoration: none;
+}
+.my-chron-item .item-actions button.remove { color: var(--flag); border-color: #fecaca; }
+.my-chron-item .item-actions button.remove:hover { background: var(--flag-soft); }
+
+/* Gantt-cell drawer: lists emails in a clicked cell */
+.cell-drawer-content { padding: 14px 16px; }
+.cell-drawer-content .cell-email {
+  border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px;
+  margin-bottom: 10px; background: var(--pane);
+}
+.cell-drawer-content .cell-email .head {
+  display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 6px;
+  font-size: 12px; color: var(--muted);
+}
+.cell-drawer-content .cell-email .subj { font-weight: 600; margin: 4px 0; }
+.cell-drawer-content .cell-email .body-snip {
+  background: var(--bg); padding: 8px 10px; border-radius: 6px; max-height: 200px;
+  overflow-y: auto; font-size: 12px; white-space: pre-wrap; margin-top: 8px;
+  border: 1px solid var(--border-soft);
+}
+.cell-drawer-content .cell-email .actions { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+.cell-drawer-content .cell-email .actions a, .cell-drawer-content .cell-email .actions button {
+  padding: 5px 10px; font-size: 12px; border-radius: 6px; border: 1px solid var(--border);
+  background: white; cursor: pointer; text-decoration: none; color: var(--text);
+}
+.cell-drawer-content .cell-email .actions .pin-btn {
+  font-size: 12px; padding: 5px 10px;
+}
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
   :root { --sidebar-w: 56px; --drawer-w: 100vw; }
@@ -384,7 +493,8 @@ a:hover { text-decoration: underline; }
 
     <div class="sb-section">Pages</div>
     <button class="sb-item" data-view="gantt"><span class="ic">📈</span><span>Visual timeline</span></button>
-    <button class="sb-item" data-view="timeline"><span class="ic">📅</span><span>Chronology</span></button>
+    <button class="sb-item" data-view="myChron"><span class="ic">📌</span><span>My chronology</span><span class="count" id="c-myChron"></span></button>
+    <button class="sb-item" data-view="sysChron"><span class="ic">📜</span><span>System story</span></button>
     <button class="sb-item" data-view="stats"><span class="ic">📊</span><span>Overview</span></button>
     <button class="sb-item" data-view="methodology"><span class="ic">🔍</span><span>Methodology</span></button>
 
@@ -417,6 +527,7 @@ a:hover { text-decoration: underline; }
 <!-- pre-rendered pages cached in <template> elements; JS swaps them into #listPane when a sidebar tab is clicked. -->
 <template id="ganttTemplate">__GANTT_HTML__</template>
 <template id="methodologyTemplate">__METHODOLOGY_HTML__</template>
+<template id="sysChronTemplate">__SYSTEM_CHRONOLOGY_HTML__</template>
 
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" aria-hidden="true">
@@ -449,6 +560,7 @@ function saveState() {
     starred: [...state.starred],
     flagged: [...state.flagged],
     tags: state.tags,
+    myChronology: state.myChronology,
   }));
 }
 const persisted = loadState();
@@ -461,6 +573,7 @@ const state = {
   starred: new Set(persisted.starred || []),
   flagged: new Set(persisted.flagged || []),
   tags: persisted.tags || {},
+  myChronology: persisted.myChronology || [],   // array of {id, note, added}
 };
 
 // ── HELPERS ──
@@ -501,6 +614,37 @@ function updateSidebarCounts() {
   document.getElementById("c-flagged").textContent = state.flagged.size;
   document.getElementById("c-noted").textContent = Object.values(state.notes).filter(Boolean).length;
   document.getElementById("c-outbound").textContent = DATA.filter(r => r.direction === "Outbound").length;
+  const myChronEl = document.getElementById("c-myChron");
+  if (myChronEl) myChronEl.textContent = state.myChronology.length;
+}
+
+// ─── My chronology — add/remove ───
+function isInChronology(id) { return state.myChronology.some(x => x.id === id); }
+function addToChronology(id, note) {
+  if (isInChronology(id)) return;
+  state.myChronology.push({ id, note: note || "", added: new Date().toISOString() });
+  saveState();
+  updateSidebarCounts();
+  // Update the pin button visually in any rows showing this id
+  document.querySelectorAll(`[data-pin-id="${id}"]`).forEach(b => {
+    b.classList.add("pinned");
+    b.textContent = "✓ In my chronology";
+  });
+}
+function removeFromChronology(id) {
+  state.myChronology = state.myChronology.filter(x => x.id !== id);
+  saveState();
+  updateSidebarCounts();
+  document.querySelectorAll(`[data-pin-id="${id}"]`).forEach(b => {
+    b.classList.remove("pinned");
+    b.textContent = "📌 Add to my chronology";
+  });
+  // If we're viewing My Chronology, re-render
+  if (state.view === "myChron") renderList();
+}
+function updateChronologyNote(id, note) {
+  const item = state.myChronology.find(x => x.id === id);
+  if (item) { item.note = note; saveState(); }
 }
 
 document.getElementById("metaTotal").textContent =
@@ -557,6 +701,8 @@ function renderList() {
   if (state.view === "stats") return renderStats(pane);
   if (state.view === "gantt") return renderGantt(pane);
   if (state.view === "methodology") return renderMethodology(pane);
+  if (state.view === "myChron") return renderMyChronology(pane);
+  if (state.view === "sysChron") return renderSystemChronology(pane);
 
   ensureListMounted();
   const rows = currentRows();
@@ -704,25 +850,205 @@ function renderTimeline(pane) {
 // ── GANTT PAGE ──
 function renderGantt(pane) {
   document.getElementById("viewTitle").textContent = "Visual timeline";
-  document.getElementById("viewMeta").textContent = "Top categories by month — click a cell to filter";
+  document.getElementById("viewMeta").textContent = "Click any green cell to read the emails for that month × category";
   const tpl = document.getElementById("ganttTemplate");
   pane.innerHTML = "";
   pane.appendChild(tpl.content.cloneNode(true));
   pane.querySelectorAll(".g-cell.on").forEach(c => {
     c.addEventListener("click", () => {
-      // Switch to inbox view filtered by that category + that month
-      state.view = "cat";
-      state.category = c.dataset.cat;
-      state.quick = null;
-      state.search = c.dataset.month;  // YYYY-MM matches our date prefix in search
-      document.getElementById("searchInput").value = c.dataset.month;
-      document.querySelectorAll("#sidebar .sb-item").forEach(b => b.classList.remove("active"));
-      renderList();
+      openCellDrawer(c.dataset.cat, c.dataset.month);
     });
   });
 }
 
-// ── METHODOLOGY PAGE ──
+// ─── DRAWER (right-side panel) ──
+function openCellDrawer(cat, month) {
+  const drawer = document.getElementById("drawer");
+  const body = document.getElementById("dBody");
+  const dCat = document.getElementById("dCat");
+  const dDir = document.getElementById("dDir");
+  // Find all emails for this cell
+  const emails = DATA.filter(r => r.category === cat && r.date.slice(0,7) === month)
+                     .sort((a,b) => a.date.localeCompare(b.date));
+  dCat.textContent = cat;
+  dCat.className = "tag " + categoryClass(cat);
+  dDir.textContent = month;
+  dDir.className = "tag muted";
+  document.getElementById("dStar").style.display = "none";
+  document.getElementById("dFlag").style.display = "none";
+  body.innerHTML = `<div class="cell-drawer-content">
+    <p class="muted small">${emails.length} email${emails.length !== 1 ? "s" : ""} in ${esc(cat)} during ${esc(new Date(month + "-01").toLocaleDateString("en-GB", { month:"long", year:"numeric" }))}</p>
+    ${emails.map(r => {
+      const bodyInfo = BODIES[r.id];
+      const bodyHtml = bodyInfo && bodyInfo.body
+        ? `<div class="body-snip">${esc(bodyInfo.body)}</div>`
+        : `<p class="muted small" style="margin-top:8px">No full body fetched for this message — open in Gmail for the full content.</p>`;
+      const pinned = isInChronology(r.id);
+      return `<div class="cell-email" data-id="${r.id}">
+        <div class="head">
+          <span>${fmtDate(r.date)}</span>
+          <span class="dir ${r.direction}">${r.direction === "Inbound" ? "IN" : "OUT"}</span>
+          <span class="muted small">${esc(r.from)} → ${esc(r.to)}</span>
+        </div>
+        <div class="subj">${esc(r.subject)}</div>
+        <div class="muted small">${esc(r.summary)}</div>
+        ${bodyHtml}
+        <div class="actions">
+          <a href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
+          <button class="pin-btn ${pinned ? "pinned" : ""}" data-pin-id="${r.id}" type="button">
+            ${pinned ? "✓ In my chronology" : "📌 Add to my chronology"}
+          </button>
+        </div>
+      </div>`;
+    }).join("")}
+  </div>`;
+  wirePinButtons(body);
+  drawer.classList.add("open");
+  document.getElementById("scrim").classList.add("show");
+}
+
+function openSingleEmailDrawer(id) {
+  const r = BY_ID[id];
+  if (!r) return;
+  const drawer = document.getElementById("drawer");
+  const body = document.getElementById("dBody");
+  document.getElementById("dCat").textContent = r.category;
+  document.getElementById("dCat").className = "tag " + categoryClass(r.category);
+  document.getElementById("dDir").textContent = r.direction;
+  document.getElementById("dDir").className = "dir " + r.direction;
+  document.getElementById("dStar").style.display = "";
+  document.getElementById("dFlag").style.display = "";
+  document.getElementById("dStar").textContent = state.starred.has(id) ? "★" : "☆";
+  document.getElementById("dStar").style.color = state.starred.has(id) ? "var(--star)" : "var(--muted)";
+  document.getElementById("dStar").dataset.id = id;
+  document.getElementById("dFlag").style.color = state.flagged.has(id) ? "var(--flag)" : "var(--muted)";
+  document.getElementById("dFlag").dataset.id = id;
+  const bodyInfo = BODIES[id];
+  const bodyHtml = bodyInfo && bodyInfo.body
+    ? `<div class="body-block"><div class="block-label">Full email body</div><pre class="body-text">${esc(bodyInfo.body)}</pre></div>`
+    : `<div class="body-block muted-block"><div class="block-label">Full email body</div><p class="muted small">No full body fetched for this message — open in Gmail (button below).</p></div>`;
+  const pinned = isInChronology(id);
+  body.innerHTML = `<div style="padding:14px 16px">
+    <h3 style="margin:0 0 8px">${esc(r.subject)}</h3>
+    <dl class="meta-grid">
+      <dt>From</dt><dd>${esc(r.from)}</dd>
+      <dt>To</dt><dd>${esc(r.to)}</dd>
+      <dt>Date</dt><dd>${esc(fmtDate(r.date))}</dd>
+      <dt>Msg ID</dt><dd><code>${esc(r.id)}</code></dd>
+    </dl>
+    <div class="block-label">Summary</div>
+    <p class="summary-text">${esc(r.summary)}</p>
+    ${bodyHtml}
+    <div style="margin-top:14px; display: flex; gap:8px; flex-wrap:wrap">
+      <a class="gm-btn" href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
+      <button class="pin-btn ${pinned ? "pinned" : ""}" data-pin-id="${id}" type="button">
+        ${pinned ? "✓ In my chronology" : "📌 Add to my chronology"}
+      </button>
+    </div>
+  </div>`;
+  wirePinButtons(body);
+  drawer.classList.add("open");
+  document.getElementById("scrim").classList.add("show");
+}
+
+function closeCellDrawer() {
+  document.getElementById("drawer").classList.remove("open");
+  document.getElementById("scrim").classList.remove("show");
+}
+
+// Replace the legacy openDrawer/closeDrawer with single-email opener.
+function openDrawer(id) { openSingleEmailDrawer(id); }
+function closeDrawer() { closeCellDrawer(); }
+
+// ── MY CHRONOLOGY ──
+function renderMyChronology(pane) {
+  document.getElementById("viewTitle").textContent = "My chronology";
+  document.getElementById("viewMeta").textContent = state.myChronology.length + " pinned email" + (state.myChronology.length === 1 ? "" : "s");
+  if (!state.myChronology.length) {
+    pane.innerHTML = `<div class="my-chron">
+      <div class="my-chron-empty">
+        <div class="ic">📌</div>
+        <h3>Your chronology is empty</h3>
+        <p>This page is your personal narrative — emails you've curated as important.</p>
+        <p class="small">To add: open <strong>Visual timeline</strong>, click any cell, then click "📌 Add to my chronology" on the email. You can also use the same button at the bottom of any expanded email in the All emails view.</p>
+      </div>
+    </div>`;
+    return;
+  }
+  const items = state.myChronology.slice().sort((a,b) => {
+    const ra = BY_ID[a.id], rb = BY_ID[b.id];
+    return (ra ? ra.date : a.added).localeCompare(rb ? rb.date : b.added);
+  });
+  pane.innerHTML = `<div class="my-chron">
+    <div class="my-chron-actions">
+      <button class="btn" id="exportChron">⤓ Export as JSON</button>
+      <button class="btn" id="clearChron">Clear all</button>
+      <span class="muted small">${items.length} pinned, sorted by email date.</span>
+    </div>
+    ${items.map(item => {
+      const r = BY_ID[item.id]; if (!r) return "";
+      const addedDate = item.added ? new Date(item.added).toLocaleDateString("en-GB", {day:"numeric", month:"short", year:"numeric"}) : "";
+      return `<div class="my-chron-item" data-id="${r.id}">
+        <div class="head">
+          <span class="when">${fmtDate(r.date)}</span>
+          <span class="dir ${r.direction}">${r.direction === "Inbound" ? "IN" : "OUT"}</span>
+          <span class="tag ${categoryClass(r.category)}">${esc(r.category)}</span>
+        </div>
+        <div class="subj">${esc(r.subject)}</div>
+        <div class="summary">${esc(r.summary)}</div>
+        <div class="my-note">
+          <div class="my-note-label">Your note · added ${esc(addedDate)}</div>
+          <textarea class="my-note-text" data-id="${r.id}" placeholder="Add or edit your note…">${esc(item.note || "")}</textarea>
+        </div>
+        <div class="item-actions">
+          <a href="${r.url}" target="_blank" rel="noopener">↗ Open in Gmail</a>
+          <button class="remove" data-remove-id="${r.id}">Remove</button>
+        </div>
+      </div>`;
+    }).join("")}
+  </div>`;
+  pane.querySelectorAll(".my-note-text").forEach(ta => {
+    ta.addEventListener("input", (e) => updateChronologyNote(ta.dataset.id, e.target.value));
+  });
+  pane.querySelectorAll("[data-remove-id]").forEach(btn => {
+    btn.addEventListener("click", () => removeFromChronology(btn.dataset.removeId));
+  });
+  pane.querySelector("#exportChron")?.addEventListener("click", () => {
+    const out = state.myChronology.map(item => {
+      const r = BY_ID[item.id] || {};
+      return { ...item, subject: r.subject, date: r.date, from: r.from, to: r.to, category: r.category, summary: r.summary, gmailUrl: r.url };
+    });
+    const blob = new Blob([JSON.stringify(out, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "my-releaf-chronology.json";
+    a.click();
+  });
+  pane.querySelector("#clearChron")?.addEventListener("click", () => {
+    if (confirm("Remove all " + state.myChronology.length + " pinned emails from your chronology?")) {
+      state.myChronology = [];
+      saveState(); updateSidebarCounts(); renderList();
+    }
+  });
+}
+
+// ─── SYSTEM CHRONOLOGY (AI narrative) ──
+function renderSystemChronology(pane) {
+  document.getElementById("viewTitle").textContent = "System chronology";
+  document.getElementById("viewMeta").textContent = "AI-written narrative of the relationship";
+  const tpl = document.getElementById("sysChronTemplate");
+  pane.innerHTML = "";
+  pane.appendChild(tpl.content.cloneNode(true));
+  // Wire chron-ref clicks → open the single email in a drawer
+  pane.querySelectorAll(".chron-ref").forEach(ref => {
+    ref.addEventListener("click", (e) => {
+      e.preventDefault();
+      openSingleEmailDrawer(ref.dataset.refId);
+    });
+  });
+}
+
+// ─── METHODOLOGY PAGE ──
 function renderMethodology(pane) {
   document.getElementById("viewTitle").textContent = "Methodology";
   document.getElementById("viewMeta").textContent = "How this report was built";
@@ -861,6 +1187,61 @@ document.getElementById("exportBtn").addEventListener("click", () => {
   a.click();
 });
 
+// ─── Pin button wiring (used by drawer, chronology page, and inline expanded rows) ──
+function wirePinButtons(root) {
+  const scope = root || document;
+  scope.querySelectorAll("[data-pin-id]").forEach(btn => {
+    if (btn.dataset.pinWired === "1") return;
+    btn.dataset.pinWired = "1";
+    // Reflect current state on initial render
+    if (isInChronology(btn.dataset.pinId)) {
+      btn.classList.add("pinned");
+      btn.textContent = "✓ In my chronology";
+    }
+    btn.addEventListener("click", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const id = btn.dataset.pinId;
+      if (isInChronology(id)) {
+        if (confirm("Remove this email from your chronology?")) removeFromChronology(id);
+        return;
+      }
+      showPinNoteForm(btn, id);
+    });
+  });
+}
+function showPinNoteForm(btn, id) {
+  if (btn.parentElement.querySelector(".pin-note-form")) return;
+  const r = BY_ID[id];
+  const form = document.createElement("div");
+  form.className = "pin-note-form";
+  form.innerHTML = `
+    <div class="muted small" style="margin-bottom:6px">Add a note for "${esc(r ? r.subject : id)}" (optional):</div>
+    <textarea placeholder="Why is this email important to you?"></textarea>
+    <div class="actions">
+      <button class="save" type="button">Save to chronology</button>
+      <button class="cancel" type="button">Cancel</button>
+    </div>
+  `;
+  btn.parentElement.appendChild(form);
+  const ta = form.querySelector("textarea");
+  ta.focus();
+  form.querySelector(".save").addEventListener("click", () => {
+    addToChronology(id, ta.value.trim());
+    form.remove();
+  });
+  form.querySelector(".cancel").addEventListener("click", () => form.remove());
+}
+
+// Close-drawer wiring (drawer is reused for cell view & single-email view)
+document.getElementById("dClose").addEventListener("click", closeCellDrawer);
+document.getElementById("scrim").addEventListener("click", closeCellDrawer);
+document.getElementById("dStar").addEventListener("click", (e) => {
+  const id = e.currentTarget.dataset.id; if (id) toggleStar(id);
+});
+document.getElementById("dFlag").addEventListener("click", (e) => {
+  const id = e.currentTarget.dataset.id; if (id) toggleFlag(id);
+});
+
 // ── INIT ──
 buildCategoryList();
 updateSidebarCounts();
@@ -910,6 +1291,7 @@ function wireExistingRows() {
     }
   });
   document.getElementById("viewMeta").textContent = pane.querySelectorAll(".row").length + " emails";
+  wirePinButtons(pane);
 }
 wireExistingRows();
 </script>
