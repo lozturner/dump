@@ -243,6 +243,9 @@ a:hover { text-decoration: underline; }
 .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 40; opacity: 0;
   pointer-events: none; transition: opacity .2s; }
 .scrim.show { opacity: 1; pointer-events: auto; }
+/* When the cell drawer is open we keep the Gantt visible underneath:
+   no dimming, but the empty page area still closes the drawer on click. */
+.scrim.show.no-dim { background: transparent; opacity: 1; }
 
 /* PAGES: stats, timeline */
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 12px; padding: 16px; }
@@ -278,9 +281,12 @@ a:hover { text-decoration: underline; }
   display: flex; align-items: center; gap: 6px; min-width: 0; }
 .g-count { color: var(--muted); font-size: 11px; margin-left: auto; }
 .g-cell { background: #eef2ee; height: 24px; border-radius: 3px; font-size: 10px;
-  display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; }
+  display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;
+  transition: transform .08s, box-shadow .08s, outline-color .1s; outline: 2px solid transparent; outline-offset: -1px; }
 .g-cell.on { cursor: pointer; }
-.g-cell.on:hover { outline: 2px solid var(--accent); outline-offset: -1px; }
+.g-cell.on:hover { outline-color: var(--accent); transform: scale(1.08); box-shadow: 0 2px 8px rgba(15,118,110,.3); z-index: 1; position: relative; }
+.g-cell.on.selected { outline: 3px solid var(--star); outline-offset: -2px;
+  box-shadow: 0 0 0 4px var(--star-soft), 0 2px 8px rgba(245,158,11,.3); position: relative; z-index: 2; }
 .g-legend { display: flex; gap: 14px; align-items: center; margin-top: 16px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
 .g-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 4px; vertical-align: middle; }
 
@@ -18671,7 +18677,7 @@ Patient Support Coordinator</pre></div>
 <div class="meth">
   <div class="meth-card">
     <h2>How this report was built</h2>
-    <p class="muted">Generated 19 May 2026, 19:50 UTC from the lozturner@gmail.com inbox.</p>
+    <p class="muted">Generated 19 May 2026, 21:06 UTC from the lozturner@gmail.com inbox.</p>
     <ol>
       <li>Gmail was searched for every thread mentioning <code>Releaf</code> (and <code>releaf.co.uk</code>) using the Gmail API
         via the Claude MCP <code>search_threads</code> tool. All result pages were paginated.</li>
@@ -24090,15 +24096,28 @@ function renderTimeline(pane) {
 }
 
 // ── GANTT PAGE ──
+let selectedGanttCell = null;
 function renderGantt(pane) {
   document.getElementById("viewTitle").textContent = "Visual timeline";
-  document.getElementById("viewMeta").textContent = "Click any green cell to read the emails for that month × category";
+  document.getElementById("viewMeta").textContent = "👆 Tap a green cell — the reading pane slides in from the right";
   const tpl = document.getElementById("ganttTemplate");
   pane.innerHTML = "";
   pane.appendChild(tpl.content.cloneNode(true));
   pane.querySelectorAll(".g-cell.on").forEach(c => {
-    c.addEventListener("click", () => {
+    c.setAttribute("role", "button");
+    c.setAttribute("tabindex", "0");
+    const open = () => {
+      // Toggle: clicking the same cell closes
+      if (selectedGanttCell === c) { closeCellDrawer(); return; }
+      // Move highlight
+      if (selectedGanttCell) selectedGanttCell.classList.remove("selected");
+      c.classList.add("selected");
+      selectedGanttCell = c;
       openCellDrawer(c.dataset.cat, c.dataset.month);
+    };
+    c.addEventListener("click", open);
+    c.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
     });
   });
 }
@@ -24166,7 +24185,9 @@ function openCellDrawer(cat, month) {
   </div>`;
   wirePinButtons(body);
   drawer.classList.add("open");
-  document.getElementById("scrim").classList.add("show");
+  // Cell drawer keeps the Gantt visible — no dimming.
+  const scrim = document.getElementById("scrim");
+  scrim.classList.add("show", "no-dim");
 }
 
 function openSingleEmailDrawer(id) {
@@ -24215,7 +24236,11 @@ function openSingleEmailDrawer(id) {
 
 function closeCellDrawer() {
   document.getElementById("drawer").classList.remove("open");
-  document.getElementById("scrim").classList.remove("show");
+  document.getElementById("scrim").classList.remove("show", "no-dim");
+  if (selectedGanttCell) {
+    selectedGanttCell.classList.remove("selected");
+    selectedGanttCell = null;
+  }
 }
 
 // Replace the legacy openDrawer/closeDrawer with single-email opener.
